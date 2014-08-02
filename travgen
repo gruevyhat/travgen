@@ -1,0 +1,102 @@
+#!/usr/bin/python
+
+"""
+Character generator for Mongoose Traveller. Any unspecified options will be
+generated randomly.
+
+Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
+                    [--gender <Male|Female>] [--upp HEX]
+                    [--method <normal|heroic|superherioc>]
+                    [--terms INT] [--path STR]
+                    [--expansions LIST]
+       travgen (-h | --help)
+
+Options:
+    -n --name STR          Character name.
+    -w --homeworld STR     Character's world of origin.
+    -e --ethnicity STR     Ethnic group and random naming convention;
+                             currently supports: American, Arabic, Brazilian,
+                             British, Chechen, Chinese, Czech, Danish,
+                             Filipino, Finnish, French, German, Greek,
+                             Hungary, Irish, Italian, Jamaican, Japanese,
+                             Korean, Mongolian, North Indian, Portuguese,
+                             Roma, Russian, Senegalese, Sicilian, Spanish,
+                             Thai.
+    -g --gender STR        Male or female.
+    -u --upp HEX           Supply a pre-generated UPP or it will be randomly
+                             generated.
+    -m --method STR        If no UPP, method for rolling characteristics:
+                             "normal", "heroic", "superheroic", "mediocre", or
+                             "extreme". [default: normal]
+    -t --terms INT         Number of terms to serve. [default: 3]
+    -p --path STR          Colon-delimited career path of the form:
+                             "career:spec::career:spec::...".
+    -x --expansions LIST   Comma-delimited list of Traveller expansions to
+                             include for career options. Currently supports:
+                             Agent, Dilettante, Scoundrel, and Cthonian Stars.
+    -h --help
+
+"""
+
+import sys
+from docopt import docopt
+from traveller_character.character import Character
+from traveller_character.career_data import *
+
+
+EXPANSIONS = ["Cthonian Stars", "Agent", "Scoundrel", "Dilettante"]
+
+
+def set_expansions(E):
+    global CAREERS
+    global FALLBACK_CAREERS
+    for exp in E:
+        if exp == "Cthonian Stars":
+            CAREERS.update(CTHONIAN_STARS)
+            del CAREERS["Nobility"]
+        if exp == "Dilettante":
+            CAREERS.update(DILETTANTE)
+        if exp == "Agent":
+            CAREERS.update(AGENT)
+            del CAREERS["Agent"]
+        if exp == "Scoundrel":
+            CAREERS.update(SCOUNDREL)
+            del CAREERS["Drifter"]
+            if "Drifter" in FALLBACK_CAREERS:
+                FALLBACK_CAREERS.remove("Drifter")
+            FALLBACK_CAREERS.extend(("Wanderer", "Scavenger"))
+
+
+def up1(text):
+    return text[0].upper()+text[1:]
+
+
+if __name__ == "__main__":
+
+    args = {k.replace("-", ""): v for k, v in docopt(__doc__).items()}
+
+    if args['path']:
+        path = [term.split(":")
+                for term in args['path'].split("::")]
+    else:
+        path = None
+
+    if args['expansions'] == 'all':
+        set_expansions(EXPANSIONS)
+    elif args['expansions']:
+        set_expansions([up1(a.strip()) for a in args['expansions'].split(',')])
+
+    try:
+        c = Character(name=args["name"],
+                      homeworld=args["homeworld"],
+                      gender=args["gender"],
+                      upp=args["upp"],
+                      ethnicity=args["ethnicity"],
+                      terms=int(args["terms"]),
+                      path=path,
+                      method=args["method"])
+        sys.stdout.write(repr(c)+"\n")
+    except KeyboardInterrupt:
+        pass
+
+    sys.exit()

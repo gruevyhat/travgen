@@ -1,0 +1,2 @@
+include travgen README.md LICENSE.txt
+recursive-include traveller_character *

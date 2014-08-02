@@ -98,5 +98,7 @@ if __name__ == "__main__":
         sys.stdout.write(repr(c)+"\n")
     except KeyboardInterrupt:
         pass
+    except:
+        print "Something unfortunate has happened."
 
     sys.exit()

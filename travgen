@@ -9,7 +9,12 @@ Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
                     [--method <normal|heroic|superherioc>]
                     [--terms INT] [--path STR]
                     [--expansions LIST]
+       travgen roll DICE
+       travgen UPP [--method <normal|heroic|superherioc>]
        travgen (-h | --help)
+
+Arguments:
+    DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
 Options:
     -n --name STR          Character name.
@@ -41,6 +46,8 @@ Options:
 import sys
 from docopt import docopt
 from traveller_character.character import Character
+from traveller_character.attributes import Stats
+from traveller_character.dice import die
 from traveller_character.career_data import *
 
 
@@ -74,6 +81,17 @@ def up1(text):
 if __name__ == "__main__":
 
     args = {k.replace("-", ""): v for k, v in docopt(__doc__).items()}
+
+    if args['UPP']:
+        upp = Stats(method=args['method'])
+        print upp
+        sys.exit()
+
+    if args['roll']:
+        n, d = [int(x) for x in args['DICE'].split('d')]
+        roll = [str(die(d)(1)) for i in range(n)]
+        print ' '.join(roll)
+        sys.exit()
 
     if args['path']:
         path = [term.split(":")

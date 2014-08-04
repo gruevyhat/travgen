@@ -36,6 +36,8 @@ class CareerPath(object):
         self.closest = closest_careers(self.stats)
         self.new_career = False
         self.attempted = []
+        if path and len(path) > terms:
+            path = path[:terms]
         self.n = terms
         self.path = path
         self.build_term_table()

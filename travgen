@@ -9,8 +9,8 @@ Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
                     [--method <normal|heroic|superherioc>]
                     [--terms INT] [--path STR]
                     [--expansions LIST]
-       travgen roll DICE
        travgen UPP [--method <normal|heroic|superherioc>]
+       travgen roll DICE
        travgen (-h | --help)
 
 Arguments:
@@ -42,6 +42,10 @@ Options:
     -h --help
 
 """
+
+__author__ = "GVH"
+__version__ = "0.0.2"
+
 
 import sys
 from docopt import docopt

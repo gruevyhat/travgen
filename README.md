@@ -1,4 +1,4 @@
-Travgen 0.0.1
+Travgen 0.0.2
 =============
 
 A (partial) character generation script for Mongoose Traveller. Generate a character with a random name, gender, UPP, ethnicity, planet of origin, and career path. MGT books are still required for generation of skills, events, and the fleshing out of other details. 
@@ -7,14 +7,19 @@ A (partial) character generation script for Mongoose Traveller. Generate a chara
 Usage
 -----
 
-The script is run from the command line with the following syntax. All input variables may be stipulated at the command line rather than randomly generated, including career path. 
+The script is run from the command line with the following syntax. All input variables may be stipulated at the command line rather than randomly generated, including career path. The script may also be used to generate UPPs and roll arbitrary sets of dice. 
 
     Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
                         [--gender <Male|Female>] [--upp HEX]
                         [--method <normal|heroic|superherioc>]
                         [--terms INT] [--path STR]
                         [--expansions LIST]
+           travgen UPP [--method <normal|heroic|superherioc>]
+           travgen roll DICE
            travgen (-h | --help)
+
+    Arguments:
+        DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
     Options:
         -n --name STR          Character name.

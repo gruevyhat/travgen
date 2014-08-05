@@ -60,12 +60,12 @@ class Stats(object):
 
     def __init__(self, upp=None, method=None):
         if upp:
-            self.Str = Stat(value=int(upp[0],16))
-            self.Dex = Stat(value=int(upp[1],16))
-            self.End = Stat(value=int(upp[2],16))
-            self.Int = Stat(value=int(upp[3],16))
-            self.Edu = Stat(value=int(upp[4],16))
-            self.Soc = Stat(value=int(upp[5],16))
+            self.Str = Stat(value=int(upp[0], 16))
+            self.Dex = Stat(value=int(upp[1], 16))
+            self.End = Stat(value=int(upp[2], 16))
+            self.Int = Stat(value=int(upp[3], 16))
+            self.Edu = Stat(value=int(upp[4], 16))
+            self.Soc = Stat(value=int(upp[5], 16))
         else:
             self.Str = Stat(method=method)
             self.Dex = Stat(method=method)
@@ -78,10 +78,12 @@ class Stats(object):
         return self.__dict__[stat]
 
     def list(self):
-        return [(s,self[s],self[s].dm()) for s in STATS]
+        return [(s, self[s], self[s].dm()) for s in STATS]
 
     def __repr__(self):
-        return "UPP: %x%x%x%x%x%x" % zip(*self.list())[1]
+        stats = list(zip(*self.list())[1])
+        stats.append(sum(stats)/6.0)
+        return "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
 
 
 class Skill(object):

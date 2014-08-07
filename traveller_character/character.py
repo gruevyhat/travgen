@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from dice import sample1
+from dice import sample1, d3
 from career_path import CareerPath
 from attributes import SkillSet, Stats
 from lc import lc
@@ -41,11 +41,11 @@ class Character(object):
 
     def __init__(self, name=None, upp=None, homeworld=None,
                  ethnicity=None, gender=None, terms=3, path=None,
-                 method=None):
+                 method=None, rand_age=False):
         self.stats = Stats(upp, method)
         self.skills = SkillSet()
         self.cp = CareerPath(self, terms, path)
-        self.get_age()
+        self.get_age(rand_age)
         if not ethnicity:
             self.get_ethnicity()
         else:
@@ -75,8 +75,11 @@ class Character(object):
     def get_homeworld(self):
         self.homeworld = sample1(WORLDS.keys())
 
-    def get_age(self):
-        self.age = STARTING_AGE + len(self.cp.terms) * 4
+    def get_age(self, rand):
+        nterms = len(self.cp.terms)
+        self.age = STARTING_AGE + nterms * 4
+        if rand:
+            self.age += d3(nterms) - 2 * nterms
 
     def __repr__(self):
         o = [self.name]

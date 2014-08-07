@@ -5,11 +5,9 @@ Character generator for Mongoose Traveller. Any unspecified options will be
 generated randomly.
 
 Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
-                    [--gender <Male|Female>] [--upp HEX]
-                    [--method <normal|heroic|superherioc>]
-                    [--terms INT] [--path STR]
-                    [--expansions LIST]
-       travgen UPP [--method <normal|heroic|superherioc>]
+                    [--gender STR ] [--upp HEX] [--method STR] [--rand-age]
+                    [--terms INT] [--path STR] [--expansions LIST]
+       travgen UPP [--method STR ]
        travgen roll DICE
        travgen (-h | --help)
 
@@ -28,11 +26,12 @@ Options:
                              Roma, Russian, Senegalese, Sicilian, Spanish,
                              Thai.
     -g --gender STR        Male or female.
+    -a --rand-age          Randomize term length (+/-1 year).
     -u --upp HEX           Supply a pre-generated UPP or it will be randomly
                              generated.
     -m --method STR        If no UPP, method for rolling characteristics:
-                             "normal", "heroic", "superheroic", "mediocre", or
-                             "extreme". [default: normal]
+                             normal, heroic, superheroic, mediocre, or
+                             extreme. [default: normal]
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
@@ -116,11 +115,13 @@ if __name__ == "__main__":
                       ethnicity=args["ethnicity"],
                       terms=int(args["terms"]),
                       path=path,
-                      method=args["method"])
+                      method=args["method"],
+                      rand_age=args["randage"])
         sys.stdout.write(repr(c)+"\n")
     except KeyboardInterrupt:
         pass
     except:
+        #raise
         print "Something unfortunate has happened."
 
     sys.exit()

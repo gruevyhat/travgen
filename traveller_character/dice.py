@@ -25,6 +25,8 @@ d6_drop1 = lambda N: sum((d5(1) + 1) for n in range(N))
 
 if __name__ == "__main__":
 
-    D = [d6(2), d6(2), d6(2), d6(2), d6(2), d6(2)]
+#   D = [d6(2), d6(2), d6(2), d6(2), d6(2), d6(2)]
 
-    print "UPP: %x%x%x%x%x%x [%d]" % tuple(D+[sum(D)])
+#   print "UPP: %x%x%x%x%x%x [%d]" % tuple(D+[sum(D)])
+
+    print d6(1), d6(1), d6(1), d6(1), d6(1), d6(1)

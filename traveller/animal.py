@@ -4,7 +4,7 @@
 # UNDER CONSTRUCTION
 
 
-from dice import d6
+from dice import d6, d3
 
 
 TERRAIN_DM = {
@@ -61,18 +61,32 @@ SIZE = {
     13: (5000, d6(7), d6(1), d6(7)),
     }
 
-WEAPONS TABLE ARMOUR TABLE
-# 2d6 Weapons 2d6 Armour
-1 None 0 1 0
-2 Teeth 0 2 0
-3 Horns 0 3 0
-4 Hooves 0 4 1
-5 Hooves_and_Teeth 0 5 1
-6 Teeth 0 6 2
-7 Claws 1 7 2
-8 Stinger 1 8 3
-9 Thrasher 1 9 3
-10 Claws_and_Teeth 2 10 4
-11 Claws 2 11 4
-12 Teeth 2 12 5
-13 Thrasher 2 13 5
+WEAPONS = {
+    # 2d6 Weapons 2d6 Armour
+    1: ("None", 0),
+    2: ("Teeth", 0),
+    3: ("Horns", 0),
+    4: ("Hooves", 0),
+    5: ("Hooves_and_Teeth", 0),
+    6: ("Teeth", 0),
+    7: ("Claws", 1),
+    8: ("Stinger", 1),
+    9: ("Thrasher", 1),
+    10: ("Claws_and_Teeth", 2),
+    11: ("Claws", 2),
+    12: ("Teeth", 2),
+    13: ("Thrasher", 2),
+    }
+
+ARMOR = (0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5)
+
+
+def damage(x):
+    return d6(x//10 + 1)
+
+
+def encountered(pack):
+    size = {0: 1, 1: d3(1), 3: d6(1), 6: d6(2), 9: d6(3), 12: d6(4), 15: d6(5)}
+    for s, n in size.items():
+        if pack >= s:
+            return n

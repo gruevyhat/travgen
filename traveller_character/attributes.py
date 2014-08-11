@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
-from random import sample
-from dice import d6, d3, d16, d66
+from dice import d6, d3, d16
 
 
-STATS = ("Str","Dex","End","Int","Edu","Soc")
+STATS = ("Str", "Dex", "End", "Int", "Edu", "Soc")
 
 BASIC_SKILLS = ["Admin", "Advocate", "Art", "Carouse", "Comms", "Computers",
-                "Drive", "Engineer", "Language", "Medic", "Physical_Science", "Life_Science",
-                "Social_Science", "Space_Science", "Trade"]
+                "Drive", "Engineer", "Language", "Medic", "Physical_Science",
+                "Life_Science", "Social_Science", "Space_Science", "Trade"]
 
 WORLDS = {"Mercury": (("Admin", 0), ("Vacc" "Suit", 0)),
           "Venus": (("Admin", 0), ("Survival", 0)),
@@ -16,7 +15,7 @@ WORLDS = {"Mercury": (("Admin", 0), ("Vacc" "Suit", 0)),
           "Mars": (("Computers", 0), ("Survival", 0)),
           "Callisto": (("Vacc Suit", 0), ("Zero-G", 0)),
           "Europa": (("Computers", 0), ("Science (life or space)", 0)),
-          "Ganymede": (("Carouse", 0), ("Streetwise", 0)),  
+          "Ganymede": (("Carouse", 0), ("Streetwise", 0)),
           "Enceladus": (("Science (life or space", 0), ("Steward", 0)),
           "Titan": (("Computers", 0), ("Streetwise", 0)),
           "Uranus": (("Admin", 0), ("Vacc" "Suit", 0)),
@@ -24,21 +23,21 @@ WORLDS = {"Mercury": (("Admin", 0), ("Vacc" "Suit", 0)),
           "Kuiper Belt": (("Recon", 0), ("Vacc" "Suit", 0))}
 
 
-class Stat(int): 
-    
+class Stat(int):
+
     def __new__(cls, method=None, value=None):
         if not value:
-            if method=="heroic":
+            if method == "heroic":
                 value = sum(sorted([d6(1) for i in range(3)])[-2:])
-            elif method=="superheroic":
-                value = d6(2)+2
-            elif method=="mediocre":
+            elif method == "superheroic":
+                value = d6(2)+3
+            elif method == "mediocre":
                 value = d3(4)
-            elif method=="extreme":
+            elif method == "extreme":
                 value = d16(1)-1
-            elif method=="alternating":
-                value = sum([d for j,d in enumerate(sorted([d6(1) 
-                             for i in range(4)])) if j%2==1])
+            elif method == "alternating":
+                value = sum([d for j, d in enumerate(sorted([d6(1)
+                             for i in range(4)])) if j % 2 == 1])
             else:
                 value = d6(2)
         return super(Stat, cls).__new__(cls, value)
@@ -47,7 +46,7 @@ class Stat(int):
         return self.dm()
 
     def dm(self):
-        return (-3,-2,-2,-1,-1,-1,0,0,0,1,1,1,2,2,2,3)[self]
+        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self-1]
 
     def roll(self, mods=0):
         return (d6(2) + self.dm() + mods)
@@ -103,14 +102,14 @@ class Skill(object):
 
     def dm(self):
         return self.value
-    
+
     def train(self, value=1):
-        self.value = 0 if self.value < 0 else self.value + value 
+        self.value = 0 if self.value < 0 else self.value + value
         self.cap()
 
     def set(self, value):
         if value > self.value:
-            self.value = value 
+            self.value = value
         self.cap()
 
     def cap(self):
@@ -130,19 +129,5 @@ class SkillSet(dict):
         self[skill] = Skill(skill, start_value)
 
     def list(self):
-        return [(k,v()) for k,v in self.iteritems()
+        return [(k, v()) for k, v in self.iteritems()
                 if v() >= 0]
-
-
-if __name__ == "__main__":
-
-    args = {k.replace("-", ""): v for k, v in docopt(__doc__).items()}
-
-    c = Character(name=args["name"],
-                  homeworld=args["homeworld"],
-                  gender=args["gender"], 
-                  career_path=args["careerpath"],
-                  stat_method=args["statmethod"])
-
-    print c
-

@@ -1,4 +1,4 @@
-Travgen 0.0.4
+Travgen 0.0.5
 =============
 
 A (partial) character generation script for Mongoose Traveller. Generate a character with a random name, gender, UPP, ethnicity, planet of origin, and career path. MGT books are still required for generation of skills, events, and the fleshing out of other details. 

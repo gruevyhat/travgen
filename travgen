@@ -48,10 +48,10 @@ __version__ = "0.0.3"
 
 import sys
 from docopt import docopt
-from traveller_character.character import Character
-from traveller_character.attributes import Stats
-from traveller_character.dice import die
-from traveller_character.career_data import *
+from traveller.character import Character
+from traveller.attributes import Stats
+from traveller.dice import die
+from traveller.career_data import *
 
 
 EXPANSIONS = ["Cthonian Stars", "Agent", "Scoundrel", "Dilettante"]

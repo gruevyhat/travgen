@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='travgen',
-    version='0.0.4',
+    version='0.0.5',
     author='gvh',
     author_email='gruevyhat@gmail.com',
     description='Character generation utility for MGT.',
@@ -12,6 +12,6 @@ setup(
     platforms=['any'],
     url='https://github.com/gruevyhat/travgen',
     keywords=['character generator', 'RPG', 'traveller'],
-    packages=['traveller_character'],
+    packages=['traveller'],
     scripts=['travgen'],
 )

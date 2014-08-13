@@ -46,7 +46,7 @@ class Stat(int):
         return self.dm()
 
     def dm(self):
-        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self-1]
+        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self]
 
     def roll(self, mods=0):
         return (d6(2) + self.dm() + mods)

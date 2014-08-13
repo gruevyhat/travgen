@@ -3,7 +3,7 @@
 from dice import d6, d3, d16
 
 
-STATS = ("Str", "Dex", "End", "Int", "Edu", "Soc")
+STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
 
 BASIC_SKILLS = ["Admin", "Advocate", "Art", "Carouse", "Comms", "Computers",
                 "Drive", "Engineer", "Language", "Medic", "Physical_Science",
@@ -46,7 +46,7 @@ class Stat(int):
         return self.dm()
 
     def dm(self):
-        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self-1]
+        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self]
 
     def roll(self, mods=0):
         return (d6(2) + self.dm() + mods)
@@ -65,13 +65,6 @@ class Stats(object):
             self.Int = Stat(value=int(upp[3], 16))
             self.Edu = Stat(value=int(upp[4], 16))
             self.Soc = Stat(value=int(upp[5], 16))
-        elif animal:
-            self.Str = Stat(value=int(upp[0], 16))
-            self.Dex = Stat(value=int(upp[1], 16))
-            self.End = Stat(value=int(upp[2], 16))
-            self.Int = Stat(value=int(upp[3], 16))
-            self.Ins = Stat(value=int(upp[4], 16))
-            self.Pac = Stat(value=int(upp[5], 16))
         else:
             self.Str = Stat(method=method)
             self.Dex = Stat(method=method)
@@ -79,12 +72,18 @@ class Stats(object):
             self.Int = Stat(method=method)
             self.Edu = Stat(method=method)
             self.Soc = Stat(method=method)
+        if animal:
+            self.Ins = self.Edu
+            self.Pac = self.Soc
+            del self.Edu
+            del self.Soc
 
     def __getitem__(self, stat):
         return self.__dict__[stat]
 
     def list(self):
-        return [(s, self[s], self[s].dm()) for s in STATS]
+        return [(s, self[s], self[s].dm())
+                for s in STATS if s in self.__dict__]
 
     def __repr__(self):
         stats = list(zip(*self.list())[1])
@@ -94,18 +93,15 @@ class Stats(object):
 
 class Skill(object):
 
-    def __init__(self, name, value=None):
+    def __init__(self, name, value=-3):
         self.name = name
-        if value:
-            self.value = value
-        else:
-            self.value = -3
+        self.value = value
 
     def __call__(self):
         return self.dm()
 
     def __repr__(self):
-        return '%s: %d' % (self.name, self.value)
+        return '%d' % self.value
 
     def dm(self):
         return self.value
@@ -132,8 +128,12 @@ class SkillSet(dict):
     def __call__(self, skill):
         return self[skill]
 
-    def learn(self, skill, start_value=0):
-        self[skill] = Skill(skill, start_value)
+    def learn(self, skills):
+        for skill, value in skills.items():
+            if skill in self:
+                self[skill].train(value)
+            else:
+                self[skill] = Skill(skill, value)
 
     def list(self):
         return [(k, v()) for k, v in self.iteritems()

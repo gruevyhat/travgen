@@ -4,7 +4,7 @@
 # UNDER CONSTRUCTION
 
 from attributes import SkillSet, Stats
-from dice import d6, d3, d100
+from dice import d6, d3, d100, sample1
 
 
 TERRAIN_DM = {
@@ -27,55 +27,55 @@ TERRAIN_DM = {
     "Deep_Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4), ("S", 2), ("S", -2))),
     }
 
-ANIMAL_TYPE = {
+ANIMAL_TYPE = (
     # 2d6: (Herbivore, Omnivore, Carnivore, Scavenger)
-    1: ("Filter", "Gatherer", "Pouncer", "Carrion-Eater"),
-    2: ("Filter", "Eater", "Siren", "Reducer"),
-    3: ("Intermittent", "Gatherer", "Pouncer", "Hijacker"),
-    4: ("Intermittent", "Eater", "Killer", "Carrion-Eater"),
-    5: ("Intermittent", "Gatherer", "Trapper", "Intimidator"),
-    6: ("Intermittent", "Hunter", "Pouncer", "Reducer"),
-    7: ("Grazer", "Hunter", "Chaser", "Carrion-Eater"),
-    8: ("Grazer", "Hunter", "Chaser", "Reducer"),
-    9: ("Grazer", "Gatherer", "Chaser", "Hijacker"),
-    10: ("Grazer", "Eater", "Killer", "Intimidator"),
-    11: ("Grazer", "Hunter", "Chaser", "Reducer"),
-    12: ("Grazer", "Gatherer", "Siren", "Hijacker"),
-    13: ("Grazer", "Gatherer", "Chaser", "Intimidator"),
-    }
+    ("Filter", "Gatherer", "Pouncer", "Carrion-Eater"),
+    ("Filter", "Eater", "Siren", "Reducer"),
+    ("Intermittent", "Gatherer", "Pouncer", "Hijacker"),
+    ("Intermittent", "Eater", "Killer", "Carrion-Eater"),
+    ("Intermittent", "Gatherer", "Trapper", "Intimidator"),
+    ("Intermittent", "Hunter", "Pouncer", "Reducer"),
+    ("Grazer", "Hunter", "Chaser", "Carrion-Eater"),
+    ("Grazer", "Hunter", "Chaser", "Reducer"),
+    ("Grazer", "Gatherer", "Chaser", "Hijacker"),
+    ("Grazer", "Eater", "Killer", "Intimidator"),
+    ("Grazer", "Hunter", "Chaser", "Reducer"),
+    ("Grazer", "Gatherer", "Siren", "Hijacker"),
+    ("Grazer", "Gatherer", "Chaser", "Intimidator"),
+    )
 
-SIZE = {
+SIZE = (
     # 2d6: (Weight (kg), Strength, Dexterity, Endurance)
-    1: (1, 1, d6(1), 1),
-    2: (3, 2, d6(1), 2),
-    3: (6, d6(1), d6(2), d6(1)),
-    4: (12, d6(1), d6(2), d6(1)),
-    5: (25, d6(2), d6(3), d6(2)),
-    6: (50, d6(2), d6(4), d6(2)),
-    7: (100, d6(3), d6(3), d6(3)),
-    8: (200, d6(3), d6(3), d6(3)),
-    9: (400, d6(4), d6(2), d6(4)),
-    10: (800, d6(4), d6(2), d6(4)),
-    11: (1600, d6(5), d6(2), d6(5)),
-    12: (3200, d6(6), d6(1), d6(6)),
-    13: (5000, d6(7), d6(1), d6(7)),
-    }
+    (1, 1, d6(1), 1),
+    (3, 2, d6(1), 2),
+    (6, d6(1), d6(2), d6(1)),
+    (12, d6(1), d6(2), d6(1)),
+    (25, d6(2), d6(3), d6(2)),
+    (50, d6(2), d6(4), d6(2)),
+    (100, d6(3), d6(3), d6(3)),
+    (200, d6(3), d6(3), d6(3)),
+    (400, d6(4), d6(2), d6(4)),
+    (800, d6(4), d6(2), d6(4)),
+    (1600, d6(5), d6(2), d6(5)),
+    (3200, d6(6), d6(1), d6(6)),
+    (5000, d6(7), d6(1), d6(7)),
+    )
 
-WEAPONS = {
-    1: ("None", 0),
-    2: ("Teeth", 0),
-    3: ("Horns", 0),
-    4: ("Hooves", 0),
-    5: ("Hooves_and_Teeth", 0),
-    6: ("Teeth", 0),
-    7: ("Claws", 1),
-    8: ("Stinger", 1),
-    9: ("Thrasher", 1),
-    10: ("Claws_and_Teeth", 2),
-    11: ("Claws", 2),
-    12: ("Teeth", 2),
-    13: ("Thrasher", 2),
-    }
+WEAPONS = (
+    ("None", 0),
+    ("Teeth", 0),
+    ("Horns", 0),
+    ("Hooves", 0),
+    ("Hooves_and_Teeth", 0),
+    ("Teeth", 0),
+    ("Claws", 1),
+    ("Stinger", 1),
+    ("Thrasher", 1),
+    ("Claws_and_Teeth", 2),
+    ("Claws", 2),
+    ("Teeth", 2),
+    ("Thrasher", 2),
+    )
 
 ARMOR = (0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5)
 
@@ -86,8 +86,8 @@ def damage(x):
 
 def encountered(pack):
     size = {0: 1, 1: d3(1), 3: d6(1), 6: d6(2), 9: d6(3), 12: d6(4), 15: d6(5)}
-    for s, n in sorted(size.items(), reverse=True):
-        if pack >= s:
+    for s, n in size.items():
+        if pack <= s:
             return n
 
 
@@ -151,9 +151,9 @@ BEHAVIORS = {
 
 
 CREATURE = {
-    "Scavenger": (11.1, 0),
-    "Omnivore": (38.86, 4),
-    "Herbivore": (83.28, 8),
+    "Scavenger": (11, 0),
+    "Omnivore": (38, 4),
+    "Herbivore": (83, 8),
     "Carnivore": (100, -6)
     }
 
@@ -171,11 +171,15 @@ CREATURE = {
 #   Sample 1d6 (w/repl) quirks
 
 
+STARTING_SKILLS = {"Survival": 0, "Athletics": 0,
+                   "Recon": 0, "Melee (natural weapons)": 0}
+
+
 class Animal(object):
 
     def __init__(self):
         self.stats = Stats(animal=True)
-        self.skills = SkillSet()
+        self.skills = SkillSet(STARTING_SKILLS)
 
     def set_skills(self):
         pass

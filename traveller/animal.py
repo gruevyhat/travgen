@@ -176,3 +176,9 @@ class Animal(object):
     def __init__(self):
         self.stats = Stats(animal=True)
         self.skills = SkillSet()
+
+    def set_skills(self):
+        pass
+
+
+

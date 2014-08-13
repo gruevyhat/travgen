@@ -57,7 +57,7 @@ class Stat(int):
 
 class Stats(object):
 
-    def __init__(self, upp=None, method=None):
+    def __init__(self, upp=None, method=None, animal=False):
         if upp:
             self.Str = Stat(value=int(upp[0], 16))
             self.Dex = Stat(value=int(upp[1], 16))
@@ -65,6 +65,13 @@ class Stats(object):
             self.Int = Stat(value=int(upp[3], 16))
             self.Edu = Stat(value=int(upp[4], 16))
             self.Soc = Stat(value=int(upp[5], 16))
+        elif animal:
+            self.Str = Stat(value=int(upp[0], 16))
+            self.Dex = Stat(value=int(upp[1], 16))
+            self.End = Stat(value=int(upp[2], 16))
+            self.Int = Stat(value=int(upp[3], 16))
+            self.Ins = Stat(value=int(upp[4], 16))
+            self.Pac = Stat(value=int(upp[5], 16))
         else:
             self.Str = Stat(method=method)
             self.Dex = Stat(method=method)

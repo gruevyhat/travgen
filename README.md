@@ -88,7 +88,7 @@ Installation
 
 Standard Python package installation.
 
-    > git clone https://github.org/gruevyhat/travgen.git
+    > git clone http://github.org/gruevyhat/travgen.git
     > cd travgen
     > python setup.py install
 

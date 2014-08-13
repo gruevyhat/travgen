@@ -81,6 +81,9 @@ class Stats(object):
     def __getitem__(self, stat):
         return self.__dict__[stat]
 
+    def __setitem__(self, k, v):
+        self.__dict__[k] = v
+
     def list(self):
         return [(s, self[s], self[s].dm())
                 for s in STATS if s in self.__dict__]

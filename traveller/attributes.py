@@ -27,7 +27,7 @@ WORLDS = {"Mercury": (("Admin", 0), ("Vacc" "Suit", 0)),
 class Stat(int):
 
     def __new__(cls, method=None, value=None):
-        if not value:
+        if not value > -1:
             if method == "heroic":
                 value = sum(sorted([d6(1) for i in range(3)])[-2:])
             elif method == "superheroic":

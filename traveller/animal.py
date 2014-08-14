@@ -205,7 +205,6 @@ class Animal(object):
         if not sentient:
             i = sample1([0, 1])
             self.stats.Int = Stat(value=i)
-            print i, self.stats.Int, Stat(value=i)
         self.size = SIZES[s][0]
 
     def get_behavior(self, behavior=None):

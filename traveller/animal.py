@@ -3,7 +3,8 @@
 
 # UNDER CONSTRUCTION
 
-from attributes import SkillSet, Stats, STATS
+from collections import defaultdict
+from attributes import SkillSet, Stats, Stat, STATS
 from dice import d6, d3, d100, sample1
 
 
@@ -84,12 +85,6 @@ def damage(x):
     return d6(x//10 + 1)
 
 
-def encountered(pack):
-    size = {0: 1, 1: d3(1), 3: d6(1), 6: d6(2), 9: d6(3), 12: d6(4), 15: d6(5)}
-    for s, n in size.items():
-        if pack <= s:
-            return n
-
 
 QUIRKS = {
     "Sensory Quirk": ("Sees in infrared",
@@ -158,29 +153,32 @@ ORDERS = (
     )
 
 STARTING_SKILLS = {"Survival": 0, "Athletics": 0,
-                   "Recon": 0, "Melee (natural weapons)": 0}
+                   "Recon": 0, "Melee": 0}
+
+
+def cap(n, b, t):
+    n = max(b, n)
+    n = min(t, n)
+    return n
 
 
 class Animal(object):
 
     def __init__(self):
-        self.stats = Stats(animal=True)
-        self.skills = SkillSet(STARTING_SKILLS)
-        self.dms = {"armor": 0,
-                    "weapon": 0,
-                    "type": 0,
-                    "size": 0}
+        self.dms = defaultdict(int)
         self.get_creature_type()
         self.get_terrain()
         self.get_behavior()
+        self.get_stats()
         self.get_skills()
+        self.get_weap_arm()
+        self.get_quirks()
 
     def get_creature_type(self):
         r = d100(1)
         for o in ORDERS:
             if r <= o[0]:
                 self.order = o[1]
-                self.dms["armor"] += o[2]
                 self.dms["weapon"] += o[2]
 
     def get_terrain(self):
@@ -189,33 +187,75 @@ class Animal(object):
         self.movement = TERRAIN[t][2][m][0]
         self.dms["type"] += TERRAIN[t][0]
         self.dms["size"] += TERRAIN[t][1] + TERRAIN[t][2][m][1]
+        self.terrain = t
+
+    def get_stats(self, sentient=False):
+        self.stats = Stats(animal=True)
+        s = cap(d6(2) + self.dms["size"], 1, 12) - 1
+        self.stats.Str = Stat(value=SIZES[s][1])
+        self.stats.Dex = Stat(value=SIZES[s][2])
+        self.stats.End = Stat(value=SIZES[s][3])
+        if not sentient:
+            self.stats.Int = Stat(value=1)
+        self.size = SIZES[s][0]
 
     def get_behavior(self):
-        r = d6(2) + self.dms["type"]
-        r = 13 if r > 13 else r
-        r = 1 if r < 1 else r
+        r = cap(d6(2) + self.dms["type"], 1, 12)
         orders = {"Herbivore": 0, "Omnivore": 1,
                   "Carnivore": 2, "Scavenger": 3}
-        print r, len(ANIMAL_TYPES)
         for a in range(len(ANIMAL_TYPES)):
-            if r <= a:
+            if r - 1 <= a:
                 self.behavior = ANIMAL_TYPES[r][orders[self.order]]
 
     def get_skills(self):
-        print BEHAVIORS[self.behavior]
+        self.skills = SkillSet()
+        self.skills.update(STARTING_SKILLS)
         for b in BEHAVIORS[self.behavior]:
             attr, n = b
             if attr in STATS:
-                self.stats[attr] += n
+                self.stats[attr] = Stat(self.stats[attr] + n)
+            elif attr in self.skills:
+                self.skills[attr] += n
             else:
-                self.skills.learn({attr: n})
+                self.skills[attr] = n
+        for r in range(d6(1)):
+            sk = sample1(self.skills.keys())
+            self.skills[sk] += 1
 
-#   Animal type d6(2) + Terrain
-#   -> behavior skills
-#   -> +d6(1) skills
-#   Sample 1d6 (w/repl) quirks
+    def get_weap_arm(self):
+        a = d6(2)
+        w = cap(d6(2) + self.dms['weapon'], 1, 13)
+        self.armor = cap(a//2 - 1, 0, 5)
+        self.weapon = WEAPONS[w-1][0]
+        self.damage = 1 + self.stats.Str//10 + WEAPONS[w-1][1]
 
+    def get_quirks(self):
+        Q = []
+        for r in range(d6(1)):
+            q = sample1(QUIRKS.keys())
+            Q += [QUIRKS[q][d6(1)-1]]
+        self.quirks = Q
+
+    def encounter(self):
+        size = {0: 1, 1: d3(1), 3: d6(1),
+                6: d6(2), 9: d6(3), 12: d6(4),
+                15: d6(5)}
+        for s, n in size.items():
+            if self.stats.Pac <= s:
+                return n
+
+    def __repr__(self):
+        stats = "Stats: " + ", ".join(["%s %d[%d]" % t for t in a.stats.list()])
+        skills = "Skills: " + ", ".join(["%s %d" % t for t in a.skills.items()])
+        terrain = "Classification: %s, %s, Size %s" % (self.terrain,
+                self.behavior, self.size)
+        combat = "Combat: %s (%dd6), Armor %d, Move %s" % (self.weapon,
+                self.damage, self.armor, self.movement)
+        quirks = "Quirks: \n - " + '\n - '.join(self.quirks)
+        enc = "Pack Size: %d" % self.encounter()
+        return '\n'.join((stats, skills, terrain, combat, quirks, enc))
 
 if __name__ == "__main__":
 
     a = Animal()
+    print a

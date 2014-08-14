@@ -43,10 +43,7 @@ class Stat(int):
         return super(Stat, cls).__new__(cls, value)
 
     def __call__(self):
-        return self.dm()
-
-    def dm(self):
-        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3)[self]
+        return self // 3 - 2 if self > 0 else -3
 
     def roll(self, mods=0):
         return (d6(2) + self.dm() + mods)
@@ -85,7 +82,7 @@ class Stats(object):
         self.__dict__[k] = v
 
     def list(self):
-        return [(s, self[s], self[s].dm())
+        return [(s, self[s], self[s]())
                 for s in STATS if s in self.__dict__]
 
     def __repr__(self):
@@ -95,6 +92,8 @@ class Stats(object):
 
 
 class Skill(object):
+
+    # THIS IS TOTALLY BROKEN
 
     def __init__(self, name, value=-3):
         self.name = name
@@ -122,22 +121,25 @@ class Skill(object):
         if self.value > 3:
             self.value = 3
 
+from collections import defaultdict
 
-class SkillSet(dict):
 
-    def __init__(self, *arg, **kw):
-        super(SkillSet, self).__init__(*arg, **kw)
+class SkillSet(defaultdict):
 
-    def __call__(self, skill):
-        return self[skill]
+    def __init__(self):
+        super(SkillSet, self).__init__(lambda: -3)
 
     def learn(self, skills):
+        if type(skills) is not dict:
+            if type(skills) is str:
+                skills = [skills]
+            skills = {s: 0 for s in skills}
         for skill, value in skills.items():
             if skill in self:
-                self[skill].train(value)
+                self[skill] += value
             else:
-                self[skill] = Skill(skill, value)
+                self[skill] = value
 
     def list(self):
-        return [(k, v()) for k, v in self.iteritems()
-                if v() >= 0]
+        return [(k, v) for k, v in self.iteritems()
+                if v >= 0]

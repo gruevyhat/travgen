@@ -203,7 +203,7 @@ class Animal(object):
         self.stats.Dex = Stat(value=SIZES[s][2])
         self.stats.End = Stat(value=SIZES[s][3])
         if not sentient:
-            self.stats.Int = Stat(value=1)
+            self.stats.Int = Stat(value=sample1([0,1]))
         self.size = SIZES[s][0]
 
     def get_behavior(self, behavior=None):

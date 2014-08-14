@@ -4,7 +4,7 @@
 # UNDER CONSTRUCTION
 
 from random import sample
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from attributes import SkillSet, Stats, Stat, STATS
 from dice import d6, d3, d100, sample1
 
@@ -81,15 +81,9 @@ WEAPONS = (
 
 ARMOR = (0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5)
 
-
-def damage(x):
-    return d6(x//10 + 1)
-
-
-
 QUIRKS = {
     "Sensory Quirk": ("Sees in infrared",
-                      "Multiple eyes ",
+                      "Multiple eyes",
                       "Sensitive cilia or hairs",
                       "Echolocation",
                       "Symbiosis with a hunter or pilot animal",
@@ -98,7 +92,7 @@ QUIRKS = {
                       "Screeches for aid ",
                       "Reacts to attack with attack",
                       "Camouflage",
-                      "Avoids or mitigates attacks ",
+                      "Avoids or mitigates attacks",
                       "Inflates"),
     "Nesting Quirk": ("Digs burrows",
                       "Nests in trees",
@@ -139,7 +133,8 @@ BEHAVIORS = {
     "Brute Killer": (("Melee", 0), ("Str", 4), ("Ins", 4), ("Pac", -2)),
     "Swift Killer": (("Melee", 0), ("Dex", 4), ("Ins", 4), ("Pac", -2)),
     "Intermittent": (("Pac", 4),),
-    "Pouncer": (("Stealth", 0), ("Recon", 0), ("Athletics", 0), ("Dex", 4), ("Ins", 4)),
+    "Pouncer": (("Stealth", 0), ("Recon", 0), ("Athletics", 0), ("Dex", 4),
+                ("Ins", 4)),
     "Reducer": (("Pac", 4),),
     "Siren": (("Pac", -4),),
     "Trapper": (("Pac", -2),),
@@ -147,9 +142,9 @@ BEHAVIORS = {
 
 
 ORDERS = (
-    (45, "Herbivore", 8),
+    (45, "Herbivore", -6),
     (72, "Omnivore", 4),
-    (89, "Carnivore", -6),
+    (89, "Carnivore", 8),
     (100, "Scavenger", 0),
     )
 
@@ -188,6 +183,7 @@ class Animal(object):
                     break
         self.order = order_data[1]
         self.dms["weapon"] += order_data[2]
+        self.dms["armor"] += order_data[2]
 
     def get_terrain(self, terrain=None):
         if terrain:
@@ -202,7 +198,7 @@ class Animal(object):
 
     def get_stats(self, sentient=False):
         self.stats = Stats(animal=True)
-        s = cap(d6(2) + self.dms["size"], 1, 12) - 1
+        s = cap(d6(2) + self.dms["size"], 1, 13) - 1
         self.stats.Str = Stat(value=SIZES[s][1])
         self.stats.Dex = Stat(value=SIZES[s][2])
         self.stats.End = Stat(value=SIZES[s][3])
@@ -240,7 +236,7 @@ class Animal(object):
             self.skills[sk] += 1
 
     def get_weap_arm(self):
-        a = d6(2)
+        a = cap(d6(2) + self.dms['armor'], 1, 13)
         w = cap(d6(2) + self.dms['weapon'], 1, 13)
         self.armor = cap(a//2 - 1, 0, 5)
         self.weapon = WEAPONS[w-1][0]

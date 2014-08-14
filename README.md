@@ -1,7 +1,7 @@
-Travgen 0.0.5
+Travgen 0.0.6
 =============
 
-A (partial) character generation script for Mongoose Traveller. Generate a character with a random name, gender, UPP, ethnicity, planet of origin, and career path. MGT books are still required for generation of skills, events, and the fleshing out of other details. 
+A (partial) character generation script for Mongoose Traveller. Generate a character with a random name, gender, UPP, ethnicity, planet of origin, and career path. MGT books are still required for generation of skills, events, and the fleshing out of other details. The scripts also provide functionality for animal generation, UPP generation, and generic dice rolling.
 
 
 Usage
@@ -9,19 +9,19 @@ Usage
 
 The script is run from the command line with the following syntax. All input variables may be stipulated at the command line rather than randomly generated, including career path. The script may also be used to generate UPPs and roll arbitrary sets of dice. 
 
-    Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
-                        [--gender <Male|Female>] [--upp HEX]
-                        [--method <normal|heroic|superherioc>]
-                        [--terms INT] [--path STR]
-                        [--expansions LIST]
-           travgen UPP [--method <normal|heroic|superherioc>]
+    Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
+                        [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
+                        [--terms TERMS] [--path PATH] [--expansions EXPANSIONS]
+           travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR] [--order ORDER]
+                          [--sentient]
+           travgen UPP [--method STR ]
            travgen roll DICE
            travgen (-h | --help)
 
-    Arguments:
+    Dice Roll Arguments:
         DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
-    Options:
+    Character Generation Options:
         -n --name STR          Character name.
         -w --homeworld STR     Character's world of origin.
         -e --ethnicity STR     Ethnic group and random naming convention;
@@ -33,19 +33,34 @@ The script is run from the command line with the following syntax. All input var
                                  Roma, Russian, Senegalese, Sicilian, Spanish,
                                  Thai.
         -g --gender STR        Male or female.
+        -a --rand-age          Randomize term length (+/-1 year).
         -u --upp HEX           Supply a pre-generated UPP or it will be randomly
                                  generated.
         -m --method STR        If no UPP, method for rolling characteristics:
-                                 "normal", "heroic", "superheroic", "mediocre", or
-                                 "extreme". [default: normal]
+                                 normal, heroic, superheroic, mediocre, or
+                                 extreme. [default: normal]
         -t --terms INT         Number of terms to serve. [default: 3]
         -p --path STR          Colon-delimited career path of the form:
                                  "career:spec::career:spec::...".
         -x --expansions LIST   Comma-delimited list of Traveller expansions to
                                  include for career options. Currently supports:
                                  Agent, Dilettante, Scoundrel, and Cthonian Stars.
-        -h --help
 
+    Animal Generation Options:
+        --terrain TERRAIN     One of: Mountain, Hills, Open Ocean, Clear, Riverbank,
+                                Swamp, Deep Ocean, Woods, Plain/Prairie, Forest,
+                                Ocean Shallows, Rainforest, Rough, Beach, Desert,
+                                Jungle.
+        --behavior BEHAVIOR   One of: Intimidator, Siren, Reducer, Trapper,
+                                Intermittent, Hijacker, Eater, Pouncer, Hunter,
+                                Filter, Grazer, Carrion-Eater, Chaser, Brute Killer,
+                                Gatherer, Swift Killer.
+        --order ORDER         One of: Scavenger, Omnivore, Herbivore, Carnivore. 
+        --sentient            Creature has an intelligence greater than 1.
+
+    Other Options:
+        -h --help
+        --version
 
 Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. Career path is presented as a table with the following fields.
 
@@ -92,3 +107,8 @@ Standard Python package installation.
     > cd travgen
     > python setup.py install
 
+
+Dependencies
+------------
+
+docopt>=0.6.1

@@ -71,7 +71,7 @@ class CareerPath(object):
                     self.terms[i]["Spec"] = None
 
     def background_skills(self):
-        edu = STARTING_SKILLS + self.stats.Edu.dm()
+        edu = STARTING_SKILLS + self.stats.Edu()
         for n in range(self.n):
             self.terms[n]["Edu"] = edu if n == 0 else 0
 
@@ -116,7 +116,7 @@ class CareerPath(object):
         # Survival
         self.survive(n, career_table)
         # Advancement
-        if career in DRAFT and self.stats.Soc.dm() >= 1:
+        if career in DRAFT and self.stats.Soc() >= 1:
             self.get_commission(n, career)
         else:
             self.advance(n, career_table)

@@ -46,7 +46,7 @@ class Stat(int):
         return self // 3 - 2 if self > 0 else -3
 
     def roll(self, mods=0):
-        return (d6(2) + self.dm() + mods)
+        return (d6(2) + self() + mods)
 
     def succeed(self, tgt=8, mods=0):
         return self.roll(mods) >= tgt
@@ -98,9 +98,6 @@ class Skill(object):
     def __init__(self, name, value=-3):
         self.name = name
         self.value = value
-
-    def __call__(self):
-        return self.dm()
 
     def __repr__(self):
         return '%d' % self.value

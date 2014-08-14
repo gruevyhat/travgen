@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='travgen',
-    version='0.0.5',
+    version='0.0.6',
     author='gvh',
     author_email='gruevyhat@gmail.com',
     description='Character generation utility for MGT.',

@@ -3,7 +3,8 @@
 
 # UNDER CONSTRUCTION
 
-from collections import defaultdict
+from random import sample
+from collections import defaultdict, OrderedDict
 from attributes import SkillSet, Stats, Stat, STATS
 from dice import d6, d3, d100, sample1
 
@@ -23,9 +24,9 @@ TERRAIN = {
     "Swamp": (-2, 4, (("S", -6), ("A", 2), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
     "Beach": (3, 2, (("S", 1), ("A", 2), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
     "Riverbank": (1, 1, (("S", -4), ("A", 0), ("W", 0), ("W", 0), ("W", 0), ("F", -6))),
-    "Ocean_Shallows": (4, 1, (("S", 4), ("S", 2), ("S", 0), ("S", 0), ("F", -4), ("F", -6))),
-    "Open_Ocean": (4, -4, (("S", 6), ("S", 4), ("S", 2), ("S", 0), ("F", -4), ("F", -6))),
-    "Deep_Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4), ("S", 2), ("S", 0), ("S", -2))),
+    "Ocean Shallows": (4, 1, (("S", 4), ("S", 2), ("S", 0), ("S", 0), ("F", -4), ("F", -6))),
+    "Open Ocean": (4, -4, (("S", 6), ("S", 4), ("S", 2), ("S", 0), ("F", -4), ("F", -6))),
+    "Deep Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4), ("S", 2), ("S", 0), ("S", -2))),
     }
 
 ANIMAL_TYPES = (
@@ -33,13 +34,13 @@ ANIMAL_TYPES = (
     ("Filter", "Gatherer", "Pouncer", "Carrion-Eater"),
     ("Filter", "Eater", "Siren", "Reducer"),
     ("Intermittent", "Gatherer", "Pouncer", "Hijacker"),
-    ("Intermittent", "Eater", "Killer, Brute", "Carrion-Eater"),
+    ("Intermittent", "Eater", "Brute Killer", "Carrion-Eater"),
     ("Intermittent", "Gatherer", "Trapper", "Intimidator"),
     ("Intermittent", "Hunter", "Pouncer", "Reducer"),
     ("Grazer", "Hunter", "Chaser", "Carrion-Eater"),
     ("Grazer", "Hunter", "Chaser", "Reducer"),
     ("Grazer", "Gatherer", "Chaser", "Hijacker"),
-    ("Grazer", "Eater", "Killer, Swift", "Intimidator"),
+    ("Grazer", "Eater", "Swift Killer", "Intimidator"),
     ("Grazer", "Hunter", "Chaser", "Reducer"),
     ("Grazer", "Gatherer", "Siren", "Hijacker"),
     ("Grazer", "Gatherer", "Chaser", "Intimidator"),
@@ -67,12 +68,12 @@ WEAPONS = (
     ("Teeth", 0),
     ("Horns", 0),
     ("Hooves", 0),
-    ("Hooves_and_Teeth", 0),
+    ("Hooves and Teeth", 0),
     ("Teeth", 0),
     ("Claws", 1),
     ("Stinger", 1),
     ("Thrasher", 1),
-    ("Claws_and_Teeth", 2),
+    ("Claws and Teeth", 2),
     ("Claws", 2),
     ("Teeth", 2),
     ("Thrasher", 2),
@@ -135,8 +136,8 @@ BEHAVIORS = {
     "Hunter": (("Survival", 0), ("Ins", 2)),
     "Hijacker": (("Str", 2), ("Pac", 2)),
     "Intimidator": (("Persuade", 0),),
-    "Killer, Brute": (("Melee", 0), ("Str", 4), ("Ins", 4), ("Pac", -2)),
-    "Killer, Swift": (("Melee", 0), ("Dex", 4), ("Ins", 4), ("Pac", -2)),
+    "Brute Killer": (("Melee", 0), ("Str", 4), ("Ins", 4), ("Pac", -2)),
+    "Swift Killer": (("Melee", 0), ("Dex", 4), ("Ins", 4), ("Pac", -2)),
     "Intermittent": (("Pac", 4),),
     "Pouncer": (("Stealth", 0), ("Recon", 0), ("Athletics", 0), ("Dex", 4), ("Ins", 4)),
     "Reducer": (("Pac", 4),),
@@ -146,10 +147,10 @@ BEHAVIORS = {
 
 
 ORDERS = (
-    (11, "Scavenger", 0),
-    (38, "Omnivore", 4),
-    (83, "Herbivore", 8),
-    (100, "Carnivore", -6)
+    (45, "Herbivore", 8),
+    (72, "Omnivore", 4),
+    (89, "Carnivore", -6),
+    (100, "Scavenger", 0),
     )
 
 STARTING_SKILLS = {"Survival": 0, "Athletics": 0,
@@ -164,25 +165,35 @@ def cap(n, b, t):
 
 class Animal(object):
 
-    def __init__(self):
+    def __init__(self, terrain=None, order=None,
+                 behavior=None, sentient=False):
         self.dms = defaultdict(int)
-        self.get_creature_type()
-        self.get_terrain()
-        self.get_behavior()
-        self.get_stats()
+        self.get_order(order)
+        self.get_terrain(terrain)
+        self.get_behavior(behavior)
+        self.get_stats(sentient)
         self.get_skills()
         self.get_weap_arm()
         self.get_quirks()
 
-    def get_creature_type(self):
-        r = d100(1)
-        for o in ORDERS:
-            if r <= o[0]:
-                self.order = o[1]
-                self.dms["weapon"] += o[2]
+    def get_order(self, order=None):
+        if order:
+            order_data = [o for o in ORDERS
+                          if o[1] == order][0]
+        else:
+            r = d100(1)
+            for o in ORDERS:
+                if r <= o[0]:
+                    order_data = o
+                    break
+        self.order = order_data[1]
+        self.dms["weapon"] += order_data[2]
 
-    def get_terrain(self):
-        t = sample1(TERRAIN)
+    def get_terrain(self, terrain=None):
+        if terrain:
+            t = terrain
+        else:
+            t = sample1(TERRAIN.keys())
         m = d6(1)-1
         self.movement = TERRAIN[t][2][m][0]
         self.dms["type"] += TERRAIN[t][0]
@@ -199,13 +210,19 @@ class Animal(object):
             self.stats.Int = Stat(value=1)
         self.size = SIZES[s][0]
 
-    def get_behavior(self):
-        r = cap(d6(2) + self.dms["type"], 1, 12)
+    def get_behavior(self, behavior=None):
         orders = {"Herbivore": 0, "Omnivore": 1,
                   "Carnivore": 2, "Scavenger": 3}
-        for a in range(len(ANIMAL_TYPES)):
-            if r - 1 <= a:
-                self.behavior = ANIMAL_TYPES[r][orders[self.order]]
+        if not behavior:
+            r = cap(d6(2) + self.dms["type"], 1, 12)
+            for a in range(len(ANIMAL_TYPES)):
+                if r - 1 <= a:
+                    behavior = ANIMAL_TYPES[r][orders[self.order]]
+                    break
+        else:
+            a = [y for x in ANIMAL_TYPES for y in x]
+            self.order = ORDERS[divmod(a.index(behavior), 6)[1]][1]
+        self.behavior = behavior
 
     def get_skills(self):
         self.skills = SkillSet()
@@ -230,11 +247,10 @@ class Animal(object):
         self.damage = 1 + self.stats.Str//10 + WEAPONS[w-1][1]
 
     def get_quirks(self):
-        Q = []
-        for r in range(d6(1)):
-            q = sample1(QUIRKS.keys())
-            Q += [QUIRKS[q][d6(1)-1]]
-        self.quirks = Q
+        Q = QUIRKS.items()
+        sk = sample(range(len(Q)*6), d6(1))
+        cells = [divmod(x, len(Q)) for x in sk]
+        self.quirks = [Q[x][1][y] for x, y in cells]
 
     def encounter(self):
         size = {0: 1, 1: d3(1), 3: d6(1),
@@ -245,15 +261,18 @@ class Animal(object):
                 return n
 
     def __repr__(self):
-        stats = "Stats: " + ", ".join(["%s %d[%d]" % t for t in a.stats.list()])
-        skills = "Skills: " + ", ".join(["%s %d" % t for t in a.skills.items()])
-        terrain = "Classification: %s, %s, Size %s" % (self.terrain,
-                self.behavior, self.size)
-        combat = "Combat: %s (%dd6), Armor %d, Move %s" % (self.weapon,
-                self.damage, self.armor, self.movement)
+        desc = "%s %s (%s), Size %s" % (self.terrain, self.behavior,
+                                        self.order, self.size)
+        stats = "Stats: " + ", ".join(["%s %d[%d]" % t
+                                      for t in self.stats.list()])
+        skills = "Skills: " + ", ".join(["%s %d" % t
+                                        for t in self.skills.items()])
+        combat = "Combat: %s (%dd6), Armor %d, Move %s" \
+                 % (self.weapon, self.damage, self.armor, self.movement)
         quirks = "Quirks: \n - " + '\n - '.join(self.quirks)
         enc = "Pack Size: %d" % self.encounter()
-        return '\n'.join((stats, skills, terrain, combat, quirks, enc))
+        return '\n'.join((desc, stats, skills, combat, quirks, enc))
+
 
 if __name__ == "__main__":
 

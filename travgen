@@ -4,17 +4,19 @@
 Character generator for Mongoose Traveller. Any unspecified options will be
 generated randomly.
 
-Usage: travgen char [--name STR] [--homeworld STR] [--ethnicity STR]
-                    [--gender STR ] [--upp HEX] [--method STR] [--rand-age]
-                    [--terms INT] [--path STR] [--expansions LIST]
+Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
+                    [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
+                    [--terms TERMS] [--path PATH] [--expansions EXPANSIONS]
+       travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR] [--order ORDER]
+                      [--sentient]
        travgen UPP [--method STR ]
        travgen roll DICE
        travgen (-h | --help)
 
-Arguments:
+Dice Roll Arguments:
     DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
-Options:
+Character Generation Options:
     -n --name STR          Character name.
     -w --homeworld STR     Character's world of origin.
     -e --ethnicity STR     Ethnic group and random naming convention;
@@ -38,18 +40,34 @@ Options:
     -x --expansions LIST   Comma-delimited list of Traveller expansions to
                              include for career options. Currently supports:
                              Agent, Dilettante, Scoundrel, and Cthonian Stars.
+
+Animal Generation Options:
+    --terrain TERRAIN     One of: Mountain, Hills, Open Ocean, Clear, Riverbank,
+                            Swamp, Deep Ocean, Woods, Plain/Prairie, Forest,
+                            Ocean Shallows, Rainforest, Rough, Beach, Desert,
+                            Jungle.
+    --behavior BEHAVIOR   One of: Intimidator, Siren, Reducer, Trapper,
+                            Intermittent, Hijacker, Eater, Pouncer, Hunter,
+                            Filter, Grazer, Carrion-Eater, Chaser, Brute Killer,
+                            Gatherer, Swift Killer.
+    --order ORDER         One of: Scavenger, Omnivore, Herbivore, Carnivore. 
+    --sentient            Creature has an intelligence greater than 1.
+
+Other Options:
     -h --help
+    --version
 
 """
 
 __author__ = "GVH"
-__version__ = "0.0.3"
+__version__ = "0.0.6"
 
 
 import sys
 from docopt import docopt
 from traveller.character import Character
 from traveller.attributes import Stats
+from traveller.animal import Animal
 from traveller.dice import die
 from traveller.career_data import *
 
@@ -83,7 +101,16 @@ def up1(text):
 
 if __name__ == "__main__":
 
-    args = {k.replace("-", ""): v for k, v in docopt(__doc__).items()}
+    args = {k.replace("-", ""): v
+            for k, v in docopt(__doc__, version=__version__).items()}
+
+    if args['animal']:
+        animal = Animal(behavior=args['behavior'],
+                        order=args['order'],
+                        terrain=args['terrain'],
+                        sentient=args['sentient'])
+        print animal
+        sys.exit()
 
     if args['UPP']:
         upp = Stats(method=args['method'])
@@ -121,7 +148,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     except:
-        #raise
+        raise
         print "Something unfortunate has happened."
 
     sys.exit()

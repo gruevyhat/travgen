@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
+from collections import defaultdict
 from dice import d6, d3, d16
 
 
-STATS = ("Str", "Dex", "End", "Int", "Edu", "Soc")
+STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
 
 BASIC_SKILLS = ["Admin", "Advocate", "Art", "Carouse", "Comms", "Computers",
                 "Drive", "Engineer", "Language", "Medic", "Physical_Science",
@@ -43,13 +44,10 @@ class Stat(int):
         return super(Stat, cls).__new__(cls, value)
 
     def __call__(self):
-        return self.dm()
-
-    def dm(self):
-        return (-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3)[self]
+        return self // 3 - 2 if self > 0 else -3
 
     def roll(self, mods=0):
-        return (d6(2) + self.dm() + mods)
+        return (d6(2) + self() + mods)
 
     def succeed(self, tgt=8, mods=0):
         return self.roll(mods) >= tgt
@@ -57,7 +55,7 @@ class Stat(int):
 
 class Stats(object):
 
-    def __init__(self, upp=None, method=None):
+    def __init__(self, upp=None, method=None, animal=False):
         if upp:
             self.Str = Stat(value=int(upp[0], 16))
             self.Dex = Stat(value=int(upp[1], 16))
@@ -72,12 +70,21 @@ class Stats(object):
             self.Int = Stat(method=method)
             self.Edu = Stat(method=method)
             self.Soc = Stat(method=method)
+        if animal:
+            self.Ins = self.Edu
+            self.Pac = self.Soc
+            del self.Edu
+            del self.Soc
 
     def __getitem__(self, stat):
         return self.__dict__[stat]
 
+    def __setitem__(self, k, v):
+        self.__dict__[k] = v
+
     def list(self):
-        return [(s, self[s], self[s].dm()) for s in STATS]
+        return [(s, self[s], self[s]())
+                for s in STATS if s in self.__dict__]
 
     def __repr__(self):
         stats = list(zip(*self.list())[1])
@@ -85,49 +92,22 @@ class Stats(object):
         return "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
 
 
-class Skill(object):
+class SkillSet(defaultdict):
 
-    def __init__(self, name, value=None):
-        self.name = name
-        if value:
-            self.value = value
-        else:
-            self.value = -3
+    def __init__(self):
+        super(SkillSet, self).__init__(lambda: -3)
 
-    def __call__(self):
-        return self.dm()
-
-    def __repr__(self):
-        return '%s: %d' % (self.name, self.value)
-
-    def dm(self):
-        return self.value
-
-    def train(self, value=1):
-        self.value = 0 if self.value < 0 else self.value + value
-        self.cap()
-
-    def set(self, value):
-        if value > self.value:
-            self.value = value
-        self.cap()
-
-    def cap(self):
-        if self.value > 3:
-            self.value = 3
-
-
-class SkillSet(dict):
-
-    def __init__(self, *arg, **kw):
-        super(SkillSet, self).__init__(*arg, **kw)
-
-    def __call__(self, skill):
-        return self[skill]
-
-    def learn(self, skill, start_value=0):
-        self[skill] = Skill(skill, start_value)
+    def learn(self, skills):
+        if type(skills) is not dict:
+            if type(skills) is str:
+                skills = [skills]
+            skills = {s: 0 for s in skills}
+        for skill, value in skills.items():
+            if skill in self:
+                self[skill] += value
+            else:
+                self[skill] = value
 
     def list(self):
-        return [(k, v()) for k, v in self.iteritems()
-                if v() >= 0]
+        return [(k, v) for k, v in self.iteritems()
+                if v >= 0]

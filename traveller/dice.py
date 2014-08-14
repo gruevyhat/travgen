@@ -14,6 +14,7 @@ def die(sides):
         return sum(sample1(R) for i in range(dice))
     return roll
 
+d100 = die(100)
 d16 = die(16)
 d6 = die(6)
 d5 = die(5)

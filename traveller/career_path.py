@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from random import sample
+from random import choice
 from dice import d6
 from career_data import *
 
@@ -64,7 +64,7 @@ class CareerPath(object):
                 if c in CAREERS:
                     self.terms[i]["Career"] = c
                     if s not in CAREERS[c]:
-                        s = sample(CAREERS[c].keys(), 1)[0]
+                        s = choice(CAREERS[c].keys())
                     self.terms[i]["Spec"] = s
                 else:
                     self.terms[i]["Career"] = None
@@ -82,14 +82,14 @@ class CareerPath(object):
             c = self.terms[n]["Career"]
             s = self.terms[n]["Spec"]
             if s not in CAREERS[c]:
-                self.terms[n]["Spec"] = sample(CAREERS[c].keys(), 1)[0]
+                self.terms[n]["Spec"] = choice(CAREERS[c].keys())
 
     def get_career(self, n, fallback=False):
         career = self.terms[n]["Career"]
         spec = self.terms[n]["Spec"]
         if fallback:
-            c = sample(FALLBACK_CAREERS, 1)[0]
-            s = sample(CAREERS[c].keys(), 1)[0]
+            c = choice(FALLBACK_CAREERS)
+            s = choice(CAREERS[c].keys())
         elif career and (not self.new_career) and (career not in self.attempted):
             c, s = career, spec
         elif n > 0 and not self.new_career:
@@ -99,7 +99,7 @@ class CareerPath(object):
             closest = [cl for cl in self.closest
                        if (not cl[1] in self.attempted)
                        and (not cl[1].endswith("(Officer)"))][:5]
-            _, c, s = sample(closest, 1)[0]
+            _, c, s = choice(closest)
         self.terms[n]["Career"] = c
         self.terms[n]["Spec"] = s
         self.prev = set([self.terms[i]["Career"] for i in range(n)])

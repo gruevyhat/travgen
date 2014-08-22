@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import sys
-from dice import sample1, d3
+from random import choice
+from dice import d3
 from career_path import CareerPath
 from attributes import SkillSet, Stats
 from lc import lc
@@ -64,16 +65,16 @@ class Character(object):
             self.homeworld = homeworld
 
     def get_ethnicity(self):
-        self.ethnicity = sample1(NAMES.keys())
+        self.ethnicity = choice(NAMES.keys())
 
     def get_name(self):
         self.name = lc(self.ethnicity, self.gender)
 
     def get_gender(self):
-        self.gender = sample1(["male", "female"])
+        self.gender = choice(["male", "female"])
 
     def get_homeworld(self):
-        self.homeworld = sample1(WORLDS.keys())
+        self.homeworld = choice(WORLDS.keys())
 
     def get_age(self, rand):
         nterms = len(self.cp.terms)

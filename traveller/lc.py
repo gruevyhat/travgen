@@ -1,12 +1,8 @@
 #!/usr/bin/python
 
-from random import sample
+from random import choice
 from collections import defaultdict
 from names import NAMES
-
-
-def sample1(itr):
-    return sample(itr, 1)[0]
 
 
 def readdata(fn):
@@ -28,10 +24,10 @@ def train(words):
 
 
 def gen(m, min_len=0, max_len=15):
-    name = sample1([w for w in m.keys()
-                    if w.startswith(" ")])
+    name = choice([w for w in m.keys()
+                   if w.startswith(" ")])
     while name[-1] != "_":
-        name += sample1(m[name[-2:]])
+        name += choice(m[name[-2:]])
     name = name.replace("_", "").strip()
     if not (min_len < len(name) < max_len):
         return gen(m, min_len, max_len)
@@ -42,7 +38,7 @@ def gen(m, min_len=0, max_len=15):
 def lc(ethnicity, gender, n=5, min_len=0, max_len=15):
     ethnicity, gender = ethnicity.lower(), gender.lower()
     if ethnicity == "american":
-        fullname = ((sample1(NAMES.keys()), "family"), (ethnicity, gender))
+        fullname = ((choice(NAMES.keys()), "family"), (ethnicity, gender))
     else:
         fullname = ((ethnicity, "family"), (ethnicity, gender))
     models = [train(NAMES[eth][nam]) for eth, nam in fullname]

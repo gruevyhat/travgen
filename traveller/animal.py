@@ -3,10 +3,10 @@
 
 # UNDER CONSTRUCTION
 
-from random import sample
+from random import sample, choice
 from collections import defaultdict
 from attributes import SkillSet, Stats, Stat, STATS
-from dice import d6, d3, d100, sample1
+from dice import d6, d3, d100
 
 
 TERRAIN = {
@@ -189,7 +189,7 @@ class Animal(object):
         if terrain:
             t = terrain
         else:
-            t = sample1(TERRAIN.keys())
+            t = choice(TERRAIN.keys())
         m = d6(1)-1
         self.movement = TERRAIN[t][2][m][0]
         self.dms["type"] += TERRAIN[t][0]
@@ -203,7 +203,7 @@ class Animal(object):
         self.stats.Dex = Stat(value=SIZES[s][2])
         self.stats.End = Stat(value=SIZES[s][3])
         if not sentient:
-            i = sample1([0, 1])
+            i = choice([0, 1])
             self.stats.Int = Stat(value=i)
         self.size = SIZES[s][0]
 
@@ -233,7 +233,7 @@ class Animal(object):
             else:
                 self.skills[attr] = n
         for r in range(d6(1)):
-            sk = sample1(self.skills.keys())
+            sk = choice(self.skills.keys())
             self.skills[sk] += 1
 
     def get_weap_arm(self):

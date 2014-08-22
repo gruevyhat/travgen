@@ -1,18 +1,17 @@
 #!/usr/bin/python
 
 
-from random import sample
-
-
-def sample1(rng):
-    return sample(rng,1)[0]
+from random import choice
 
 
 def die(sides):
-    R = range(1,sides+1)
+    R = range(1, sides+1)
+
     def roll(dice):
-        return sum(sample1(R) for i in range(dice))
+        return sum(choice(R) for i in range(dice))
+
     return roll
+
 
 d100 = die(100)
 d16 = die(16)

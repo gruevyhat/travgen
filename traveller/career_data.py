@@ -5,7 +5,7 @@ DRAFT = ["Army", "Navy", "Marines"]
 FALLBACK_CAREERS = ["Drifter"] + DRAFT
 
 CAREERS = {
-    'Merchants': {
+    'Merchant': {
         'Free Trader': {'Surv': ('Dex', 6), 'Qual': ('Int', 4), 'Adv': ('Int', 6)},
         'Merchant Marine': {'Surv': ('Edu', 5), 'Qual': ('Int', 4), 'Adv': ('Int', 7)},
         'Broker': {'Surv': ('Edu', 5), 'Qual': ('Int', 4), 'Adv': ('Int', 7)}},
@@ -18,11 +18,11 @@ CAREERS = {
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 5), 'Adv': ('Edu', 7)},
         'Infantry': {'Surv': ('Str', 6), 'Qual': ('End', 5), 'Adv': ('Edu', 6)}},
     'Navy': {
-        'Line-Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
+        'Line/Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
-        'Engineering-Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
+        'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
     'Marines': {
-        'Star Marine': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
+        'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
     'Army (Officer)': {
@@ -30,11 +30,11 @@ CAREERS = {
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 5), 'Adv': ('Edu', 7)},
         'Infantry': {'Surv': ('Str', 6), 'Qual': ('End', 5), 'Adv': ('Edu', 6)}},
     'Navy (Officer)': {
-        'Line-Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
+        'Line/Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
-        'Engineering-Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
+        'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
     'Marines (Officer)': {
-        'Star Marine': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
+        'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
     'Scout': {

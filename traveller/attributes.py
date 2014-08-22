@@ -6,23 +6,6 @@ from dice import d6, d3, d16
 
 STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
 
-BASIC_SKILLS = ["Admin", "Advocate", "Art", "Carouse", "Comms", "Computers",
-                "Drive", "Engineer", "Language", "Medic", "Physical_Science",
-                "Life_Science", "Social_Science", "Space_Science", "Trade"]
-
-WORLDS = {"Mercury": (("Admin", 0), ("Vacc" "Suit", 0)),
-          "Venus": (("Admin", 0), ("Survival", 0)),
-          "Earth": (("Computers", 0), ("Streetwise", 0)),
-          "Mars": (("Computers", 0), ("Survival", 0)),
-          "Callisto": (("Vacc Suit", 0), ("Zero-G", 0)),
-          "Europa": (("Computers", 0), ("Science (life or space)", 0)),
-          "Ganymede": (("Carouse", 0), ("Streetwise", 0)),
-          "Enceladus": (("Science (life or space", 0), ("Steward", 0)),
-          "Titan": (("Computers", 0), ("Streetwise", 0)),
-          "Uranus": (("Admin", 0), ("Vacc" "Suit", 0)),
-          "Neptune": (("Recon", 0), ("Vacc" "Suit", 0)),
-          "Kuiper Belt": (("Recon", 0), ("Vacc" "Suit", 0))}
-
 
 class Stat(int):
 
@@ -45,6 +28,9 @@ class Stat(int):
 
     def __call__(self):
         return self // 3 - 2 if self > 0 else -3
+
+    def __add__(self, n):
+        return self.__class__(value=int(self) + n)
 
     def roll(self, mods=0):
         return (d6(2) + self() + mods)

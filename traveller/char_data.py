@@ -642,7 +642,7 @@ RANKS = {
     ("Scholar", "Physician"):
         (None, ("Medic", 1), None, ("Science (Life)", 1), None, ("Science (Social)", 1), None),
     ("Scholar", "Occultist"):
-        (None, ("Science (Social)", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
+        (None, ("Occult", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
     ("Scout", "Courier"):
         (None, ("Vacc Suit", 1), None, ("Pilot", 1), None, None, None),
     ("Scout", "Survey"):

@@ -2,6 +2,7 @@
 
 import sys
 from random import choice, sample
+from collections import Counter
 from dice import d3
 from career_path import CareerPath
 from attributes import SkillSet, Stats, Stat, STATS
@@ -58,33 +59,42 @@ class Character(object):
         self.show_cp = show_cp
 
     def proc_cp(self):
-        print self.stats
         for t, term in enumerate(self.cp.terms):
+            #print "TERM", t
             career = term["Career"]
             spec = term["Spec"]
             # Set available skill tables
-            tabs = ["PD", "Serv", "Spec"]
+            tabs = ["PD", "Serv", "Spec", "Spec"]
             if self.stats.Edu >= 8:
-                tabs.append("Adv")
+                tabs.extend(["Adv"] * 3)
             if career.find("Officer") > -1:
-                tabs.append("Off")
+                tabs.extend(["Off"] * 3)
                 career = career.replace(" (Officer)", "")
             # Add skills
             if term["Edu"]:
                 edu = EDU_SKILLS + [(s, 0) for s in WORLDS[self.homeworld]]
                 skills = sample(edu, term["Edu"])
                 self.skills.learn(dict(skills))
+                #print " Edu", self.skills.items(), len(self.skills.items())
             if term["BT"]:
                 idx = SKILL_TYPES["BT"]
                 skills = SKILLS[(career, spec)][idx: idx+6]
                 if t > 0:
                     skills = (choice(skills),)
                 self.skills.learn(dict(skills))
+                #print " BT", self.skills.items(), len(self.skills.items())
             self.skill_roll(career, spec, tabs)
-            # TODO: term['Rnk']
+            #print " SR", self.skills.items(), len(self.skills.items())
+            # Get new rank skills
+            rank_skill = RANKS[term["Career"], spec][term["Rnk"]]
+            if term['A'] and rank_skill:
+                attr, n = rank_skill
+                self.rank_roll(attr, n)
+                #print " Rnk", self.skills.items(), len(self.skills.items())
             # TODO: term['EM']
             if term['SR'] > 1:
                 self.skill_roll(career, spec, tabs)
+                #print " SR", self.skills.items(), len(self.skills.items())
             # TODO: term['Ben']
             # TODO: term['Age']
 
@@ -92,12 +102,18 @@ class Character(object):
         tab = choice(tabs)
         idx = SKILL_TYPES[tab]
         attr, n = choice(SKILLS[(career, spec)][idx: idx+6])
+        attr = choice(attr.split(" or "))
         if attr in STATS:
             self.stats[attr] += 1
-        elif attr in self.skills:
-            self.skills[attr] = max(self.skills[attr] + 1, n)
         else:
-            self.skills.learn({attr: n})
+            self.skills[attr] = max(self.skills[attr] + 1, n)
+
+    def rank_roll(self, attr, n):
+        attr = choice(attr.split(" or "))
+        if attr in STATS:
+            self.stats[attr] += 1
+        else:
+            self.skills[attr] = max(self.skills[attr], n)
 
     def get_ethnicity(self):
         self.ethnicity = choice(NAMES.keys())
@@ -128,10 +144,17 @@ class Character(object):
         hw = WORLD_ADJ.get(self.homeworld, "denizen of " + self.homeworld)
         o += ["%s %s%s, age %d" % (titlecase(self.gender),
                                    hw, eth, self.age)]
+        # Stats
         o += [repr(self.stats)]
-        o += ['Skills: ' + ', '.join("%s %d" % (s, v) for s, v in self.skills.items())]
+        # Career Path
+        path = Counter([(t["Career"], t["Spec"]) for t in self.cp.terms])
+        path = ', '.join("%s (%s) x%d" % (c, s, n) for (c, s), n in path.items())
+        o += ['Career Path: ' + path]
         if self.show_cp is True:
             o += [repr(self.cp)]
+        # Skills
+        o += ['Skills: ' + ', '.join("%s %d" % (s, v)
+                                     for s, v in sorted(self.skills.items()))]
         return "\n".join(o).encode('utf8', 'ignore')
 
 

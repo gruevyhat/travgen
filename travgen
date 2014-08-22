@@ -7,6 +7,7 @@ generated randomly.
 Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
                     [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
                     [--terms TERMS] [--path PATH] [--expansions EXPANSIONS]
+                    [--full-path]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR] [--order ORDER]
                       [--sentient]
        travgen UPP [--method STR ]
@@ -40,6 +41,7 @@ Character Generation Options:
     -x --expansions LIST   Comma-delimited list of Traveller expansions to
                              include for career options. Currently supports:
                              Agent, Dilettante, Scoundrel, and Cthonian Stars.
+    -f --full-path            Show full career path.
 
 Animal Generation Options:
     --terrain TERRAIN     One of: Mountain, Hills, Open Ocean, Clear, Riverbank,
@@ -143,7 +145,8 @@ if __name__ == "__main__":
                       terms=int(args["terms"]),
                       path=path,
                       method=args["method"],
-                      rand_age=args["randage"])
+                      rand_age=args["randage"],
+                      show_cp=args["fullpath"])
         sys.stdout.write(repr(c)+"\n")
     except KeyboardInterrupt:
         pass

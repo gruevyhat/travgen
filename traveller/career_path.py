@@ -50,7 +50,8 @@ class CareerPath(object):
              for c in r] for r in P]
         tmpl = ''.join(("%%-%ds" % s for s in
                         [max(len(z) for z in y)+2 for y in zip(*P)]))
-        return "Career Path:\n" + '\n'.join((tmpl % tuple(p) for p in P))
+        #return "Career Path:\n" + '\n'.join((tmpl % tuple(p) for p in P))
+        return '\n'.join((tmpl % tuple(p) for p in P))
 
     def build_term_table(self):
         self.terms = [TERM.copy() for i in range(self.n)]

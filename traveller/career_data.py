@@ -94,7 +94,7 @@ AGENT = {
         'Thieftaker': {'Surv': ('Dex', 7), 'Qual': ('Int', 7), 'Adv': ('Int', 6)}}
     }
 
-CTHONIAN_STARS = {
+CHTHONIAN_STARS = {
     'Scholar': {
         'Physician': {'Surv': ('Edu', 4), 'Qual': ('Int', 6), 'Adv': ('Edu', 8)},
         'Scientist': {'Surv': ('Edu', 4), 'Qual': ('Int', 6), 'Adv': ('Int', 8)},

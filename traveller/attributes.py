@@ -32,6 +32,9 @@ class Stat(int):
     def __add__(self, n):
         return self.__class__(value=int(self) + n)
 
+    def __sub__(self, n):
+        return self.__class__(value=int(self) - n)
+
     def roll(self, mods=0):
         return (d6(2) + self() + mods)
 

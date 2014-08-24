@@ -38,9 +38,6 @@ Character Generation Options:
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
-    -x --expansions LIST   Comma-delimited list of Traveller expansions to
-                             include for career options. Currently supports:
-                             Agent, Dilettante, Scoundrel, and Cthonian Stars.
     -f --full-path            Show full career path.
 
 Animal Generation Options:
@@ -74,15 +71,16 @@ from traveller.dice import die
 from traveller.career_data import *
 
 
-EXPANSIONS = ["Cthonian Stars", "Agent", "Scoundrel", "Dilettante"]
+#EXPANSIONS = ["Chthonian Stars", "Agent", "Scoundrel", "Dilettante"]
+EXPANSIONS = ["Chthonian Stars"]
 
 
 def set_expansions(E):
     global CAREERS
     global FALLBACK_CAREERS
     for exp in E:
-        if exp == "Cthonian Stars":
-            CAREERS.update(CTHONIAN_STARS)
+        if exp == "Chthonian Stars":
+            CAREERS.update(CHTHONIAN_STARS)
             del CAREERS["Nobility"]
         if exp == "Dilettante":
             CAREERS.update(DILETTANTE)
@@ -131,10 +129,7 @@ if __name__ == "__main__":
     else:
         path = None
 
-    if args['expansions'] == 'all':
-        set_expansions(EXPANSIONS)
-    elif args['expansions']:
-        set_expansions([up1(a.strip()) for a in args['expansions'].split(',')])
+    set_expansions(EXPANSIONS)
 
     try:
         c = Character(name=args["name"],
@@ -151,6 +146,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     except Exception as e:
+        raise
         print "Something unfortunate has happened. [%s]" % e
 
     sys.exit()

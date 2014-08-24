@@ -3,6 +3,7 @@
 from random import choice
 from dice import d6
 from career_data import *
+from char_data import AGING
 
 
 STARTING_SKILLS = 3
@@ -100,7 +101,11 @@ class CareerPath(object):
             closest = [cl for cl in self.closest
                        if (not cl[1] in self.attempted)
                        and (not cl[1].endswith("(Officer)"))][:5]
-            _, c, s = choice(closest)
+            if closest:
+                _, c, s = choice(closest)
+            else:
+                c = "Drifter"
+                s = choice(CAREERS[c].keys())
         self.terms[n]["Career"] = c
         self.terms[n]["Spec"] = s
         self.prev = set([self.terms[i]["Career"] for i in range(n)])
@@ -202,6 +207,18 @@ class CareerPath(object):
 
     def age(self, n):
         age = "-" if n < 3 else d6(2) - len(self.terms)
+        if age < 1:
+            age = max(-6, age)
+            pens = AGING[-age]
+            for p, pen in enumerate(pens):
+                if pen:
+                    if p == 3:
+                        a = choice(("Int", "Edu"))
+                    else:
+                        a = choice(("Str", "Dex", "End"))
+                    self.stats[a] -= pen
+                    if self.stats[a] < 0:
+                        self.stats[a] = Stat(value=0)
         self.terms[n]["Age"] = age
 
     def benefits(self, n):

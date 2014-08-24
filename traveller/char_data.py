@@ -31,7 +31,7 @@ CAREERS = {
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
         'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
     'Marines': {
-        'Star Marine': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
+        'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
     'Army (Officer)': {
@@ -43,7 +43,7 @@ CAREERS = {
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
         'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
     'Marines (Officer)': {
-        'Star Marine': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
+        'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
     'Scout': {
@@ -103,7 +103,7 @@ AGENT = {
         'Thieftaker': {'Surv': ('Dex', 7), 'Qual': ('Int', 7), 'Adv': ('Int', 6)}}
     }
 
-CTHONIAN_STARS = {
+CHTHONIAN_STARS = {
     'Scholar': {
         'Physician': {'Surv': ('Edu', 4), 'Qual': ('Int', 6), 'Adv': ('Edu', 8)},
         'Scientist': {'Surv': ('Edu', 4), 'Qual': ('Int', 6), 'Adv': ('Int', 8)},
@@ -592,7 +592,7 @@ RANKS = {
     ("Drifter", "Wanderer"):
         (None, ("Streetwise", 1), None, ("Deception", 1), None, None, None),
     ("Drifter", "Scavenger"):
-        (None, ("Vacc Suit", 1), None, "Trade (belter) or Mechanic 1", None, None, None),
+        (None, ("Vacc Suit", 1), None, ("Trade (belter) or Mechanic)", 1), None, None, None),
     ("Entertainer", "Artist"):
         (None, ("Art", 0), None, ("Investigate", 0), None, ("Soc", 1), None),
     ("Entertainer", "Journalist"):
@@ -634,7 +634,7 @@ RANKS = {
     ("Rogue", "Enforcer"):
         (None, ("Persuade", 1), None, ("Melee or Gun Combat", 1), None, ("Streetwise", 1), None),
     ("Rogue", "Pirate"):
-        (None, ("Pilot or Gunner", 1), None, ("Melee or Gun Combat", 1), None, ("Engineering or Navigation", 1), None),
+        (None, ("Pilot or Gunner", 1), None, ("Melee or Gun Combat", 1), None, ("Engineer or Navigation", 1), None),
     ("Scholar", "Field Researcher"):
         (None, ("Science (Social)", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
     ("Scholar", "Scientist"):
@@ -674,3 +674,52 @@ RANKS = {
     ("Navy (Officer)", "Flight"):
         (None, ("Melee (blade)", 1), ("Leadership", 1), None, ("Tactics (naval)", 1), ("Soc", 1), ("Soc", 1)),
 }
+
+BENEFITS = {
+    "Agent": ("Weapon", "Concealed Armor", "Contact", "Scientific Equipment", "Ally", "Ship Shares"),
+    "Army": ("Weapon", "Armor", "Combat Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Citizen": ("Weapon", "Professional Gear", "Contact", "Vehicle", "Ally", "Ship Shares"),
+    "Drifter": ("Contact", "Weapon", "Ally", "Professional Gear", "Scientific Equipment", "Ship Shares"),
+    "Entertainer": ("Contact", "Contact", "Professional Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Marines": ("Weapon", "Armor", "Combat Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Merchant": ("Contact", "Ally", "Vehicle", "Valuable Item", "Expensive Vehicle", "Ship Shares"),
+    "Navy": ("Weapon", "Armor", "Combat Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Nobility": ("Contact", "Ally", "Vehicle", "Weapon", "Expensive Vehicle", "Ship Shares"),
+    "Aristocrat": ("Contact", "Ally", "Vehicle", "Weapon", "Expensive Vehicle", "Ship Shares"),
+    "Rogue": ("Contact", "Weapon", "Professional Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Scholar": ("Contact", "Professional Gear", "Technical Library", "Vehicle", "Ally", "Ship Shares"),
+    "Scout": ("Contact", "Professional Gear", "Weapon", "Vehicle", "Ally", "Ship Shares"),
+    "Scout": ("Contact", "Professional Gear", "Weapon", "Vehicle", "Ally", "Ship Shares"),
+    "Psion": ("Contact", "Weapon", "Professional Gear", "Vehicle", "Ally", "Ship Shares"),
+    "Warden": ("Weapon", "Concealed Armor", "Contact", "Scientific Equipment", "Ally", "Ship Shares"),
+    }
+
+CREDITS = {
+    "Agent": (1000, 2000, 5000, 7500, 10000, 25000, 50000),
+    "Army": (2000, 5000, 10000, 10000, 10000, 20000, 50000),
+    "Citizen": (1000, 5000, 10000, 10000, 10000, 50000, 100000),
+    "Drifter": (0, 0, 1000, 2000, 3000, 4000, 8000),
+    "Entertainer": (0, 0, 10000, 10000, 40000, 40000, 80000),
+    "Marines": (2000, 5000, 5000, 10000, 20000, 30000, 40000),
+    "Merchant": (1000, 5000, 10000, 20000, 20000, 40000, 40000),
+    "Navy": (1000, 5000, 5000, 10000, 20000, 50000, 50000),
+    "Nobility": (10000, 10000, 50000, 50000, 100000, 100000, 200000),
+    "Aristocrat": (10000, 10000, 50000, 50000, 100000, 100000, 200000),
+    "Rogue": (0, 0, 10000, 10000, 50000, 100000, 100000),
+    "Scholar": (5000, 10000, 20000, 30000, 40000, 60000, 100000),
+    "Scout": (20000, 20000, 30000, 30000, 50000, 50000, 50000),
+    "Explorer": (20000, 20000, 30000, 30000, 50000, 50000, 50000),
+    "Psion": (1000, 2000, 4000, 4000, 8000, 8000, 16000),
+    "Warden": (1000, 2000, 5000, 7500, 10000, 25000, 50000),
+}
+
+AGING = (
+    # inverted
+    (1, 0, 0, 0),
+    (1, 1, 0, 0),
+    (1, 1, 1, 0),
+    (2, 1, 1, 0),
+    (2, 2, 1, 0),
+    (2, 2, 2, 0),
+    (2, 2, 2, 1),
+)

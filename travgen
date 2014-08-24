@@ -7,7 +7,7 @@ generated randomly.
 Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
                     [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
                     [--terms TERMS] [--path PATH] [--expansions EXPANSIONS]
-                    [--full-path]
+                    [--career-table] [--show-hist]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR] [--order ORDER]
                       [--sentient]
        travgen UPP [--method STR ]
@@ -38,7 +38,8 @@ Character Generation Options:
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
-    -f --full-path            Show full career path.
+    -c --career-table      Show tabular career path.
+    -s --show-hist         Show full career history.
 
 Animal Generation Options:
     --terrain TERRAIN     One of: Mountain, Hills, Open Ocean, Clear, Riverbank,
@@ -49,7 +50,7 @@ Animal Generation Options:
                             Intermittent, Hijacker, Eater, Pouncer, Hunter,
                             Filter, Grazer, Carrion-Eater, Chaser, Brute Killer,
                             Gatherer, Swift Killer.
-    --order ORDER         One of: Scavenger, Omnivore, Herbivore, Carnivore. 
+    --order ORDER         One of: Scavenger, Omnivore, Herbivore, Carnivore.
     --sentient            Creature has an intelligence greater than 1.
 
 Other Options:
@@ -68,7 +69,7 @@ from traveller.character import Character
 from traveller.attributes import Stats
 from traveller.animal import Animal
 from traveller.dice import die
-from traveller.career_data import *
+from traveller.data import *
 
 
 #EXPANSIONS = ["Chthonian Stars", "Agent", "Scoundrel", "Dilettante"]
@@ -82,6 +83,7 @@ def set_expansions(E):
         if exp == "Chthonian Stars":
             CAREERS.update(CHTHONIAN_STARS)
             del CAREERS["Nobility"]
+            del CAREERS["Scout"]
         if exp == "Dilettante":
             CAREERS.update(DILETTANTE)
         if exp == "Agent":
@@ -141,7 +143,8 @@ if __name__ == "__main__":
                       path=path,
                       method=args["method"],
                       rand_age=args["randage"],
-                      show_cp=args["fullpath"])
+                      show_cp=args["careertable"],
+                      show_hist=args["showhist"])
         sys.stdout.write(repr(c)+"\n")
     except KeyboardInterrupt:
         pass

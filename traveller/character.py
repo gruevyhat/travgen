@@ -14,9 +14,9 @@ from data import *
 class Character(object):
 
     def __init__(self, name=None, upp=None, homeworld=None,
-                 ethnicity=None, gender=None, terms=3, path=None,
-                 method=None, rand_age=False,
-                 show_cp=False, show_hist=False):
+                 ethnicity=None, gender=None, personality=False,
+                 terms=3, path=None, method=None, rand_age=False,
+                 show_hist=False):
         # Game attributes
         self.stats = Stats(upp, method)
         self.skills = SkillSet()
@@ -26,7 +26,6 @@ class Character(object):
         else:
             self.homeworld = homeworld
         self.cp = CareerPath(self, terms, path)
-        self.show_cp = show_cp
         self.show_hist = show_hist
         # Demographics
         self.get_age(rand_age)
@@ -42,6 +41,10 @@ class Character(object):
             self.get_name()
         else:
             self.name = name
+        if personality:
+            self.get_personality()
+        else:
+            self.personality = None
 
     def get_ethnicity(self):
         self.ethnicity = choice(NAMES.keys())
@@ -60,6 +63,11 @@ class Character(object):
         self.age = STARTING_AGE + nterms * 4
         if rand:
             self.age += d3(nterms) - 2 * nterms
+
+    def get_personality(self):
+        self.personality = (choice(PERSONALITIES[0]),
+                            choice(PERSONALITIES[1]),
+                            choice(PERSONALITIES[2]))
 
     def __repr__(self):
         o = [self.name]
@@ -80,10 +88,6 @@ class Character(object):
         path = ', '.join("%s (%s) [Rank %d]" % (c, s, n)
                          for (c, s), n in path.items())
         o += ['Career Path: ' + path]
-        if self.show_cp is True:
-            o += [repr(self.cp)]
-        if self.show_hist is True:
-            o += self.cp.history
         # Skills
         o += ['Skills: ' + ', '.join("%s %d" % (s, v)
                                      for s, v in sorted(self.skills.items()))]
@@ -94,6 +98,15 @@ class Character(object):
             stuff = ', '.join("%s x%d" % (b, n) for b, n in stuff.items())
             benefits = ', '.join((stuff, benefits))
         o += ['Benefits: %s' % benefits]
+        # Personality
+        if self.personality:
+            mb = ''.join((choice("IESNFTJP"[i:i+2]) for i in range(0, 8, 2)))
+            o += ["Personality: %s, %s, %s [%%s]" % self.personality % mb]
+        # History
+        if self.show_hist is True:
+            o += ["Career History"]
+            o += [repr(self.cp)]
+            o += self.cp.history
         return "\n".join(o).encode('utf8', 'ignore')
 
 

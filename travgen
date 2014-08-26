@@ -4,12 +4,14 @@
 Character generator for Mongoose Traveller. Any unspecified options will be
 generated randomly.
 
-Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
-                    [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
-                    [--terms TERMS] [--path PATH] [--expansions EXPANSIONS]
-                    [--career-table] [--show-hist]
-       travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR] [--order ORDER]
-                      [--sentient]
+Usage: travgen char [--name NAME] [--homeworld WORLD]
+                    [--ethnicity ETHNICITY] [--gender GENDER]
+                    [--upp UPP] [--method METHOD]
+                    [--terms TERMS] [--path PATH]
+                    [--rand-age] [--personality]
+                    [--show-hist]
+       travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
+                      [--order ORDER] [--sentient]
        travgen UPP [--method STR ]
        travgen roll DICE
        travgen (-h | --help)
@@ -38,7 +40,7 @@ Character Generation Options:
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
-    -c --career-table      Show tabular career path.
+    -P --personality       Random personality.
     -s --show-hist         Show full career history.
 
 Animal Generation Options:
@@ -147,7 +149,7 @@ if __name__ == "__main__":
                       path=path,
                       method=args["method"],
                       rand_age=args["randage"],
-                      show_cp=args["careertable"],
+                      personality=args["personality"],
                       show_hist=args["showhist"])
         sys.stdout.write(repr(c)+"\n")
     except KeyboardInterrupt:

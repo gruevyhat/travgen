@@ -109,7 +109,7 @@ class CareerPath(object):
             c = self.terms[n - 1]['Career']
             s = self.terms[n - 1]['Spec']
         else:
-            closest = [ cl for cl in self.closest if cl[1] not in self.attempted and not cl[1].endswith('(Officer)') ][:5]
+            closest = [ cl for cl in self.closest if cl[1] not in self.attempted and not cl[1].endswith('Officer') ][:5]
             if closest:
                 _, c, s = choice(closest)
             else:
@@ -159,7 +159,7 @@ class CareerPath(object):
     def get_commission(self, n, career):
         comm = self.stats.Soc.roll() >= COMMISSION
         if comm:
-            self.terms[n]['Career'] = career + ' (Officer)'
+            self.terms[n]['Career'] = career + ' Officer'
             self.history += [' Received a Commission.']
             self.terms[n]['A'] = True
         else:
@@ -185,7 +185,7 @@ class CareerPath(object):
             rank += 1
             self.history += [' Promoted to Rank %d.' % rank]
         self.terms[n]['Rnk'] = rank
-        career = self.terms[n]['Career'].replace(' (Officer)', '')
+        career = self.terms[n]['Career'].replace(' Officer', '')
         spec = self.terms[n]['Spec']
         if spec not in CAREERS[career]:
             spec = choice(CAREERS[career].keys())
@@ -256,7 +256,7 @@ class CareerPath(object):
     def muster(self, n):
         if self.terms[n]['S']:
             ben = d6(1)
-            career = self.terms[n]['Career'].replace(' (Officer)', '')
+            career = self.terms[n]['Career'].replace(' Officer', '')
             self.terms[n]['Ben'] = ben
             if choice((0, 1)) == 1:
                 benefit = BENEFITS[career][ben - 1]
@@ -279,7 +279,7 @@ class CareerPath(object):
             return success
 
     def skill_roll(self, career, spec):
-        career = career.replace(' (Officer)', '')
+        career = career.replace(' Officer', '')
         tabs = ['Personal Development', 'Service', 'Specialization']
         if career != 'Drifter' and self.stats.Edu >= 8:
             tabs.extend(['Advanced Education'] * 1)

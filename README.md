@@ -11,7 +11,7 @@ The script is run from the command line with the following syntax. All input var
 
     Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
                         [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
-                        [--terms TERMS] [--path PATH] [--full-path]
+                        [--terms TERMS] [--path PATH] [--full-path] [--show-hist]
            travgen UPP [--method STR ]
 
     Character Generation Options:
@@ -35,9 +35,10 @@ The script is run from the command line with the following syntax. All input var
       -t --terms INT         Number of terms to serve. [default: 3]
       -p --path STR          Colon-delimited career path of the form:
                                "career:spec::career:spec::...".
-      -f --full-path            Show full career path.
+      -f --full-path         Show full career path.
+      -s --show-hist         Show full career history.
 
-Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. Career path is presented as a table with the following fields.
+Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. The career path may be listed in one (or both) of two ways. The `--show-hist` option returns a narrative description of the steps taken during character generation. The `--full-path` option presents a tabular representation of these steps.
 
 * T = The term number.
 * Q = Qualified/enlisted successfully?
@@ -66,7 +67,7 @@ In the example below, Fradina Jovina was drafted into the Navy in her first term
     3  Citizen  Colonist   Y  Y  Y  0    1   2   1    e[6,5]  3    1    
     Skills: Admin 0, Carouse 0, Comms 0, Drive 0, Engineer 0, Gun Combat 2, Gunner 0, Mechanic 2, Pilot 0, Vacc Suit 1, Zero-G 0
 
-Note that the script does not currently generate events, mishaps, benefits, aging effects, or pensions. 
+Note that the script does not currently generate events, mishaps, or pensions. 
 
 
 Usage: Animal Generation

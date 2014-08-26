@@ -60,7 +60,7 @@ Other Options:
 """
 
 __author__ = "GVH"
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 
 import sys
@@ -79,11 +79,15 @@ EXPANSIONS = ["Chthonian Stars"]
 def set_expansions(E):
     global CAREERS
     global FALLBACK_CAREERS
+    global SKILLS
     for exp in E:
         if exp == "Chthonian Stars":
             CAREERS.update(CHTHONIAN_STARS)
             del CAREERS["Nobility"]
             del CAREERS["Scout"]
+            for spec in ('Star Marines', 'Support', 'Ground Assault'):
+                SKILLS['Marines', spec] = tuple((('Recon', v) if k == 'Battle Dress' else (k, v)
+                                                for k, v in SKILLS['Marines', 'Star Marines']))
         if exp == "Dilettante":
             CAREERS.update(DILETTANTE)
         if exp == "Agent":

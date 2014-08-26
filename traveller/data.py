@@ -41,15 +41,15 @@ CAREERS = {
         'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
-    'Army (Officer)': {
+    'Army Officer': {
         'Cavalry': {'Surv': ('Dex', 7), 'Qual': ('End', 5), 'Adv': ('Int', 5)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 5), 'Adv': ('Edu', 7)},
         'Infantry': {'Surv': ('Str', 6), 'Qual': ('End', 5), 'Adv': ('Edu', 6)}},
-    'Navy (Officer)': {
+    'Navy Officer': {
         'Line/Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
         'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
-    'Marines (Officer)': {
+    'Marines Officer': {
         'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
@@ -230,15 +230,15 @@ CAREERS = {
         'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
-    'Army (Officer)': {
+    'Army Officer': {
         'Cavalry': {'Surv': ('Dex', 7), 'Qual': ('End', 5), 'Adv': ('Int', 5)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 5), 'Adv': ('Edu', 7)},
         'Infantry': {'Surv': ('Str', 6), 'Qual': ('End', 5), 'Adv': ('Edu', 6)}},
-    'Navy (Officer)': {
+    'Navy Officer': {
         'Line/Crew': {'Surv': ('Int', 5), 'Qual': ('Int', 6), 'Adv': ('Edu', 7)},
         'Flight': {'Surv': ('Dex', 7), 'Qual': ('Int', 6), 'Adv': ('Edu', 5)},
         'Engineering/Gunnery': {'Surv': ('Int', 6), 'Qual': ('Int', 6), 'Adv': ('Edu', 6)}},
-    'Marines (Officer)': {
+    'Marines Officer': {
         'Star Marines': {'Surv': ('End', 6), 'Qual': ('End', 6), 'Adv': ('Edu', 6)},
         'Support': {'Surv': ('End', 5), 'Qual': ('End', 6), 'Adv': ('Edu', 7)},
         'Ground Assault': {'Surv': ('End', 7), 'Qual': ('End', 6), 'Adv': ('Edu', 5)}},
@@ -359,9 +359,9 @@ WORLDS = {"Mercury": ["Admin", "Vacc Suit"],
           "Earth": ["Computers", "Streetwise"],
           "Mars": ["Computers", "Survival"],
           "Callisto": ["Vacc Suit", "Zero-G"],
-          "Europa": ["Computers", "Science (Life)", "Science (Space)"],
+          "Europa": ["Computers", "Life Science", "Space Science"],
           "Ganymede": ["Carouse", "Streetwise"],
-          "Enceladus": ["Science (Life)", "Science (Space)", "Steward"],
+          "Enceladus": ["Life Science", "Space Science", "Steward"],
           "Titan": ["Computers", "Streetwise"],
           "Uranus": ["Admin", "Vacc Suit"],
           "Neptune": ["Recon", "Vacc Suit"],
@@ -369,9 +369,9 @@ WORLDS = {"Mercury": ["Admin", "Vacc Suit"],
 
 EDU_SKILLS = [("Admin", 0), ("Advocate", 0), ("Art", 0), ("Carouse", 0),
               ("Comms", 0), ("Computer", 0), ("Drive", 0), ("Engineer", 0),
-              ("Language", 0), ("Medic", 0), ("Science (Physical)", 0),
-              ("Science (Life)", 0), ("Science (Social)", 0),
-              ("Science (Space)", 0), ("Trade", 0)]
+              ("Language", 0), ("Medic", 0), ("Physical Science", 0),
+              ("Life Science", 0), ("Social Science", 0),
+              ("Space Science", 0), ("Trade", 0)]
 
 SKILL_TYPES = {"BT": 0, "Personal Development": 1, "Service": 2,
                "Specialization": 3, "Advanced Education": 4, "Officer": 5}
@@ -401,7 +401,7 @@ SKILLS = {
         ("Streetwise", 0), ("Drive", 0), ("Investigate", 0), ("Computers", 0), ("Recon", 0), ("Gun Combat", 0),
         ("Gun Combat", 0), ("Dex", 1), ("End", 1), ("Melee", 0), ("Int", 1), ("Athletics", 0),
         ("Streetwise", 0), ("Drive", 0), ("Investigate", 0), ("Computers", 0), ("Recon", 0), ("Gun Combat", 0),
-        ("Occult", 0), ("Investigate", 0), ("Computers", 0), ("Science (Any)", 0), ("Jack of all Trades", 0), ("Language", 0),
+        ("Occult", 0), ("Investigate", 0), ("Computers", 0), ("Any Science", 0), ("Jack of all Trades", 0), ("Language", 0),
         ("Advocate", 0), ("Comms", 0), ("Computers", 0), ("Medic", 0), ("Stealth", 0), ("Remote Operations", 0)),
     ("Agent", "Law Enforcement"): (("Streetwise", 0), ("Drive", 0), ("Investigate", 0),
         ("Computers", 0), ("Recon", 0), ("Gun Combat", 0), ("Gun Combat", 0),
@@ -463,11 +463,11 @@ SKILLS = {
         ("Advocate", 0), ("Diplomat", 0), ("Language", 0), ("Computers", 0),
         ("Medic", 0)),
     ("Citizen", "Worker"): (("Drive", 0), ("Mechanic", 0), ("Trade", 0),
-        ("Engineer", 0), ("Trade", 0), ("Science (Any)", 0), ("Edu", 1),
+        ("Engineer", 0), ("Trade", 0), ("Any Science", 0), ("Edu", 1),
         ("Int", 1), ("Carouse", 0), ("Gambler", 0), ("Drive", 0),
         ("Jack of all Trades", 0), ("Drive", 0), ("Flyer", 0), ("Streetwise", 0), ("Melee", 0),
         ("Steward", 0), ("Trade", 0), ("Drive", 0), ("Mechanic", 0), ("Trade", 0),
-        ("Engineer", 0), ("Trade", 0), ("Science (Any)", 0), ("Art", 0),
+        ("Engineer", 0), ("Trade", 0), ("Any Science", 0), ("Art", 0),
         ("Advocate", 0), ("Diplomat", 0), ("Language", 0), ("Computers", 0),
         ("Medic", 0)),
     ("Citizen", "Colonist"): (("Animals", 0), ("Athletics", 0),
@@ -498,7 +498,7 @@ SKILLS = {
         ("Stealth", 0), ("Art", 0), ("Art", 0), ("Carouse", 0), ("Deception", 0),
         ("Persuade", 0), ("Steward", 0), ("Art", 0), ("Carouse", 0),
         ("Computers", 0), ("Gambler", 0), ("Persuade", 0), ("Trade", 0),
-        ("Advocate", 0), ("Art", 0), ("Deception", 0), ("Science (Any)", 0),
+        ("Advocate", 0), ("Art", 0), ("Deception", 0), ("Any Science", 0),
         ("Streetwise", 0), ("Diplomat", 0)),
     ("Entertainer", "Journalist"): (("Art", 0), ("Art", 0), ("Carouse", 0),
         ("Deception", 0), ("Persuade", 0), ("Steward", 0), ("Dex", 1),
@@ -507,7 +507,7 @@ SKILLS = {
         ("Persuade", 0), ("Steward", 0), ("Art (writing) or Art (holography)", 0),
         ("Comms", 0), ("Computers", 0), ("Investigate", 0), ("Recon", 0),
         ("Streetwise", 0), ("Advocate", 0), ("Art", 0), ("Deception", 0),
-        ("Science (Any)", 0), ("Streetwise", 0), ("Diplomat", 0)),
+        ("Any Science", 0), ("Streetwise", 0), ("Diplomat", 0)),
     ("Entertainer", "Performer"): (
         ("Art", 0), ("Art", 0), ("Carouse", 0), ("Deception", 0), ("Persuade", 0), ("Steward", 0),
         ("Dex", 1), ("Int", 1), ("Soc", 1), ("Edu", 1), ("Carouse", 0), ("Stealth", 0),
@@ -515,17 +515,14 @@ SKILLS = {
         ("Art (acting) or Art (dance) or Art (instrument)", 0),
         ("Athletics (coordination) or Athletics (endurance)", 0),
         ("Carouse", 0), ("Deception", 0), ("Stealth", 0), ("Streetwise", 0),
-        ("Advocate", 0), ("Art", 0), ("Deception", 0), ("Science (Any)", 0), ("Streetwise", 0), ("Diplomat", 0)),
-    ("Marines", "Support"): (("Athletics", 0), ("Battle Dress", 0), ("Tactics", 0),
-        ("Heavy Weapons", 0), ("Gun Combat", 0), ("Stealth", 0), ("Str", 1),
-        ("Dex", 1), ("End", 1), ("Gambler", 0), ("Melee (unarmed)", 0),
-        ("Melee (armed)", 0), ("Athletics", 0), ("Battle Dress", 0), ("Tactics", 0),
-        ("Heavy Weapons", 0), ("Gun Combat", 0), ("Stealth", 0), ("Comms", 0),
-        ("Mechanic", 0), ("Drive or Flyer", 0), ("Medic", 0), ("Heavy Weapons", 0),
-        ("Gun Combat", 0), ("Medic", 0), ("Survival", 0), ("Explosives", 0),
-        ("Engineer", 0), ("Pilot", 0), ("Medic", 0), ("Leadership", 0),
-        ("Tactics", 0), ("Admin", 0), ("Advocate", 0), ("Battle Dress", 0),
-        ("Leadership", 0)),
+        ("Advocate", 0), ("Art", 0), ("Deception", 0), ("Any Science", 0), ("Streetwise", 0), ("Diplomat", 0)),
+    ("Marines", "Support"): (
+        ("Athletics", 0), ("Battle Dress", 0), ("Tactics", 0), ("Heavy Weapons", 0), ("Gun Combat", 0), ("Stealth", 0),
+        ("Str", 1), ("Dex", 1), ("End", 1), ("Gambler", 0), ("Melee (unarmed)", 0), ("Melee (armed)", 0),
+        ("Athletics", 0), ("Battle Dress", 0), ("Tactics", 0), ("Heavy Weapons", 0), ("Gun Combat", 0), ("Stealth", 0),
+        ("Comms", 0), ("Mechanic", 0), ("Drive or Flyer", 0), ("Medic", 0), ("Heavy Weapons", 0), ("Gun Combat", 0),
+        ("Medic", 0), ("Survival", 0), ("Explosives", 0), ("Engineer", 0), ("Pilot", 0), ("Medic", 0),
+        ("Leadership", 0), ("Tactics", 0), ("Admin", 0), ("Advocate", 0), ("Battle Dress", 0), ("Leadership", 0)),
     ("Marines", "Star Marines"): (("Athletics", 0), ("Battle Dress", 0),
         ("Tactics", 0), ("Heavy Weapons", 0), ("Gun Combat", 0), ("Stealth", 0),
         ("Str", 1), ("Dex", 1), ("End", 1), ("Gambler", 0),
@@ -552,7 +549,7 @@ SKILLS = {
         ("Melee (blade)", 0), ("Streetwise", 0), ("Drive", 0), ("Vacc Suit", 0),
         ("Broker", 0), ("Steward", 0), ("Comms", 0), ("Persuade", 0),
         ("Pilot (spacecraft or capital ships)", 0), ("Vacc Suit", 0), ("Zero-G", 0),
-        ("Mechanic", 0), ("Engineer", 0), ("Gunner", 0), ("Science (Social)", 0),
+        ("Mechanic", 0), ("Engineer", 0), ("Gunner", 0), ("Social Science", 0),
         ("Astrogation", 0), ("Computers", 0), ("Pilot", 0), ("Admin", 0),
         ("Advocate", 0)),
     ("Merchant", "Free Trader"): (("Drive", 0), ("Vacc Suit", 0), ("Broker", 0),
@@ -561,7 +558,7 @@ SKILLS = {
         ("Melee (blade)", 0), ("Streetwise", 0), ("Drive", 0), ("Vacc Suit", 0),
         ("Broker", 0), ("Steward", 0), ("Comms", 0), ("Persuade", 0),
         ("Pilot (spacecraft)", 0), ("Vacc Suit", 0), ("Zero-G", 0), ("Mechanic", 0),
-        ("Engineer", 0), ("Sensors", 0), ("Science (Social)", 0), ("Astrogation", 0),
+        ("Engineer", 0), ("Sensors", 0), ("Social Science", 0), ("Astrogation", 0),
         ("Computers", 0), ("Pilot", 0), ("Admin", 0), ("Advocate", 0)),
     ("Merchant", "Broker"): (("Drive", 0), ("Vacc Suit", 0), ("Broker", 0),
         ("Steward", 0), ("Comms", 0), ("Persuade", 0), ("Str", 1),
@@ -569,7 +566,7 @@ SKILLS = {
         ("Melee (blade)", 0), ("Streetwise", 0), ("Drive", 0), ("Vacc Suit", 0),
         ("Broker", 0), ("Steward", 0), ("Comms", 0), ("Persuade", 0), ("Admin", 0),
         ("Advocate", 0), ("Broker", 0), ("Streetwise", 0), ("Deception", 0),
-        ("Persuade", 0), ("Science (Social)", 0), ("Astrogation", 0),
+        ("Persuade", 0), ("Social Science", 0), ("Astrogation", 0),
         ("Computers", 0), ("Pilot", 0), ("Admin", 0), ("Advocate", 0)),
     ("Navy", "Line/Crew"): (("Pilot", 0), ("Vacc Suit", 0), ("Zero-G", 0),
         ("Gunner", 0), ("Mechanic", 0), ("Gun Combat", 0), ("Str", 1),
@@ -669,37 +666,37 @@ SKILLS = {
         ("Melee (blade)", 0), ("Computers", 0), ("Comms", 0), ("Medic", 0),
         ("Investigate", 0), ("Persuade", 0), ("Advocate", 0)),
     ("Scholar", "Field Researcher"): (("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Int", 1),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Int", 1),
         ("Edu", 1), ("Soc", 1), ("Dex", 1), ("End", 1),
         ("Computers", 0), ("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Sensors", 0),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Sensors", 0),
         ("Diplomat", 0), ("Language", 0), ("Survival", 0), ("Investigate", 0),
-        ("Science (Any)", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
-        ("Engineer", 0), ("Science (Any)", 0)),
+        ("Any Science", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
+        ("Engineer", 0), ("Any Science", 0)),
     ("Scholar", "Scientist"): (("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Int", 1),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Int", 1),
         ("Edu", 1), ("Soc", 1), ("Dex", 1), ("End", 1),
         ("Computers", 0), ("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Admin", 0),
-        ("Engineer", 0), ("Science (Any)", 0), ("Sensors", 0), ("Computers", 0),
-        ("Science (Any)", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
-        ("Engineer", 0), ("Science (Any)", 0)),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Admin", 0),
+        ("Engineer", 0), ("Any Science", 0), ("Sensors", 0), ("Computers", 0),
+        ("Any Science", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
+        ("Engineer", 0), ("Any Science", 0)),
     ("Scholar", "Physician"): (("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Int", 1),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Int", 1),
         ("Edu", 1), ("Soc", 1), ("Dex", 1), ("End", 1),
         ("Computers", 0), ("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Medic", 0),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Medic", 0),
         ("Comms", 0), ("Investigate", 0), ("Medic", 0), ("Persuade", 0),
-        ("Science (Any)", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
-        ("Engineer", 0), ("Science (Any)", 0)),
+        ("Any Science", 0), ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
+        ("Engineer", 0), ("Any Science", 0)),
     ("Scholar", "Occultist"): (("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Int", 1),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Int", 1),
         ("Edu", 1), ("Soc", 1), ("Dex", 1), ("End", 1),
         ("Computers", 0), ("Comms", 0), ("Computers", 0), ("Diplomat", 0),
-        ("Medic", 0), ("Investigate", 0), ("Science (Any)", 0), ("Investigate", 0),
-        ("Occult", 0), ("Science (Any)", 0), ("Computers", 0), ("Language", 0), ("Occult", 0),
+        ("Medic", 0), ("Investigate", 0), ("Any Science", 0), ("Investigate", 0),
+        ("Occult", 0), ("Any Science", 0), ("Computers", 0), ("Language", 0), ("Occult", 0),
         ("Art", 0), ("Advocate", 0), ("Computers", 0), ("Language", 0),
-        ("Engineer", 0), ("Science (Any)", 0)),
+        ("Engineer", 0), ("Any Science", 0)),
     ("Scout", "Courier"): (("Pilot", 0), ("Survival", 0), ("Mechanic", 0),
         ("Astrogation", 0), ("Comms", 0), ("Gun Combat", 0), ("Str", 1),
         ("Dex", 1), ("End", 1), ("Int", 1), ("Edu", 1),
@@ -707,7 +704,7 @@ SKILLS = {
         ("Survival", 0), ("Mechanic", 0), ("Astrogation", 0), ("Comms", 0),
         ("Gun Combat", 0), ("Comms", 0), ("Sensors", 0), ("Pilot (spacecraft)", 0),
         ("Vacc Suit", 0), ("Zero-G", 0), ("Astrogation", 0), ("Medic", 0),
-        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Science (Space)", 0),
+        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Space Science", 0),
         ("Jack of all Trades", 0)),
     ("Scout", "Survey"): (("Pilot", 0), ("Survival", 0), ("Mechanic", 0),
         ("Astrogation", 0), ("Comms", 0), ("Gun Combat", 0), ("Str", 1),
@@ -716,7 +713,7 @@ SKILLS = {
         ("Survival", 0), ("Mechanic", 0), ("Astrogation", 0), ("Comms", 0),
         ("Gun Combat", 0), ("Sensors", 0), ("Persuade", 0), ("Pilot (small craft)", 0),
         ("Navigation", 0), ("Diplomat", 0), ("Streetwise", 0), ("Medic", 0),
-        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Science (Space)", 0),
+        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Space Science", 0),
         ("Jack of all Trades", 0)),
     ("Scout", "Exploration"): (("Pilot", 0), ("Survival", 0), ("Mechanic", 0),
         ("Astrogation", 0), ("Comms", 0), ("Gun Combat", 0), ("Str", 1),
@@ -724,9 +721,9 @@ SKILLS = {
         ("Jack of all Trades", 0), ("Pilot (spacecraft or small craft)", 0),
         ("Survival", 0), ("Mechanic", 0), ("Astrogation", 0), ("Comms", 0),
         ("Gun Combat", 0), ("Comms", 0), ("Pilot (spacecraft)", 0),
-        ("Pilot (small craft)", 0), ("Science (Life)", 0), ("Stealth", 0), ("Recon", 0),
+        ("Pilot (small craft)", 0), ("Life Science", 0), ("Stealth", 0), ("Recon", 0),
         ("Medic", 0), ("Navigation", 0), ("Engineer", 0), ("Computer", 0),
-        ("Science (Space)", 0), ("Jack of all Trades", 0)),
+        ("Space Science", 0), ("Jack of all Trades", 0)),
     ("Explorer", "Survey"): (("Pilot", 0), ("Survival", 0), ("Mechanic", 0),
         ("Astrogation", 0), ("Comms", 0), ("Gun Combat", 0), ("Str", 1),
         ("Dex", 1), ("End", 1), ("Int", 1), ("Edu", 1),
@@ -734,7 +731,7 @@ SKILLS = {
         ("Survival", 0), ("Mechanic", 0), ("Astrogation", 0), ("Comms", 0),
         ("Gun Combat", 0), ("Sensors", 0), ("Persuade", 0), ("Pilot (small craft)", 0),
         ("Navigation", 0), ("Diplomat", 0), ("Streetwise", 0), ("Medic", 0),
-        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Science (Space)", 0),
+        ("Navigation", 0), ("Engineer", 0), ("Computer", 0), ("Space Science", 0),
         ("Jack of all Trades", 0)),
     ("Explorer", "Exploration"): (("Pilot", 0), ("Survival", 0), ("Mechanic", 0),
         ("Astrogation", 0), ("Comms", 0), ("Gun Combat", 0), ("Str", 1),
@@ -742,9 +739,9 @@ SKILLS = {
         ("Jack of all Trades", 0), ("Pilot (spacecraft or small craft)", 0),
         ("Survival", 0), ("Mechanic", 0), ("Astrogation", 0), ("Comms", 0),
         ("Gun Combat", 0), ("Comms", 0), ("Pilot (spacecraft)", 0),
-        ("Pilot (small craft)", 0), ("Science (Life)", 0), ("Stealth", 0), ("Recon", 0),
+        ("Pilot (small craft)", 0), ("Life Science", 0), ("Stealth", 0), ("Recon", 0),
         ("Medic", 0), ("Navigation", 0), ("Engineer", 0), ("Computer", 0),
-        ("Science (Space)", 0), ("Jack of all Trades", 0)),
+        ("Space Science", 0), ("Jack of all Trades", 0)),
     ("Psion", "Wild Talent"): (("Telepathy", 0), ("Clairvoyance", 0),
         ("Telekinesis", 0), ("Awareness", 0), ("Teleportation", 0),
         ("Any Skill", 0), ("Edu", 1), ("Int", 1), ("Str", 1),
@@ -753,15 +750,15 @@ SKILLS = {
         ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0),
         ("Telekinesis", 0), ("Deception", 0), ("Stealth", 0), ("Streetwise", 0),
         ("Melee or Gun Combat", 0), ("Comms", 0), ("Computers", 0), ("Language", 0),
-        ("Medic", 0), ("Science (Life)", 0), ("Science (Space)", 0)),
+        ("Medic", 0), ("Life Science", 0), ("Space Science", 0)),
     ("Psion", "Adept"): (("Telepathy", 0), ("Clairvoyance", 0), ("Telekinesis", 0),
         ("Awareness", 0), ("Teleportation", 0), ("Any Skill", 0), ("Edu", 1),
         ("Int", 1), ("Str", 1), ("Dex", 1), ("End", 1),
         ("Psionic", 1), ("Telepathy", 0), ("Clairvoyance", 0), ("Telekinesis", 0),
         ("Awareness", 0), ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0),
         ("Clairvoyance", 0), ("Awareness", 0), ("Medic", 0), ("Persuade", 0),
-        ("Science (Social)", 0), ("Comms", 0), ("Computers", 0), ("Language", 0),
-        ("Medic", 0), ("Science (Life)", 0), ("Science (Space)", 0)),
+        ("Social Science", 0), ("Comms", 0), ("Computers", 0), ("Language", 0),
+        ("Medic", 0), ("Life Science", 0), ("Space Science", 0)),
     ("Psion", "Psi-Warrior"): (("Telepathy", 0), ("Clairvoyance", 0),
         ("Telekinesis", 0), ("Awareness", 0), ("Teleportation", 0),
         ("Any Skill", 0), ("Edu", 1), ("Int", 1), ("Str", 1),
@@ -770,7 +767,7 @@ SKILLS = {
         ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0), ("Awareness", 0),
         ("Teleportation", 0), ("Gun Combat", 0), ("Battle Dress", 0), ("Recon", 0),
         ("Comms", 0), ("Computers", 0), ("Language", 0), ("Medic", 0),
-        ("Science (Life)", 0), ("Science (Space)", 0)),
+        ("Life Science", 0), ("Space Science", 0)),
 }
 
 RANKS = {
@@ -847,11 +844,11 @@ RANKS = {
     ("Rogue", "Pirate"):
         (None, ("Pilot or Gunner", 1), None, ("Melee or Gun Combat", 1), None, ("Engineer or Navigation", 1), None),
     ("Scholar", "Field Researcher"):
-        (None, ("Science (Social)", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
+        (None, ("Social Science", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
     ("Scholar", "Scientist"):
-        (None, ("Science (Physical)", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
+        (None, ("Physical Science", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
     ("Scholar", "Physician"):
-        (None, ("Medic", 1), None, ("Science (Life)", 1), None, ("Science (Social)", 1), None),
+        (None, ("Medic", 1), None, ("Life Science", 1), None, ("Social Science", 1), None),
     ("Scholar", "Occultist"):
         (None, ("Occult", 1), None, ("Investigate", 1), None, ("Computers", 1), None),
     ("Scout", "Courier"):
@@ -870,23 +867,23 @@ RANKS = {
         (None, ("Science (psionology)", 1), None, ("Psionics", 1), None, None, ("Psionics", 1)),
     ("Psion", "Psi-Warrior"):
         (None, ("Gun Combat", 1), ("Leadership", 1), None, None, ("Tactics", 1), None),
-    ("Army (Officer)", "Support"):
+    ("Army Officer", "Support"):
         (None, ("Leadership", 1), None, ("Tactics (military)", 1), None, None, ("Soc", 1)),
-    ("Army (Officer)", "Infantry"):
+    ("Army Officer", "Infantry"):
         (None, ("Leadership", 1), None, ("Tactics (military)", 1), None, None, ("Soc", 1)),
-    ("Army (Officer)", "Cavalry"):
+    ("Army Officer", "Cavalry"):
         (None, ("Leadership", 1), None, ("Tactics (military)", 1), None, None, ("Soc", 1)),
-    ("Marines (Officer)", "Support"):
+    ("Marines Officer", "Support"):
         (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
-    ("Marines (Officer)", "Star Marines"):
+    ("Marines Officer", "Star Marines"):
         (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
-    ("Marines (Officer)", "Ground Assault"):
+    ("Marines Officer", "Ground Assault"):
         (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
-    ("Navy (Officer)", "Line/Crew"):
+    ("Navy Officer", "Line/Crew"):
         (None, ("Melee (blade)", 1), ("Leadership", 1), None, ("Tactics (naval)", 1), ("Soc", 1), ("Soc", 1)),
-    ("Navy (Officer)", "Engineering/Gunnery"):
+    ("Navy Officer", "Engineering/Gunnery"):
         (None, ("Melee (blade)", 1), ("Leadership", 1), None, ("Tactics (naval)", 1), ("Soc", 1), ("Soc", 1)),
-    ("Navy (Officer)", "Flight"):
+    ("Navy Officer", "Flight"):
         (None, ("Melee (blade)", 1), ("Leadership", 1), None, ("Tactics (naval)", 1), ("Soc", 1), ("Soc", 1)),
 }
 

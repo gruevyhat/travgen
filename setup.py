@@ -7,7 +7,7 @@ setup(
     version='0.0.7',
     author='gvh',
     author_email='gruevyhat@gmail.com',
-    description='Character generation utility for MGT.',
+    description='Character generation utility for Chthonian Stars RPG.',
     license='http://www.gnu.org/licenses/gpl-2.0.html',
     platforms=['any'],
     url='https://github.com/gruevyhat/travgen',

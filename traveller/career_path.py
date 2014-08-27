@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from random import choice, sample
+from random import choice, sample, shuffle
 from dice import d6
 from attributes import STATS
 from data import *
@@ -78,10 +78,10 @@ class CareerPath(object):
         for n in range(self.n):
             if n == 0:
                 skill_list = EDU_SKILLS + [ (s, 0) for s in WORLDS[self.homeworld] ]
-                skills = sample(skill_list, edu)
+                shuffle(skill_list)
+                skills = skill_list[:edu]
                 for skill, n in skills:
                     self.history += [' Learned %s %d from Education.' % (skill, n)]
-
                 self.skills.learn(dict(skills))
                 self.terms[n]['Edu'] = edu
             else:

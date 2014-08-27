@@ -92,11 +92,13 @@ class Character(object):
         o += ['Skills: ' + ', '.join("%s %d" % (s, v)
                                      for s, v in sorted(self.skills.items()))]
         # Benefits
-        benefits = str(self.cp.credits) + " Cr."
         if self.cp.benefits:
-            stuff = Counter([b for b in self.cp.benefits])
-            stuff = ', '.join("%s x%d" % (b, n) for b, n in stuff.items())
-            benefits = ', '.join((stuff, benefits))
+            prizes = Counter([b for b in self.cp.benefits])
+            prizes = ', '.join("%s x%d" % (b, n) for b, n in prizes.items())
+        else:
+            prizes = None
+        cash = str(self.cp.credits) + " Cr." if self.cp.credits else ""
+        benefits = ', '.join((b for b in (cash, prizes) if b))
         o += ['Benefits: %s' % benefits]
         # Personality
         if self.personality:

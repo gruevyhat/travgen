@@ -254,22 +254,19 @@ class CareerPath(object):
         self.terms[n]['Age'] = age
 
     def muster(self, n):
-        if self.terms[n]['S']:
-            ben = d6(1)
-            career = self.terms[n]['Career'].replace(' Officer', '')
-            self.terms[n]['Ben'] = ben
-            if choice((0, 1)) == 1:
-                benefit = BENEFITS[career][ben - 1]
-                self.benefits += [benefit]
-                self.history += [' Acquired Benefit: %s.' % benefit]
-            else:
-                credits = CREDITS[career][ben - 1]
-                self.credits += credits
-                self.history += [' Acquired %d.' % credits]
+        ben = d6(1)
+        career = self.terms[n]['Career'].replace(' Officer', '')
+        self.terms[n]['Ben'] = ben
+        if choice((0, 1)) == 1:
+            benefit = BENEFITS[career][ben - 1]
+            self.benefits += [benefit]
+            self.history += [' Acquired Benefit: %s.' % benefit]
         else:
-            self.terms[n]['Ben'] = None
+            credits = CREDITS[career][ben - 1]
+            self.credits += credits
+            self.history += [' Acquired %d.' % credits]
 
-    def stat_check(self, career_table, check, mods = 0, roll = None):
+    def stat_check(self, career_table, check, mods=0, roll=None):
         stat, tgt = career_table[check]
         result = self.stats[stat].roll(mods)
         success = result >= tgt

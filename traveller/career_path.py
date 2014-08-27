@@ -77,11 +77,11 @@ class CareerPath(object):
         edu = STARTING_SKILLS + self.stats.Edu()
         for n in range(self.n):
             if n == 0:
-                skill_list = EDU_SKILLS + [ (s, 0) for s in WORLDS[self.homeworld] ]
+                skill_list = set(EDU_SKILLS + [ (s, 0)
+                                                for s in WORLDS[self.homeworld] ])
                 skills = sample(skill_list, edu)
                 for skill, n in skills:
                     self.history += [' Learned %s %d from Education.' % (skill, n)]
-
                 self.skills.learn(dict(skills))
                 self.terms[n]['Edu'] = edu
             else:

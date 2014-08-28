@@ -71,7 +71,9 @@ from traveller.character import Character
 from traveller.attributes import Stats
 from traveller.animal import Animal
 from traveller.dice import die
-from traveller.data import *
+from traveller.data import (CAREERS, FALLBACK_CAREERS, SKILLS,
+                            CHTHONIAN_STARS, DILETTANTE, AGENT,
+                            SCOUNDREL)
 
 
 #EXPANSIONS = ["Chthonian Stars", "Agent", "Scoundrel", "Dilettante"]
@@ -88,7 +90,8 @@ def set_expansions(E):
             del CAREERS["Nobility"]
             del CAREERS["Scout"]
             for spec in ('Star Marines', 'Support', 'Ground Assault'):
-                SKILLS['Marines', spec] = tuple((('Recon', v) if k == 'Battle Dress' else (k, v)
+                SKILLS['Marines', spec] = tuple((('Recon', v)
+                                                if k == 'Battle Dress' else (k, v)
                                                 for k, v in SKILLS['Marines', 'Star Marines']))
         if exp == "Dilettante":
             CAREERS.update(DILETTANTE)

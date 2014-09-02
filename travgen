@@ -167,7 +167,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        raise
+        # raise
         print "Something unfortunate has happened. [%s]" % e
 
     sys.exit()

@@ -2,7 +2,7 @@
 
 from random import choice
 from collections import defaultdict
-from names import NAMES
+from names import NAMES, CTHUVIAN
 
 
 def readdata(fn):
@@ -35,13 +35,33 @@ def gen(m, min_len=0, max_len=15):
         return name
 
 
-def lc(ethnicity, gender, n=5, min_len=0, max_len=15):
-    ethnicity, gender = ethnicity.lower(), gender.lower()
-    if ethnicity == "american":
-        fullname = ((choice(NAMES.keys()), "family"), (ethnicity, gender))
+def build_cthuvian_wordlist(N=200):
+    W = []
+    for n in range(N):
+        pfx = [choice((choice(CTHUVIAN["pfx-pro"]), None))]
+        pfx += [choice((choice(CTHUVIAN["pfx-neg"]), None))]
+        root = [choice((choice(CTHUVIAN["VB"]), None)),
+                choice((choice(CTHUVIAN["AA"]), None)),
+                choice(CTHUVIAN["NN"]),
+                choice((choice(CTHUVIAN["NN"]), None))]
+        sfx = [choice((choice(CTHUVIAN["sfx-deriv"]), None))]
+        W.append(''.join([w[0] for w in pfx + root + sfx if w]))
+    return W
+
+
+def lc(ethnicity=None, gender=None, cthuvian=False,
+       n=5, min_len=2, max_len=15):
+    if cthuvian:
+        names = build_cthuvian_wordlist()
+        models = ((train(names)),)
     else:
-        fullname = ((ethnicity, "family"), (ethnicity, gender))
-    models = [train(NAMES[eth][nam]) for eth, nam in fullname]
+        ethnicity, gender = ethnicity.lower(), gender.lower()
+        if ethnicity == "american":
+            fullname = ((choice(NAMES.keys()), "family"),
+                        (choice(NAMES.keys()), gender))
+        else:
+            fullname = ((ethnicity, "family"), (ethnicity, gender))
+        models = [train(NAMES[eth][nam]) for eth, nam in fullname]
     names = [gen(m, min_len, max_len) for m in models]
     if ethnicity == "russian" and gender == "female":
         names[0] += 'a'

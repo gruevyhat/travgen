@@ -7,26 +7,44 @@ from random import sample, choice
 from collections import defaultdict
 from attributes import SkillSet, Stats, Stat, STATS
 from dice import d6, d3, d100
+from lc import lc
+from names import titlecase
 
 
 TERRAIN = {
     # Terrain Type: (DM, Size DM, (1, 2, 3, 4, 5, 6))
-    "Clear": (3, 0, (("W", 0), ("W", 0), ("W", 0), ("W", 0), ("W", 2), ("F", -6))),
-    "Plain/Prairie": (4, 0, (("W", 0), ("W", 0), ("W", 0), ("W", 2), ("W", 4), ("F", -6))),
-    "Desert": (3, -3, (("W", 0), ("W", 0), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
-    "Hills": (0, 0, (("W", 0), ("W", 0), ("W", 0), ("W", 2), ("F", -4), ("F", -6))),
-    "Mountain": (0, 0, (("W", 0), ("W", 0), ("W", 0), ("F", -2), ("F", -4), ("F", -6))),
-    "Forest": (-4, -4, (("W", 0), ("W", 0), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
-    "Woods": (-2, -1, (("W", 0), ("W", 0), ("W", 0), ("W", 0), ("W", 0), ("F", -6))),
-    "Jungle": (-4, -3, (("W", 0), ("W", 0), ("W", 0), ("W", 0), ("W", 2), ("F", -6))),
-    "Rainforest": (-2, -2, (("W", 0), ("W", 0), ("W", 0), ("W", 2), ("W", 4), ("F", -6))),
-    "Rough": (-3, -3, (("W", 0), ("W", 0), ("W", 0), ("W", 2), ("F", -4), ("F", -6))),
-    "Swamp": (-2, 4, (("S", -6), ("A", 2), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
-    "Beach": (3, 2, (("S", 1), ("A", 2), ("W", 0), ("W", 0), ("F", -4), ("F", -6))),
-    "Riverbank": (1, 1, (("S", -4), ("A", 0), ("W", 0), ("W", 0), ("W", 0), ("F", -6))),
-    "Ocean Shallows": (4, 1, (("S", 4), ("S", 2), ("S", 0), ("S", 0), ("F", -4), ("F", -6))),
-    "Open Ocean": (4, -4, (("S", 6), ("S", 4), ("S", 2), ("S", 0), ("F", -4), ("F", -6))),
-    "Deep Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4), ("S", 2), ("S", 0), ("S", -2))),
+    "Clear": (3, 0, (("W", 0), ("W", 0), ("W", 0),
+                     ("W", 0), ("W", 2), ("F", -6))),
+    "Plain/Prairie": (4, 0, (("W", 0), ("W", 0), ("W", 0),
+                             ("W", 2), ("W", 4), ("F", -6))),
+    "Desert": (3, -3, (("W", 0), ("W", 0), ("W", 0),
+                       ("W", 0), ("F", -4), ("F", -6))),
+    "Hills": (0, 0, (("W", 0), ("W", 0), ("W", 0),
+                     ("W", 2), ("F", -4), ("F", -6))),
+    "Mountain": (0, 0, (("W", 0), ("W", 0), ("W", 0),
+                        ("F", -2), ("F", -4), ("F", -6))),
+    "Forest": (-4, -4, (("W", 0), ("W", 0), ("W", 0),
+                        ("W", 0), ("F", -4), ("F", -6))),
+    "Woods": (-2, -1, (("W", 0), ("W", 0), ("W", 0),
+                       ("W", 0), ("W", 0), ("F", -6))),
+    "Jungle": (-4, -3, (("W", 0), ("W", 0), ("W", 0),
+                        ("W", 0), ("W", 2), ("F", -6))),
+    "Rainforest": (-2, -2, (("W", 0), ("W", 0), ("W", 0),
+                            ("W", 2), ("W", 4), ("F", -6))),
+    "Rough": (-3, -3, (("W", 0), ("W", 0), ("W", 0),
+                       ("W", 2), ("F", -4), ("F", -6))),
+    "Swamp": (-2, 4, (("S", -6), ("A", 2), ("W", 0),
+                      ("W", 0), ("F", -4), ("F", -6))),
+    "Beach": (3, 2, (("S", 1), ("A", 2), ("W", 0),
+                     ("W", 0), ("F", -4), ("F", -6))),
+    "Riverbank": (1, 1, (("S", -4), ("A", 0), ("W", 0),
+                         ("W", 0), ("W", 0), ("F", -6))),
+    "Ocean Shallows": (4, 1, (("S", 4), ("S", 2), ("S", 0),
+                              ("S", 0), ("F", -4), ("F", -6))),
+    "Open Ocean": (4, -4, (("S", 6), ("S", 4), ("S", 2),
+                           ("S", 0), ("F", -4), ("F", -6))),
+    "Deep Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4),
+                          ("S", 2), ("S", 0), ("S", -2))),
     }
 
 ANIMAL_TYPES = (
@@ -161,8 +179,10 @@ def cap(n, b, t):
 class Animal(object):
 
     def __init__(self, terrain=None, order=None,
-                 behavior=None, sentient=False):
+                 behavior=None, sentient=False,
+                 name=None):
         self.dms = defaultdict(int)
+        self.get_name(name)
         self.get_order(order)
         self.get_terrain(terrain)
         self.get_behavior(behavior)
@@ -170,6 +190,12 @@ class Animal(object):
         self.get_skills()
         self.get_weap_arm()
         self.get_quirks()
+
+    def get_name(self, name=None):
+        if name:
+            self.name = name
+        else:
+            self.name = lc(cthuvian=True, min_len=4).replace("-","")
 
     def get_order(self, order=None):
         if order:
@@ -258,8 +284,9 @@ class Animal(object):
                 return n
 
     def __repr__(self):
-        desc = "%s %s (%s), Size %s" % (self.terrain, self.behavior,
-                                        self.order, self.size)
+        name = "Name: " + titlecase(self.name)
+        desc = "Desc: %s %s (%s), Size %s" % (self.terrain, self.behavior,
+                                              self.order, self.size)
         stats = "Stats: " + ", ".join(["%s %d[%d]" % t
                                       for t in self.stats.list()])
         skills = "Skills: " + ", ".join(["%s %d" % t
@@ -268,7 +295,7 @@ class Animal(object):
                  % (self.weapon, self.damage, self.armor, self.movement)
         quirks = "Quirks: \n - " + '\n - '.join(self.quirks)
         enc = "Pack Size: %d" % self.encounter()
-        return '\n'.join((desc, stats, skills, combat, quirks, enc))
+        return '\n'.join((name, desc, stats, skills, combat, quirks, enc))
 
 
 if __name__ == "__main__":

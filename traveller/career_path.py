@@ -185,7 +185,7 @@ class CareerPath(object):
             rank += 1
             self.history += [' Promoted to Rank %d.' % rank]
         self.terms[n]['Rnk'] = rank
-        career = self.terms[n]['Career'].replace(' Officer', '')
+        career = self.terms[n]['Career'] #.replace(' Officer', '')
         spec = self.terms[n]['Spec']
         if spec not in CAREERS[career]:
             spec = choice(CAREERS[career].keys())

@@ -62,7 +62,7 @@ Other Options:
 """
 
 __author__ = "GVH"
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 import sys
@@ -126,9 +126,18 @@ if __name__ == "__main__":
         sys.exit()
 
     if args['roll']:
-        n, d = [int(x) for x in args['DICE'].split('d')]
-        roll = [str(die(d)(1)) for i in range(n)]
-        print ' '.join(roll)
+        D = args['DICE']
+        if D.startswith("+"):
+            add = True
+            D = D.replace("+", "")
+        else:
+            add = False
+        n, d = [int(x) for x in D.split('d')]
+        if add:
+            print die(d)(n)
+        else:
+            roll = [str(die(d)(1)) for i in range(n)]
+            print ' '.join(roll)
         sys.exit()
 
     if args['path']:

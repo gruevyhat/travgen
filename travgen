@@ -9,7 +9,7 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--upp UPP] [--method METHOD]
                     [--terms TERMS] [--path PATH]
                     [--rand-age] [--personality]
-                    [--show-hist]
+                    [--random-seed SEED] [--show-hist]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
        travgen UPP [--method STR ]
@@ -41,6 +41,7 @@ Character Generation Options:
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
     -P --personality       Random personality.
+    -r --random-seed INT   Set random seed.
     -s --show-hist         Show full career history.
 
 Animal Generation Options:
@@ -62,11 +63,13 @@ Other Options:
 """
 
 __author__ = "GVH"
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 
 
 import sys
 from docopt import docopt
+from random import seed
+from time import time
 from traveller.character import Character
 from traveller.attributes import Stats
 from traveller.animal import Animal
@@ -151,6 +154,12 @@ if __name__ == "__main__":
 
     set_expansions(EXPANSIONS)
 
+    if args['randomseed']:
+        sd = int(args['randomseed'], 16)
+    else:
+        sd = hash(time())
+    seed(sd)
+
     try:
         c = Character(name=args["name"],
                       homeworld=args["homeworld"],
@@ -164,6 +173,8 @@ if __name__ == "__main__":
                       personality=args["personality"],
                       show_hist=args["showhist"])
         sys.stdout.write(repr(c)+"\n")
+        if not args['randomseed']:
+            print "Random seed: %x" % sd
     except KeyboardInterrupt:
         pass
     except Exception as e:

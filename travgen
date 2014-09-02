@@ -12,12 +12,18 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--random-seed SEED] [--show-hist]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
+                      [--random-seed SEED]
        travgen UPP [--method STR ]
        travgen roll DICE
        travgen (-h | --help)
 
 Dice Roll Arguments:
     DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
+
+General Options:
+    -m --method STR        Method for rolling UPP: normal, heroic, superheroic,
+                             mediocre, or extreme. [default: normal]
+    -r --random-seed HEX   Set random seed.
 
 Character Generation Options:
     -n --name STR          Character name.
@@ -34,14 +40,10 @@ Character Generation Options:
     -a --rand-age          Randomize term length (+/-1 year).
     -u --upp HEX           Supply a pre-generated UPP or it will be randomly
                              generated.
-    -m --method STR        If no UPP, method for rolling characteristics:
-                             normal, heroic, superheroic, mediocre, or
-                             extreme. [default: normal]
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
     -P --personality       Random personality.
-    -r --random-seed INT   Set random seed.
     -s --show-hist         Show full career history.
 
 Animal Generation Options:
@@ -118,12 +120,19 @@ if __name__ == "__main__":
     args = {k.replace("-", ""): v
             for k, v in docopt(__doc__, version=__version__).items()}
 
+    if args['randomseed']:
+        sd = int(args['randomseed'], 16)
+    else:
+        sd = hash(time())
+    seed(sd)
+
     if args['animal']:
         animal = Animal(behavior=args['behavior'],
                         order=args['order'],
                         terrain=args['terrain'],
                         sentient=args['sentient'])
         print animal
+        print "Random seed: %x" % sd
         sys.exit()
 
     if args['UPP']:
@@ -153,12 +162,6 @@ if __name__ == "__main__":
         path = None
 
     set_expansions(EXPANSIONS)
-
-    if args['randomseed']:
-        sd = int(args['randomseed'], 16)
-    else:
-        sd = hash(time())
-    seed(sd)
 
     try:
         c = Character(name=args["name"],

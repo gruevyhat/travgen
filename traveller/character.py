@@ -8,7 +8,7 @@ from career_path import CareerPath
 from attributes import SkillSet, Stats
 from lc import lc
 from names import NAMES, titlecase
-from data import *
+from data import WORLDS, PERSONALITIES, STARTING_AGE, WORLD_ADJ   
 
 
 class Character(object):

@@ -27,8 +27,6 @@ def closest_careers(stats, n = None):
 class CareerPath(object):
 
     def __init__(self, character, terms = 3, path = None):
-        CAREERS['Agent']['Intelligence'] = CAREERS['Agent']['Int']
-        del CAREERS['Agent']['Int']
         self.stats = character.stats
         self.skills = character.skills
         self.homeworld = character.homeworld

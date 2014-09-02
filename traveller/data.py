@@ -725,11 +725,11 @@ RANKS = {
     ("Army Officer", "Cavalry"):
         (None, ("Leadership", 1), None, ("Tactics (military)", 1), None, None, ("Soc", 1)),
     ("Marines Officer", "Support"):
-        (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
+        (None, ("Leadership", 1), None, ("Tactics", 1), None, ("Soc", 1), None),
     ("Marines Officer", "Star Marines"):
-        (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
+        (None, ("Leadership", 1), None, ("Tactics", 1), None, ("Soc", 1), None),
     ("Marines Officer", "Ground Assault"):
-        (None, ("Leadership", 1), None, ("Tactics", 1), ("Soc", 1)),
+        (None, ("Leadership", 1), None, ("Tactics", 1), None, ("Soc", 1), None),
     ("Navy Officer", "Line/Crew"):
         (None, ("Melee (blade)", 1), ("Leadership", 1), None, ("Tactics (naval)", 1), ("Soc", 1), ("Soc", 1)),
     ("Navy Officer", "Engineering/Gunnery"):

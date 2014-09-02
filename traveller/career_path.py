@@ -187,7 +187,7 @@ class CareerPath(object):
         spec = self.terms[n]['Spec']
         if spec not in CAREERS[career]:
             spec = choice(CAREERS[career].keys())
-        rank_skill = RANKS[career, spec][rank]
+        rank_skill = RANKS[career, spec][min(rank, 6)]
         if self.terms[n]['A'] and rank_skill:
             attr, n = rank_skill
             attr = choice(attr.split(' or '))

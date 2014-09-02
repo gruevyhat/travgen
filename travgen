@@ -8,8 +8,9 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--ethnicity ETHNICITY] [--gender GENDER]
                     [--upp UPP] [--method METHOD]
                     [--terms TERMS] [--path PATH]
-                    [--rand-age] [--personality]
-                    [--random-seed SEED] [--show-hist]
+                    [--rand-age] [--max-careers CAREERS]
+                    [--personality] [--random-seed SEED]
+                    [--show-hist]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
                       [--random-seed SEED]
@@ -44,6 +45,7 @@ Character Generation Options:
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
     -P --personality       Random personality.
+    -x --max-careers INT   Maximum number of careers.
     -s --show-hist         Show full career history.
 
 Animal Generation Options:
@@ -115,72 +117,88 @@ def up1(text):
     return text[0].upper()+text[1:]
 
 
-if __name__ == "__main__":
-
-    args = {k.replace("-", ""): v
-            for k, v in docopt(__doc__, version=__version__).items()}
-
-    if args['randomseed']:
-        sd = int(args['randomseed'], 16)
+def setseed(s):
+    if s:
+        sd = int(s, 16)
     else:
         sd = hash(time())
     seed(sd)
+    return sd
 
-    if args['animal']:
-        animal = Animal(behavior=args['behavior'],
-                        order=args['order'],
-                        terrain=args['terrain'],
-                        sentient=args['sentient'])
-        print animal
-        print "Random seed: %x" % sd
-        sys.exit()
 
-    if args['UPP']:
-        upp = Stats(method=args['method'])
-        print upp
-        sys.exit()
-
-    if args['roll']:
-        D = args['DICE']
-        if D.startswith("+"):
-            add = True
-            D = D.replace("+", "")
-        else:
-            add = False
-        n, d = [int(x) for x in D.split('d')]
-        if add:
-            print die(d)(n)
-        else:
-            roll = [str(die(d)(1)) for i in range(n)]
-            print ' '.join(roll)
-        sys.exit()
-
-    if args['path']:
-        path = [term.split(":")
-                for term in args['path'].split("::")]
-    else:
-        path = None
-
-    set_expansions(EXPANSIONS)
+if __name__ == "__main__":
 
     try:
-        c = Character(name=args["name"],
-                      homeworld=args["homeworld"],
-                      gender=args["gender"],
-                      upp=args["upp"],
-                      ethnicity=args["ethnicity"],
-                      terms=int(args["terms"]),
-                      path=path,
-                      method=args["method"],
-                      rand_age=args["randage"],
-                      personality=args["personality"],
-                      show_hist=args["showhist"])
+
+        args = {k.replace("-", ""): v
+                for k, v in docopt(__doc__, version=__version__).items()}
+
+        sd = setseed(args['randomseed'])
+
+        if args['animal']:
+            animal = Animal(behavior=args['behavior'],
+                            order=args['order'],
+                            terrain=args['terrain'],
+                            sentient=args['sentient'])
+            print animal
+            print "Random seed: %x" % sd
+            sys.exit()
+
+        if args['UPP']:
+            upp = Stats(method=args['method'])
+            print upp
+            sys.exit()
+
+        if args['roll']:
+            D = args['DICE']
+            if D.startswith("+"):
+                add = True
+                D = D.replace("+", "")
+            else:
+                add = False
+            n, d = [int(x) for x in D.split('d')]
+            if add:
+                print die(d)(n)
+            else:
+                roll = [str(die(d)(1)) for i in range(n)]
+                print ' '.join(roll)
+            sys.exit()
+
+        if args['path']:
+            path = [term.split(":")
+                    for term in args['path'].split("::")]
+        else:
+            path = None
+
+        set_expansions(EXPANSIONS)
+
+        m = int(args["maxcareers"]) if args["maxcareers"] else 1000
+
+        while True:
+            sd = setseed(args['randomseed'])
+            c = Character(name=args["name"],
+                          homeworld=args["homeworld"],
+                          gender=args["gender"],
+                          upp=args["upp"],
+                          ethnicity=args["ethnicity"],
+                          terms=int(args["terms"]),
+                          path=path,
+                          method=args["method"],
+                          rand_age=args["randage"],
+                          personality=args["personality"],
+                          show_hist=args["showhist"])
+            n = len(set((t["Career"] for t in c.cp.terms)))
+            if n <= m:
+                break
+
         sys.stdout.write(repr(c)+"\n")
         print "Random seed: %x" % sd
+
     except KeyboardInterrupt:
         pass
+
     except Exception as e:
-        # raise
+        raise
         print "Something unfortunate has happened. [%s]" % e
 
     sys.exit()

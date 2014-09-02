@@ -173,8 +173,7 @@ if __name__ == "__main__":
                       personality=args["personality"],
                       show_hist=args["showhist"])
         sys.stdout.write(repr(c)+"\n")
-        if not args['randomseed']:
-            print "Random seed: %x" % sd
+        print "Random seed: %x" % sd
     except KeyboardInterrupt:
         pass
     except Exception as e:

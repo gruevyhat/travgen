@@ -17,18 +17,7 @@ class Character(object):
                  ethnicity=None, gender=None, personality=False,
                  terms=3, path=None, method=None, rand_age=False,
                  show_hist=False):
-        # Game attributes
-        self.stats = Stats(upp, method)
-        self.skills = SkillSet()
-        # Process career path
-        if not homeworld:
-            self.get_homeworld()
-        else:
-            self.homeworld = homeworld
-        self.cp = CareerPath(self, terms, path)
-        self.show_hist = show_hist
         # Demographics
-        self.get_age(rand_age)
         if not ethnicity:
             self.get_ethnicity()
         else:
@@ -45,6 +34,17 @@ class Character(object):
             self.get_personality()
         else:
             self.personality = None
+        # Game attributes
+        self.stats = Stats(upp, method)
+        self.skills = SkillSet()
+        # Process career path
+        if not homeworld:
+            self.get_homeworld()
+        else:
+            self.homeworld = homeworld
+        self.cp = CareerPath(self, terms, path)
+        self.get_age(rand_age)
+        self.show_hist = show_hist
 
     def get_ethnicity(self):
         self.ethnicity = choice(NAMES.keys())

@@ -45,6 +45,12 @@ class Stat(int):
 class Stats(object):
 
     def __init__(self, upp=None, method=None, animal=False):
+        self.Str = Stat(method=method)
+        self.Dex = Stat(method=method)
+        self.End = Stat(method=method)
+        self.Int = Stat(method=method)
+        self.Edu = Stat(method=method)
+        self.Soc = Stat(method=method)
         if upp:
             self.Str = Stat(value=int(upp[0], 16))
             self.Dex = Stat(value=int(upp[1], 16))
@@ -52,13 +58,6 @@ class Stats(object):
             self.Int = Stat(value=int(upp[3], 16))
             self.Edu = Stat(value=int(upp[4], 16))
             self.Soc = Stat(value=int(upp[5], 16))
-        else:
-            self.Str = Stat(method=method)
-            self.Dex = Stat(method=method)
-            self.End = Stat(method=method)
-            self.Int = Stat(method=method)
-            self.Edu = Stat(method=method)
-            self.Soc = Stat(method=method)
         if animal:
             self.Ins = self.Edu
             self.Pac = self.Soc

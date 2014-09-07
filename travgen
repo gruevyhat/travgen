@@ -77,6 +77,7 @@ __version__ = "0.0.9"
 
 import sys
 import pickle
+import gzip
 from docopt import docopt
 from random import seed
 from time import time
@@ -141,7 +142,7 @@ if __name__ == "__main__":
                 for k, v in docopt(__doc__, version=__version__).items()}
 
         if args["load"]:
-            args = pickle.load(open(args["load"], "rb"))
+            args = pickle.load(gzip.open(args["load"], "rb"))
 
         conduct = False
         if args["CHAR"]:
@@ -223,9 +224,11 @@ if __name__ == "__main__":
             print "Random seed: %x" % sd
 
         if args["save"]:
-            fname = "traveller_%x.pkl" % sd
+            cname = ''.join((t for t in c.name.split(",")[0]
+                             if t.isalpha()))
+            fname = "%s_%x.sav" % (cname, sd)
             args.update({"randomseed": "%x" % sd})
-            pickle.dump(args, open(fname, "wb"))
+            pickle.dump(args, gzip.open(fname, "wb"))
 
     except KeyboardInterrupt:
         pass

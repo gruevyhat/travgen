@@ -4,7 +4,7 @@ from collections import defaultdict
 from dice import d6, d3, d16
 
 
-STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
+STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac", "Psi")
 
 
 class Stat(int):

@@ -10,21 +10,23 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--terms TERMS] [--path PATH]
                     [--rand-age] [--max-careers CAREERS]
                     [--personality] [--random-seed SEED]
-                    [--show-hist]
+                    [--show-hist] [--save] [--load PATH]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
                       [--random-seed SEED]
+       travgen mission CHAR [--type MISSION] [--show-hist]
        travgen UPP [--method STR ]
        travgen roll DICE
        travgen (-h | --help)
-
-Dice Roll Arguments:
-    DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
 General Options:
     -m --method STR        Method for rolling UPP: normal, heroic, superheroic,
                              mediocre, or extreme. [default: normal]
     -r --random-seed HEX   Set random seed.
+    -S --save              Save options to current path.
+    -L --load STR          Load options from STR path.
+    -h --help
+    --version
 
 Character Generation Options:
     -n --name STR          Character name.
@@ -60,9 +62,12 @@ Animal Generation Options:
     --order ORDER         One of: Scavenger, Omnivore, Herbivore, Carnivore.
     --sentient            Creature has an intelligence greater than 1.
 
-Other Options:
-    -h --help
-    --version
+Random Mission Arguments and Options:
+    CHAR      Saved options file for character.
+    --type    Mission type. [default: Espionage]
+
+Dice Roll Arguments:
+    DICE    Number and sides of dice in '#d#' format, e.g., 2d6.
 
 """
 
@@ -71,12 +76,14 @@ __version__ = "0.0.9"
 
 
 import sys
+import pickle
 from docopt import docopt
 from random import seed
 from time import time
 from traveller.character import Character
 from traveller.attributes import Stats
 from traveller.animal import Animal
+from traveller.mission import Mission
 from traveller.dice import die
 from traveller.data import (CAREERS, FALLBACK_CAREERS, SKILLS,
                             CHTHONIAN_STARS, DILETTANTE, AGENT,
@@ -132,6 +139,16 @@ if __name__ == "__main__":
 
         args = {k.replace("-", ""): v
                 for k, v in docopt(__doc__, version=__version__).items()}
+
+        if args["load"]:
+            args = pickle.load(open(args["load"], "rb"))
+
+        conduct = False
+        if args["CHAR"]:
+            conduct = True
+            mtype = args["type"]
+            show_hist = args["showhist"]
+            args = pickle.load(open(args["CHAR"], "rb"))
 
         sd = setseed(args['randomseed'])
 
@@ -196,15 +213,23 @@ if __name__ == "__main__":
             if n <= m:
                 break
 
+        if conduct:
+            seed(hash(time()))
+            m = Mission(c, mission=mtype,
+                        show_hist=show_hist)
+            sys.stdout.write(repr(m)+"\n")
+        else:
+            sys.stdout.write(repr(c)+"\n")
+            print "Random seed: %x" % sd
+
+        if args["save"]:
+            fname = "traveller_%x.pkl" % sd
+            args.update({"randomseed": "%x" % sd})
+            pickle.dump(args, open(fname, "wb"))
+
     except KeyboardInterrupt:
         pass
 
     except Exception as e:
-        # raise
+        #raise
         print "Something unfortunate has happened. [%s]" % e
-
-    else:
-        sys.stdout.write(repr(c)+"\n")
-        print "Random seed: %x" % sd
-
-    sys.exit()

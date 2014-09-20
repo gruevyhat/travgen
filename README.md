@@ -69,7 +69,7 @@ The `--show-hist` option returns a narrative description of the steps taken duri
 
 Career choices may be prespecified at the command line, with careers and specializations separated by a single colon ":" and terms separated by a double colon "::", as shown below. Note that this does not guarantee that the character will generate with this career path; if the character fails to qualify for a career or has a mishap, random career choice will occur.
 
-    $ travgen char -p "Marines:Star Marine::Warden:Enforcer::Warden:Enforcer"
+    $ travgen char -p "Marines:Star Marines::Warden:Enforcer::Warden:Enforcer"
 
     Beneš, Hana
     Female Enceladian (Czech), age 30

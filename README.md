@@ -27,18 +27,33 @@ The script is run from the command line with the following syntax. All input var
                                Thai.
       -g --gender STR        Male or female.
       -a --rand-age          Randomize term length (+/-1 year).
-      -u --upp HEX           Supply a pre-generated UPP or it will be randomly
-                               generated.
-      -m --method STR        If no UPP, method for rolling characteristics:
-                               normal, heroic, superheroic, mediocre, or
-                               extreme. [default: normal]
+      -u --upp HEX           A pre-generated UPP.
       -t --terms INT         Number of terms to serve. [default: 3]
       -p --path STR          Colon-delimited career path of the form:
                                "career:spec::career:spec::...".
-      -f --full-path         Show full career path.
+      -P --personality       Random personality.
+      -x --max-careers INT   Maximum number of careers.
       -s --show-hist         Show full career history.
 
-Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. The career path may be listed in one (or both) of two ways. The `--show-hist` option returns a narrative description of the steps taken during character generation. The `--full-path` option presents a tabular representation of these steps.
+Run without options, the character generator will return a full character, complete with Skills and Benefits. 
+
+    $ travgen char
+
+    Santuniz, Verna
+    Female Belter (American), age 30
+    UPP: 847679 [6.8]
+    Career Path: Drifter (Wanderer) [Rank 2]
+    Skills: Art 0, Athletics 2, Carouse 0, Deception 1, Recon 0, Social Science 0, Stealth 0, Streetwise 2, Survival 0
+    Benefits: Ally x1
+    Random seed: cd515598
+
+Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. The `--rand-age` parameter will cause starting ages to fluctuate slightly, for a more 'realistic' starting age. The `--max-careers` option allows one to specify an upper limit on the number of careers that a character goes through, effectively generating a series of characters until one is found that meets the condition. The `--personality` parameter is for comedic value, and provides some random personality quirks, along with a Meyers-Briggs personality profile.
+
+Every character is generated with a random seed that allows one to regenerate the character on the command line with addition options. For example, if one wants to see the character's full generation history, the `--show-hist` option will reproduce the above character will all steps leading to her creation. 
+
+    $ travgen char --random-seed cd515598 --show-hist
+
+The `--show-hist` option returns a narrative description of the steps taken during character generation. Included in the history is a career path table, allowing one to easily scan the pertinent rolls that lead to the generation of the character. The columns of the table are:
 
 * T = The term number.
 * Q = Qualified/enlisted successfully?
@@ -52,22 +67,17 @@ Character stats are presented in UPP format, and may be generated with a variety
 * Age = Result of rolling 2d6 and subtracting number of completed terms.
 * Ben = Benefit roll for the term.
 
-In the example below, Fradina Jovina was drafted into the Navy in her first term after failing to qualify for another career. She enjoyed some success, rising to the enlisted rank of Petty Officer 3rd Class before an unfortunate mishap ended her military career. She started over as a colonist to a new world to forget her misadventures.
+Career choices may be prespecified at the command line, with careers and specializations separated by a single colon ":" and terms separated by a double colon "::", as shown below. Note that this does not guarantee that the character will generate with this career path; if the character fails to qualify for a career or has a mishap, random career choice will occur.
 
-    $ travgen char --terms 4 --full-path
+    $ travgen char -p "Marines:Star Marine::Warden:Enforcer::Warden:Enforcer"
 
-    Jovini, Fradina
-    Female Callistan (Italian), age 34
-    UPP: 57a798
-    Career Path:
-    T  Career   Spec       Q  S  A  Edu  BT  SR  Rnk  EM      Age  Ben  
-    0  Navy     Line-Crew  N  Y  Y  4    6   2   1    e[2,5]  -    2    
-    1  Navy     Line-Crew  Y  Y  Y  0    0   2   2    e[1,2]  -    3    
-    2  Navy     Line-Crew  Y  N  N  0    0   1   2    m[6]    -    -    
-    3  Citizen  Colonist   Y  Y  Y  0    1   2   1    e[6,5]  3    1    
-    Skills: Admin 0, Carouse 0, Comms 0, Drive 0, Engineer 0, Gun Combat 2, Gunner 0, Mechanic 2, Pilot 0, Vacc Suit 1, Zero-G 0
+    Beneš, Hana
+    Female Enceladian (Czech), age 30
+    UPP: 939aa7 [8.0]
+    Career Path: Marines (Star Marines) [Rank 1], Warden (Enforcer) [Rank 2]
+    ...
 
-Note that the script does not currently generate events, mishaps, or pensions. 
+The script does not currently generate the effects of events, mishaps, or pensions. 
 
 
 Usage: Animal Generation

@@ -47,7 +47,14 @@ Run without options, the character generator will return a full character, compl
     Benefits: Ally x1
     Random seed: cd515598
 
-Character stats are presented in UPP format, and may be generated with a variety of rolling methods. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. The `--rand-age` parameter will cause starting ages to fluctuate slightly, for a more 'realistic' starting age. The `--max-careers` option allows one to specify an upper limit on the number of careers that a character goes through, effectively generating a series of characters until one is found that meets the condition. The `--personality` parameter is for comedic value, and provides some random personality quirks, along with a Meyers-Briggs personality profile.
+Character stats are presented in UPP format, and may be generated with a variety of ways with the `--method` parameter. The number in brackets '[...]' is the average of the attributes. The same methods are available for generating UPPs only with `travgen UPP`.
+
+* normal: 2d6
+* heroic: 3d6, drop the lowest
+* superheroic: 2d6+3
+* mediocre: 4d3
+* extreme: 1d16-1
+* alternating: 4d6, sorted, drop the 2nd and 4th 
 
 Every character is generated with a random seed that allows one to regenerate the character on the command line with addition options. For example, if one wants to see the character's full generation history, the `--show-hist` option will reproduce the above character will all steps leading to her creation. 
 
@@ -76,6 +83,8 @@ Career choices may be prespecified at the command line, with careers and special
     UPP: 939aa7 [8.0]
     Career Path: Marines (Star Marines) [Rank 1], Warden (Enforcer) [Rank 2]
     ...
+
+The remaining options are largely self-explanatory. Random names are similar to, but often not exactly the same as, modern names of a random Earth ethnicity. The `--rand-age` parameter will cause starting ages to fluctuate slightly, for a more 'realistic' starting age. The `--max-careers` option allows one to specify an upper limit on the number of careers that a character goes through, effectively generating a series of characters until one is found that meets the condition. The `--personality` parameter is for comedic value, and provides some random personality quirks, along with a Meyers-Briggs personality profile.
 
 The script does not currently generate the effects of events, mishaps, or pensions. 
 

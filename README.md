@@ -67,9 +67,9 @@ The `--show-hist` option returns a narrative description of the steps taken duri
 * Age = Result of rolling 2d6 and subtracting number of completed terms.
 * Ben = Benefit roll for the term.
 
-Career choices may be prespecified at the command line, with careers and specializations separated by a single colon ":" and terms separated by a double colon "::", as shown below. Note that this does not guarantee that the character will generate with this career path; if the character fails to qualify for a career or has a mishap, random career choice will occur.
+Career choices may be prespecified at the command line, with careers and specializations separated by a single colon ":" and terms separated by a double colon "::", as shown below. Note that this does not guarantee that the character will generate with this career path; if the character fails to qualify for a career or has a mishap, random career choice will occur. Career paths can be partially specified, replacing any career or specialization with "-". The following command will attempt to generate a character with a random first term and second and subsequent terms as a Warden Enforcer.
 
-    $ travgen char -p "Marines:Star Marines::Warden:Enforcer::Warden:Enforcer"
+    $ travgen char -p "-:-::Warden:Enforcer"
 
     Beneš, Hana
     Female Enceladian (Czech), age 30

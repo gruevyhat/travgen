@@ -45,6 +45,8 @@ TERRAIN = {
                            ("S", 0), ("F", -4), ("F", -6))),
     "Deep Ocean": (4, 2, (("S", 8), ("S", 6), ("S", 4),
                           ("S", 2), ("S", 0), ("S", -2))),
+    "Void": (4, 4, (("A", 4), ("W", 2), ("W", 0),
+                    ("F", 0), ("F", 4), ("F", 8))),
     }
 
 ANIMAL_TYPES = (
@@ -79,6 +81,11 @@ SIZES = (
     (1600, d6(5), d6(2), d6(5)),
     (3200, d6(6), d6(1), d6(6)),
     (5000, d6(7), d6(1), d6(7)),
+    (6000, d6(8), d6(1), d6(8)),
+    (7000, d6(9), d6(1), d6(9)),
+    (8000, d6(10), d6(1), d6(10)),
+    (9000, d6(11), d6(1), d6(11)),
+    (10000, d6(12), d6(1), d6(12)),
     )
 
 WEAPONS = (
@@ -195,7 +202,7 @@ class Animal(object):
         if name:
             self.name = name
         else:
-            self.name = lc(cthuvian=True, min_len=4).replace("-","")
+            self.name = lc(cthuvian=True, min_len=4).replace("-", "")
 
     def get_order(self, order=None):
         if order:
@@ -224,7 +231,7 @@ class Animal(object):
 
     def get_stats(self, sentient=False):
         self.stats = Stats(animal=True)
-        s = cap(d6(2) + self.dms["size"], 1, 13) - 1
+        s = cap(d6(2) + self.dms["size"], 1, len(SIZES)) - 1
         self.stats.Str = Stat(value=SIZES[s][1])
         self.stats.Dex = Stat(value=SIZES[s][2])
         self.stats.End = Stat(value=SIZES[s][3])

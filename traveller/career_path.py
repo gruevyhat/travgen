@@ -65,7 +65,7 @@ class CareerPath(object):
                         s = choice(CAREERS[c].keys())
                     self.terms[i]['Spec'] = s
                 else:
-                    print "Can't find career '%s'!" % c
+                    #print "Can't find career '%s'!" % c
                     self.terms[i]['Career'] = None
                     self.terms[i]['Spec'] = None
 

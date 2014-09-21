@@ -103,6 +103,8 @@ class CareerPath(object):
             s = choice(CAREERS[c].keys())
         elif career and not self.new_career and career not in self.attempted:
             c, s = career, spec
+            if career != self.attempted[-1]:
+                self.new_career = True
         elif n > 0 and not self.new_career:
             c = self.terms[n - 1]['Career']
             s = self.terms[n - 1]['Spec']
@@ -202,7 +204,7 @@ class CareerPath(object):
             if career in ('Nobility', 'Aristocrat'):
                 qualified = self.stats.Soc >= career_table['Qual'][1]
             elif career == "Psion":
-                qualified = self.stats.Psi >= career_table['Qual'][1]
+                qualified = self.stats.Psi - n >= career_table['Qual'][1]
             else:
                 if career in DRAFT:
                     old = -2 * (len(self.terms) >= 4)
@@ -286,7 +288,7 @@ class CareerPath(object):
         idx = SKILL_TYPES[tab] * 6
         attr, n = choice(SKILLS[career, spec][idx:idx + 6])
         attr = choice(attr.split(' or '))
-        if attr in STATS:
+        if attr in list(STATS) + ["Psi"]:
             self.stats[attr] += 1
             self.history += [' Received +1 %s from the %s table.' % (attr, tab)]
         else:
@@ -295,7 +297,7 @@ class CareerPath(object):
 
     def rank_roll(self, attr, n):
         attr = choice(attr.split(' or '))
-        if attr in STATS:
+        if attr in list(STATS) + ["Psi"]:
             self.stats[attr] += 1
             self.history += [' Received +1 %s from advancement.' % attr]
         else:

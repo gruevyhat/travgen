@@ -603,7 +603,7 @@ SKILLS = {
     ("Psion", "Wild Talent"): (("Telepathy", 0), ("Clairvoyance", 0),
         ("Telekinesis", 0), ("Awareness", 0), ("Teleportation", 0),
         ("Any Skill", 0), ("Edu", 1), ("Int", 1), ("Str", 1),
-        ("Dex", 1), ("End", 1), ("Psionic", 1), ("Telepathy", 0),
+        ("Dex", 1), ("End", 1), ("Psi", 1), ("Telepathy", 0),
         ("Clairvoyance", 0), ("Telekinesis", 0), ("Awareness", 0),
         ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0),
         ("Telekinesis", 0), ("Deception", 0), ("Stealth", 0), ("Streetwise", 0),
@@ -612,7 +612,7 @@ SKILLS = {
     ("Psion", "Adept"): (("Telepathy", 0), ("Clairvoyance", 0), ("Telekinesis", 0),
         ("Awareness", 0), ("Teleportation", 0), ("Any Skill", 0), ("Edu", 1),
         ("Int", 1), ("Str", 1), ("Dex", 1), ("End", 1),
-        ("Psionic", 1), ("Telepathy", 0), ("Clairvoyance", 0), ("Telekinesis", 0),
+        ("Psi", 1), ("Telepathy", 0), ("Clairvoyance", 0), ("Telekinesis", 0),
         ("Awareness", 0), ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0),
         ("Clairvoyance", 0), ("Awareness", 0), ("Medic", 0), ("Persuade", 0),
         ("Social Science", 0), ("Comms", 0), ("Computers", 0), ("Language", 0),
@@ -620,7 +620,7 @@ SKILLS = {
     ("Psion", "Psi-Warrior"): (("Telepathy", 0), ("Clairvoyance", 0),
         ("Telekinesis", 0), ("Awareness", 0), ("Teleportation", 0),
         ("Any Skill", 0), ("Edu", 1), ("Int", 1), ("Str", 1),
-        ("Dex", 1), ("End", 1), ("Psionic", 1), ("Telepathy", 0),
+        ("Dex", 1), ("End", 1), ("Psi", 1), ("Telepathy", 0),
         ("Clairvoyance", 0), ("Telekinesis", 0), ("Awareness", 0),
         ("Teleportation", 0), ("Any Skill", 0), ("Telepathy", 0), ("Awareness", 0),
         ("Teleportation", 0), ("Gun Combat", 0), ("Battle Dress", 0), ("Recon", 0),
@@ -722,7 +722,7 @@ RANKS = {
     ("Psion", "Wild Talent"):
         (None, ("Survival or Streetwise", 1), None, ("Deception", 1), None, None, None),
     ("Psion", "Adept"):
-        (None, ("Science (psionology)", 1), None, ("Psionics", 1), None, None, ("Psionics", 1)),
+        (None, ("Science (psionology)", 1), None, ("Psi", 1), None, None, ("Psi", 1)),
     ("Psion", "Psi-Warrior"):
         (None, ("Gun Combat", 1), ("Leadership", 1), None, None, ("Tactics", 1), None),
     ("Army Officer", "Support"):

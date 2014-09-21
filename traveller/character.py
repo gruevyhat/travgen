@@ -115,7 +115,7 @@ class Character(object):
         # Personality
         if self.personality:
             mb = ''.join((choice("IESNFTJP"[i:i+2]) for i in range(0, 8, 2)))
-            o += ["Personality: %s, %s, %s [%%s]" % self.personality % mb]
+            o += ["Personality: %%s; %s, %s, %s" % self.personality % mb]
         # History
         if self.show_hist is True:
             o += ["Career History"]

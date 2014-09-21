@@ -40,7 +40,9 @@ Character Generation Options:
     -g --gender STR        Male or female.
     -a --rand-age          Randomize term length (+/-1 year).
     -u --upp HEX           A pre-generated UPP.
-    -i --psi STR           Psi attribute for a given campaign type.
+    -i --psi STR           Psi attribute for a given campaign type: traditional,
+                             psi-heavy, space opera, science fantast,
+                             transcendent.
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
@@ -67,7 +69,7 @@ Other Options:
 """
 
 __author__ = "GVH"
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 
 import sys

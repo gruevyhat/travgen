@@ -1,4 +1,4 @@
-Travgen 0.0.7
+Travgen 0.0.10
 =============
 
 A gamemaster toolkit for the Chthonian Stars, a campaign setting for Mongoose Traveller(c). The script generates random characters complete with name, gender, UPP, ethnicity, planet of origin, skills, and career path. CT and MGT books are still required for generation of events, and the fleshing out of other details. The scripts also provide functionality for animal generation, UPP generation, and generic dice rolling.
@@ -9,11 +9,15 @@ Usage: Character Generation
 
 The script is run from the command line with the following syntax. All input variables may be stipulated at the command line rather than randomly generated, including career path. The script may also be used to generate UPPs and roll arbitrary sets of dice. 
 
-    Usage: travgen char [--name NAME] [--homeworld WORLD] [--ethnicity ETHNICITY]
-                        [--gender GENDER] [--upp UPP] [--method METHOD] [--rand-age]
-                        [--terms TERMS] [--path PATH] [--full-path] [--show-hist]
-           travgen UPP [--method STR ]
-
+    Usage: travgen char [--name NAME] [--homeworld WORLD]
+                        [--ethnicity ETHNICITY] [--gender GENDER]
+                        [--upp UPP] [--method METHOD] [--psi PSI]
+                        [--terms TERMS] [--path PATH]
+                        [--rand-age] [--max-careers CAREERS]
+                        [--personality] [--random-seed SEED]
+                        [--show-hist]
+           travgen UPP [--method METHOD] [--psi PSI]
+    
     Character Generation Options:
       -n --name STR          Character name.
       -w --homeworld STR     Character's world of origin.
@@ -28,6 +32,9 @@ The script is run from the command line with the following syntax. All input var
       -g --gender STR        Male or female.
       -a --rand-age          Randomize term length (+/-1 year).
       -u --upp HEX           A pre-generated UPP.
+      -i --psi STR           Psi attribute enabled for a given campaign type:
+                               traditional, psi-heavy, space opera,
+                               science fantasy, transcendent.
       -t --terms INT         Number of terms to serve. [default: 3]
       -p --path STR          Colon-delimited career path of the form:
                                "career:spec::career:spec::...".

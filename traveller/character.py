@@ -8,7 +8,7 @@ from career_path import CareerPath
 from attributes import SkillSet, Stats
 from lc import lc
 from names import NAMES, titlecase
-from data import WORLDS, PERSONALITIES, STARTING_AGE, WORLD_ADJ   
+from data import WORLDS, PERSONALITIES, STARTING_AGE, WORLD_ADJ
 
 
 class Character(object):
@@ -30,10 +30,6 @@ class Character(object):
             self.get_name()
         else:
             self.name = name
-        if personality:
-            self.get_personality()
-        else:
-            self.personality = None
         # Game attributes
         self.stats = Stats(upp=upp, method=method, psi=psi)
         self.skills = SkillSet()
@@ -45,7 +41,12 @@ class Character(object):
             self.homeworld = homeworld
         self.cp = CareerPath(self, terms, path)
         self.adjust_psi()
+        # Misc
         self.get_age(rand_age)
+        if personality:
+            self.get_personality()
+        else:
+            self.personality = None
         self.show_hist = show_hist
 
     def get_ethnicity(self):
@@ -66,11 +67,6 @@ class Character(object):
         if rand:
             self.age += d3(nterms) - 2 * nterms
 
-    def get_personality(self):
-        self.personality = (choice(PERSONALITIES[0]),
-                            choice(PERSONALITIES[1]),
-                            choice(PERSONALITIES[2]))
-
     def adjust_psi(self):
         terms = [t["Career"] for t in self.cp.terms]
         if "Psion" in terms:
@@ -80,6 +76,13 @@ class Character(object):
         self.stats.Psi -= pen
         if self.stats.Psi < 1:
             self.psi = None
+
+    def get_personality(self):
+        mb = ''.join((choice("IESNFTJP"[i:i+2]) for i in range(0, 8, 2)))
+        self.personality = (mb,
+                            choice(PERSONALITIES[0]),
+                            choice(PERSONALITIES[1]),
+                            choice(PERSONALITIES[2]))
 
     def __repr__(self):
         o = [self.name]
@@ -114,8 +117,7 @@ class Character(object):
         o += ['Benefits: %s' % benefits]
         # Personality
         if self.personality:
-            mb = ''.join((choice("IESNFTJP"[i:i+2]) for i in range(0, 8, 2)))
-            o += ["Personality: %%s; %s, %s, %s" % self.personality % mb]
+            o += ["Personality: %s; %s, %s, %s" % self.personality]
         # History
         if self.show_hist is True:
             o += ["Career History"]

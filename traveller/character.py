@@ -16,7 +16,7 @@ class Character(object):
     def __init__(self, name=None, upp=None, homeworld=None,
                  ethnicity=None, gender=None, personality=False,
                  terms=3, path=None, method=None, rand_age=False,
-                 show_hist=False):
+                 show_hist=False, psi=None):
         # Demographics
         if not ethnicity:
             self.get_ethnicity()
@@ -35,14 +35,16 @@ class Character(object):
         else:
             self.personality = None
         # Game attributes
-        self.stats = Stats(upp, method)
+        self.stats = Stats(upp=upp, method=method, psi=psi)
         self.skills = SkillSet()
+        self.psi = psi
         # Process career path
         if not homeworld:
             self.get_homeworld()
         else:
             self.homeworld = homeworld
         self.cp = CareerPath(self, terms, path)
+        self.adjust_psi()
         self.get_age(rand_age)
         self.show_hist = show_hist
 
@@ -68,6 +70,16 @@ class Character(object):
         self.personality = (choice(PERSONALITIES[0]),
                             choice(PERSONALITIES[1]),
                             choice(PERSONALITIES[2]))
+
+    def adjust_psi(self):
+        terms = [t["Career"] for t in self.cp.terms]
+        if "Psion" in terms:
+            pen = terms.index("Psion")
+        else:
+            pen = len(terms)
+        self.stats.Psi -= pen
+        if self.stats.Psi < 1:
+            self.psi = None
 
     def __repr__(self):
         o = [self.name]

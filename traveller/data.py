@@ -76,6 +76,13 @@ CAREERS = {
         'Dilettante': {'Surv': ('Soc', 3), 'Qual': ('Soc', 10), 'Adv': ('Int', 8)}},
     }
 
+PSION = {
+    'Psion': {
+        'Wild Talent': {'Surv': ('Soc', 6), 'Qual': ('Psi', 6), 'Adv': ('Int', 8)},
+        'Adept': {'Surv': ('Edu', 4), 'Qual': ('Psi', 6), 'Adv': ('Edu', 8)},
+        'Psi-Warrior': {'Surv': ('Edu', 6), 'Qual': ('Psi', 6), 'Adv': ('End', 6)}}
+        }
+
 AGENT = {
     'Law Enforcement': {
         'Patroller': {'Surv': ('Int', 7), 'Qual': ('Int', 5), 'Adv': ('Edu', 7)},

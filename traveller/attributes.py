@@ -30,10 +30,10 @@ class Stat(int):
         return self // 3 - 2 if self > 0 else -3
 
     def __add__(self, n):
-        return self.__class__(value=int(self) + n)
+        return self.__class__(value=max(0, int(self) + n))
 
     def __sub__(self, n):
-        return self.__class__(value=int(self) - n)
+        return self.__class__(value=max(0, int(self) - n))
 
     def roll(self, mods=0):
         return (d6(2) + self() + mods)
@@ -44,13 +44,14 @@ class Stat(int):
 
 class Stats(object):
 
-    def __init__(self, upp=None, method=None, animal=False):
+    def __init__(self, upp=None, method=None, animal=False, psi=None):
         self.Str = Stat(method=method)
         self.Dex = Stat(method=method)
         self.End = Stat(method=method)
         self.Int = Stat(method=method)
         self.Edu = Stat(method=method)
         self.Soc = Stat(method=method)
+        self.Psi = Stat(method=method)
         if upp:
             self.Str = Stat(value=int(upp[0], 16))
             self.Dex = Stat(value=int(upp[1], 16))
@@ -63,6 +64,15 @@ class Stats(object):
             self.Pac = self.Soc
             del self.Edu
             del self.Soc
+        self.psi = psi
+        if psi == "psi-heavy":
+            self.Psi = Stat(self.Psi+self.Int())
+        elif psi == "space opera":
+            self.Psi = Stat(value=int(self.Psi*1.5))
+        elif psi == "science fantasy":
+            self.Psi = Stat(value=self.Psi*2)
+        elif psi == "transcendent":
+            self.Psi = Stat(value=int(self.Psi*2.5))
 
     def __getitem__(self, stat):
         return self.__dict__[stat]
@@ -77,7 +87,10 @@ class Stats(object):
     def __repr__(self):
         stats = list(zip(*self.list())[1])
         stats.append(sum(stats)/6.0)
-        return "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
+        o = "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
+        if self.psi:
+            o = o.replace(" [", "~%x [" % self.Psi)
+        return o
 
 
 class SkillSet(defaultdict):

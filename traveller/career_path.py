@@ -201,6 +201,8 @@ class CareerPath(object):
                 qualified = True
             if career in ('Nobility', 'Aristocrat'):
                 qualified = self.stats.Soc >= career_table['Qual'][1]
+            elif career == "Psion":
+                qualified = self.stats.Psi >= career_table['Qual'][1]
             else:
                 if career in DRAFT:
                     old = -2 * (len(self.terms) >= 4)

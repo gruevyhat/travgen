@@ -6,7 +6,7 @@ generated randomly.
 
 Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--ethnicity ETHNICITY] [--gender GENDER]
-                    [--upp UPP] [--method METHOD]
+                    [--upp UPP] [--method METHOD] [--psi PSI]
                     [--terms TERMS] [--path PATH]
                     [--rand-age] [--max-careers CAREERS]
                     [--personality] [--random-seed SEED]
@@ -14,7 +14,7 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
                       [--random-seed SEED]
-       travgen UPP [--method STR ]
+       travgen UPP [--method METHOD] [--psi PSI]
        travgen roll DICE
        travgen (-h | --help)
 
@@ -39,8 +39,8 @@ Character Generation Options:
                              Thai.
     -g --gender STR        Male or female.
     -a --rand-age          Randomize term length (+/-1 year).
-    -u --upp HEX           Supply a pre-generated UPP or it will be randomly
-                             generated.
+    -u --upp HEX           A pre-generated UPP.
+    -i --psi STR           Psi attribute for a given campaign type.
     -t --terms INT         Number of terms to serve. [default: 3]
     -p --path STR          Colon-delimited career path of the form:
                              "career:spec::career:spec::...".
@@ -80,7 +80,7 @@ from traveller.animal import Animal
 from traveller.dice import die
 from traveller.data import (CAREERS, FALLBACK_CAREERS, SKILLS,
                             CHTHONIAN_STARS, DILETTANTE, AGENT,
-                            SCOUNDREL)
+                            SCOUNDREL, PSION)
 
 
 #EXPANSIONS = ["Chthonian Stars", "Agent", "Scoundrel", "Dilettante"]
@@ -145,7 +145,7 @@ if __name__ == "__main__":
             sys.exit()
 
         if args['UPP']:
-            upp = Stats(method=args['method'])
+            upp = Stats(method=args['method'], psi=args['psi'])
             print upp
             sys.exit()
 
@@ -169,8 +169,13 @@ if __name__ == "__main__":
                     for term in args['path'].split("::")]
         else:
             path = None
+            args["path"] = ''
 
         set_expansions(EXPANSIONS)
+
+        if args["psi"] or args["path"].find("Psion") > -1:
+            CAREERS.update(PSION)
+            args["psi"] = args["psi"] or "traditional"
 
         m = int(args["maxcareers"]) if args["maxcareers"] else 1000
 
@@ -190,7 +195,8 @@ if __name__ == "__main__":
                           method=args["method"],
                           rand_age=args["randage"],
                           personality=args["personality"],
-                          show_hist=args["showhist"])
+                          show_hist=args["showhist"],
+                          psi=args["psi"])
 
             n = len(set((t["Career"] for t in c.cp.terms)))
             if n <= m:

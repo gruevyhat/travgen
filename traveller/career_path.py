@@ -103,7 +103,7 @@ class CareerPath(object):
             s = choice(CAREERS[c].keys())
         elif career and not self.new_career and career not in self.attempted:
             c, s = career, spec
-            if career != self.attempted[-1]:
+            if self.attempted and career != self.attempted[-1]:
                 self.new_career = True
         elif n > 0 and not self.new_career:
             c = self.terms[n - 1]['Career']
@@ -163,6 +163,7 @@ class CareerPath(object):
             self.history += [' Received a Commission.']
             self.terms[n]['A'] = True
         else:
+            self.history += [' Failed to receive a Commission.']
             self.terms[n]['A'] = True
 
     def advance(self, n, career_table):

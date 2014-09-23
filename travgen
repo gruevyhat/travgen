@@ -10,7 +10,7 @@ Usage: travgen char [--name NAME] [--homeworld WORLD]
                     [--terms TERMS] [--path PATH]
                     [--rand-age] [--max-careers CAREERS]
                     [--personality] [--random-seed SEED]
-                    [--show-hist]
+                    [--show-hist] [--list]
        travgen animal [--terrain TERRAIN] [--behavior BEHAVIOR]
                       [--order ORDER] [--sentient]
                       [--random-seed SEED]
@@ -49,6 +49,7 @@ Character Generation Options:
     -P --personality       Random personality.
     -x --max-careers INT   Maximum number of careers.
     -s --show-hist         Show full career history.
+    -l --list              Show available careers and specializations.
 
 Animal Generation Options:
     --terrain TERRAIN     One of: Mountain, Hills, Open Ocean, Clear, Riverbank,
@@ -178,6 +179,18 @@ if __name__ == "__main__":
         if args["psi"] or args["path"].find("Psion") > -1:
             CAREERS.update(PSION)
             args["psi"] = args["psi"] or "traditional"
+
+        if args["list"]:
+            if args["char"]:
+                print "Available careers and specializations:"
+                for career in sorted(c for c in CAREERS.keys()
+                                     if c.find("Officer") == -1):
+                    specs = ', '.join(sorted(s for s in CAREERS[career]))
+                    print "  " + career + ": " + specs
+            elif args["animal"]:
+                pass
+                # TODO
+            sys.exit()
 
         m = int(args["maxcareers"]) if args["maxcareers"] else 1000
 

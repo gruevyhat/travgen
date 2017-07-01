@@ -261,13 +261,28 @@ class CareerPath(object):
         career = self.terms[n]['Career'].replace(' Officer', '')
         self.terms[n]['Ben'] = ben
         if choice((0, 1)) == 1:
-            benefit = BENEFITS[career][ben - 1]
-            self.benefits += [benefit]
-            self.history += [' Acquired Benefit: %s.' % benefit]
+            self.benefit(ben, career)
         else:
             credits = CREDITS[career][ben - 1]
             self.credits += credits
             self.history += [' Acquired %d.' % credits]
+
+    def benefit(self, ben, career):
+        benefit, mod = BENEFITS[career][ben - 1]
+        if type(benefit) == tuple:
+            benefit, mod = choice((benefit, mod))
+        if benefit in STATS:
+            self.stats[benefit] += mod
+            benefit = "%s +%d" % (benefit, mod)
+        elif benefit in SKILLS:
+            self.skills.learn({benefit: mod})
+            benefit = "%s +%d" % (benefit, mod)
+        elif benefit == "Ship Shares":
+            self.benefits += ["Ship Shares"] * mod
+            benefit = "Ship Shares (%d)" % mod
+        else:
+            self.benefits += [benefit]
+        self.history += [' Acquired Benefit: %s.' % benefit]
 
     def stat_check(self, career_table, check, mods=0, roll=None):
         stat, tgt = career_table[check]

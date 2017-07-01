@@ -87,7 +87,8 @@ from traveller.data import (CAREERS, FALLBACK_CAREERS, SKILLS,
 
 
 #EXPANSIONS = ["Chthonian Stars", "Agent", "Scoundrel", "Dilettante"]
-EXPANSIONS = ["Chthonian Stars"]
+#EXPANSIONS = ["Chthonian Stars"]
+EXPANSIONS = []
 
 
 def set_expansions(E):

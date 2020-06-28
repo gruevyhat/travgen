@@ -154,8 +154,10 @@ class CareerPath(object):
             if self.stats["Psi"].roll() >= 8:
                 psi_skills.remove(s)
         SKILLS[career, spec] = \
-            [s for s in SKILLS[career, spec]
-             if s[0] not in psi_skills]
+            [s
+             if s[0] not in psi_skills
+             else ("Any Skill", 0)
+             for s in SKILLS[career, spec]]
 
     def survive(self, n, career_table):
         self.terms[n]['SR'] = 1

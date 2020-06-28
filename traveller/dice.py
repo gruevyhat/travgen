@@ -29,4 +29,4 @@ if __name__ == "__main__":
 
 #   print "UPP: %x%x%x%x%x%x [%d]" % tuple(D+[sum(D)])
 
-    print d6(1), d6(1), d6(1), d6(1), d6(1), d6(1)
+    print(d6(1), d6(1), d6(1), d6(1), d6(1), d6(1))

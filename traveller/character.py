@@ -3,12 +3,13 @@
 import sys
 from random import choice
 from collections import Counter, OrderedDict
-from dice import d3
-from career_path import CareerPath
-from attributes import SkillSet, Stats
-from lc import lc
-from names import NAMES, titlecase
-from data import WORLDS, PERSONALITIES, STARTING_AGE, WORLD_ADJ
+
+from traveller.dice import d3
+from traveller.career_path import CareerPath
+from traveller.attributes import SkillSet, Stats
+from traveller.lc import lc
+from traveller.names import NAMES, titlecase
+from traveller.data import WORLDS, PERSONALITIES, STARTING_AGE, WORLD_ADJ
 
 
 class Character(object):
@@ -50,7 +51,7 @@ class Character(object):
         self.show_hist = show_hist
 
     def get_ethnicity(self):
-        self.ethnicity = choice(NAMES.keys())
+        self.ethnicity = choice(list(NAMES.keys()))
 
     def get_name(self):
         self.name = lc(self.ethnicity, self.gender)
@@ -59,7 +60,7 @@ class Character(object):
         self.gender = choice(["male", "female"])
 
     def get_homeworld(self):
-        self.homeworld = choice(WORLDS.keys())
+        self.homeworld = choice(list(WORLDS.keys()))
 
     def get_age(self, rand):
         nterms = len(self.cp.terms)
@@ -123,7 +124,7 @@ class Character(object):
             o += ["Career History"]
             o += [repr(self.cp)]
             o += self.cp.history
-        return "\n".join(o).encode('utf8', 'ignore')
+        return "\n".join(o)
 
 
 if __name__ == "__main__":

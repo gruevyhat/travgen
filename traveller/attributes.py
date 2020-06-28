@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from collections import defaultdict
-from dice import d6, d3, d16
+from traveller.dice import d6, d3, d16
 
 
 STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
@@ -9,7 +9,7 @@ STATS = ("Str", "Dex", "End", "Int", "Edu", "Ins", "Soc", "Pac")
 
 class Stat(int):
 
-    def __new__(cls, method=None, value=None):
+    def __new__(cls, method=None, value=-1):
         if not value > -1:
             if method == "heroic":
                 value = sum(sorted([d6(1) for i in range(3)])[-2:])
@@ -85,7 +85,7 @@ class Stats(object):
                 for s in STATS if s in self.__dict__]
 
     def __repr__(self):
-        stats = list(zip(*self.list())[1])
+        stats = list(list(zip(*self.list()))[1])
         stats.append(sum(stats)/6.0)
         o = "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
         if self.psi:

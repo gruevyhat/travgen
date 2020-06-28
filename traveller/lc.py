@@ -2,7 +2,7 @@
 
 from random import choice
 from collections import defaultdict
-from names import NAMES, CTHUVIAN
+from traveller.names import NAMES, CTHUVIAN
 
 
 def readdata(fn):
@@ -57,8 +57,8 @@ def lc(ethnicity=None, gender=None, cthuvian=False,
     else:
         ethnicity, gender = ethnicity.lower(), gender.lower()
         if ethnicity == "american":
-            fullname = ((choice(NAMES.keys()), "family"),
-                        (choice(NAMES.keys()), gender))
+            fullname = ((choice(list(NAMES.keys())), "family"),
+                        (choice(list(NAMES.keys())), gender))
         else:
             fullname = ((ethnicity, "family"), (ethnicity, gender))
         models = [train(NAMES[eth][nam]) for eth, nam in fullname]
@@ -70,4 +70,4 @@ def lc(ethnicity=None, gender=None, cthuvian=False,
 
 if __name__ == "__main__":
 
-    print lc("american", "female")
+    print(lc("american", "female"))

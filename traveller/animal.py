@@ -5,10 +5,11 @@
 
 from random import sample, choice
 from collections import defaultdict
-from attributes import SkillSet, Stats, Stat, STATS
-from dice import d6, d3, d100
-from lc import lc
-from names import titlecase
+
+from traveller.attributes import SkillSet, Stats, Stat, STATS
+from traveller.dice import d6, d3, d100
+from traveller.lc import lc
+from traveller.names import titlecase
 
 
 TERRAIN = {
@@ -222,7 +223,7 @@ class Animal(object):
         if terrain:
             t = terrain
         else:
-            t = choice(TERRAIN.keys())
+            t = choice(list(TERRAIN.keys()))
         m = d6(1)-1
         self.movement = TERRAIN[t][2][m][0]
         self.dms["type"] += TERRAIN[t][0]
@@ -266,7 +267,7 @@ class Animal(object):
             else:
                 self.skills[attr] = n
         for r in range(d6(1)):
-            sk = choice(self.skills.keys())
+            sk = choice(list(elf.skills.keys()))
             self.skills[sk] += 1
 
     def get_weap_arm(self):
@@ -308,4 +309,4 @@ class Animal(object):
 if __name__ == "__main__":
 
     a = Animal()
-    print a
+    print(a)

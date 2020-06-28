@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
 from random import choice, sample
-from dice import d6
-from attributes import STATS
-from data import *
+from traveller.dice import d6
+from traveller.attributes import STATS
+from traveller.data import *
 
 
 STARTING_SKILLS = 3
 COMMISSION = 8
 FIELDS = ('T', 'Career', 'Spec', 'Q', 'S', 'A', 'Edu', 'BT', 'SR', 'Rnk', 'EM', 'Age', 'Ben')
 TERM = {f:None for f in FIELDS}
+
 
 def closest_careers(stats, n = None):
     A = []
@@ -35,6 +36,7 @@ class CareerPath(object):
         self.credits = 0
         self.closest = closest_careers(self.stats)
         self.new_career = False
+        self.had_psi_test = False
         self.attempted = []
         if path and len(path) > terms:
             path = path[:terms]
@@ -62,7 +64,7 @@ class CareerPath(object):
                 if c in CAREERS:
                     self.terms[i]['Career'] = c
                     if s not in CAREERS[c]:
-                        s = choice(CAREERS[c].keys())
+                        s = choice(list(CAREERS[c].keys()))
                     self.terms[i]['Spec'] = s
                 else:
                     #print "Can't find career '%s'!" % c
@@ -93,14 +95,14 @@ class CareerPath(object):
             c = self.terms[n]['Career']
             s = self.terms[n]['Spec']
             if s not in CAREERS[c]:
-                self.terms[n]['Spec'] = choice(CAREERS[c].keys())
+                self.terms[n]['Spec'] = choice(list(CAREERS[c].keys()))
 
     def get_career(self, n, fallback = False):
         career = self.terms[n]['Career']
         spec = self.terms[n]['Spec']
         if fallback:
             c = choice(FALLBACK_CAREERS)
-            s = choice(CAREERS[c].keys())
+            s = choice(list(CAREERS[c].keys()))
         elif career and not self.new_career and career not in self.attempted:
             c, s = career, spec
             if self.attempted and career != self.attempted[-1]:
@@ -114,7 +116,7 @@ class CareerPath(object):
                 _, c, s = choice(closest)
             else:
                 c = 'Drifter'
-                s = choice(CAREERS[c].keys())
+                s = choice(list(CAREERS[c].keys()))
         self.terms[n]['Career'] = c
         self.terms[n]['Spec'] = s
         self.prev = set([ self.terms[i]['Career'] for i in range(n) ])
@@ -122,6 +124,9 @@ class CareerPath(object):
     def get_term(self, n):
         career = self.terms[n]['Career']
         spec = self.terms[n]['Spec']
+        if career == "Psion" and not self.had_psi_test:
+            self.psi_testing(career, spec)
+            self.had_psi_test = True
         career_table = CAREERS[career][spec]
         self.attempted.append(career)
         self.qualify(n, career, career_table)
@@ -136,6 +141,21 @@ class CareerPath(object):
         self.promote(n)
         self.age(n)
         self.muster(n)
+
+    def psi_testing(self, career, spec):
+        psi_skills = [
+            "Telepathy",
+            "Clairvoyance",
+            "Telekinesis",
+            "Awareness",
+            "Teleportation"
+        ]
+        for s in psi_skills:
+            if self.stats["Psi"].roll() >= 8:
+                psi_skills.remove(s)
+        SKILLS[career, spec] = \
+            [s for s in SKILLS[career, spec]
+             if s[0] not in psi_skills]
 
     def survive(self, n, career_table):
         self.terms[n]['SR'] = 1
@@ -189,7 +209,7 @@ class CareerPath(object):
         career = self.terms[n]['Career'] #.replace(' Officer', '')
         spec = self.terms[n]['Spec']
         if spec not in CAREERS[career]:
-            spec = choice(CAREERS[career].keys())
+            spec = choice(list(CAREERS[career].keys()))
         rank_skill = RANKS[career, spec][min(rank, 6)]
         if self.terms[n]['A'] and rank_skill:
             attr, n = rank_skill
@@ -240,7 +260,7 @@ class CareerPath(object):
 
     def age(self, n):
         age = '-' if n < 3 else d6(2) - n + 1
-        if age < 1:
+        if type(age)==int and age < 1:
             age = max(-6, age)
             pens = AGING[-age]
             for p, pen in enumerate(pens):

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """
 Character generator for Mongoose Traveller. Any unspecified options will be
@@ -144,13 +144,13 @@ if __name__ == "__main__":
                             order=args['order'],
                             terrain=args['terrain'],
                             sentient=args['sentient'])
-            print animal
-            print "Random seed: %x" % sd
+            print(animal)
+            print("Random seed: %x" % sd)
             sys.exit()
 
         if args['UPP']:
             upp = Stats(method=args['method'], psi=args['psi'])
-            print upp
+            print(upp)
             sys.exit()
 
         if args['roll']:
@@ -162,10 +162,10 @@ if __name__ == "__main__":
                 add = False
             n, d = [int(x) for x in D.split('d')]
             if add:
-                print die(d)(n)
+                print(die(d)(n))
             else:
                 roll = [str(die(d)(1)) for i in range(n)]
-                print ' '.join(roll)
+                print(' '.join(roll))
             sys.exit()
 
         if args['path']:
@@ -183,11 +183,11 @@ if __name__ == "__main__":
 
         if args["list"]:
             if args["char"]:
-                print "Available careers and specializations:"
+                print("Available careers and specializations:")
                 for career in sorted(c for c in CAREERS.keys()
                                      if c.find("Officer") == -1):
                     specs = ', '.join(sorted(s for s in CAREERS[career]))
-                    print "  " + career + ": " + specs
+                    print("  " + career + ": " + specs)
             elif args["animal"]:
                 pass
                 # TODO
@@ -223,10 +223,10 @@ if __name__ == "__main__":
 
     except Exception as e:
         #raise
-        print "Something unfortunate has happened. [%s]" % e
+        print("Something unfortunate has happened. [%s]" % e)
 
     else:
         sys.stdout.write(repr(c)+"\n")
-        print "Random seed: %x" % sd
+        print("Random seed: %x" % sd)
 
     sys.exit()

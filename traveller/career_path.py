@@ -96,6 +96,7 @@ class CareerPath(object):
             s = self.terms[n]['Spec']
             if s not in CAREERS[c]:
                 self.terms[n]['Spec'] = choice(list(CAREERS[c].keys()))
+            self.stats.Psi -= 1
 
     def get_career(self, n, fallback = False):
         career = self.terms[n]['Career']

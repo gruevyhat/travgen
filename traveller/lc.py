@@ -24,15 +24,15 @@ def train(words):
 
 
 def gen(m, min_len=0, max_len=15):
-    name = choice([w for w in m.keys()
-                   if w.startswith(" ")])
-    while name[-1] != "_":
-        name += choice(m[name[-2:]])
-    name = name.replace("_", "").strip()
-    if not (min_len < len(name) < max_len):
-        return gen(m, min_len, max_len)
-    else:
-        return name
+    starts = [w for w in m.keys() if w.startswith(" ")]
+    for _ in range(1000):
+        name = choice(starts)
+        while name[-1] != "_":
+            name += choice(m[name[-2:]])
+        name = name.replace("_", "").strip()
+        if min_len < len(name) < max_len:
+            return name
+    raise ValueError("Could not generate a name within bounds after 1000 tries")
 
 
 def build_cthuvian_wordlist(N=200):

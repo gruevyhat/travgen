@@ -85,7 +85,7 @@ class Stats(object):
                 for s in STATS if s in self.__dict__]
 
     def __repr__(self):
-        stats = list(list(zip(*self.list()))[1])
+        stats = [s[1] for s in self.list()]
         stats.append(sum(stats)/6.0)
         o = "UPP: %x%x%x%x%x%x [%.1f]" % tuple(stats)
         if self.psi:

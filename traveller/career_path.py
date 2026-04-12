@@ -3,13 +3,11 @@
 from random import choice, sample
 from traveller.dice import d6
 from traveller.attributes import Stat, STATS
-from traveller.data import *
-
-
-STARTING_SKILLS = 3
-COMMISSION = 8
-FIELDS = ('T', 'Career', 'Spec', 'Q', 'S', 'A', 'Edu', 'BT', 'SR', 'Rnk', 'EM', 'Age', 'Ben')
-TERM = {f:None for f in FIELDS}
+from traveller.data import (
+    CAREERS, FALLBACK_CAREERS, SKILLS, RANKS, AGING,
+    BENEFITS, CREDITS, DRAFT, EDU_SKILLS, WORLDS,
+    STARTING_SKILLS, COMMISSION, FIELDS, TERM, SKILL_TYPES,
+)
 
 
 def closest_careers(stats, n = None):

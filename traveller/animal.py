@@ -69,24 +69,25 @@ ANIMAL_TYPES = (
 
 SIZES = (
     # 2d6: (Weight (kg), Strength, Dexterity, Endurance)
-    (1, 1, d6(1), 1),
-    (3, 2, d6(1), 2),
-    (6, d6(1), d6(2), d6(1)),
-    (12, d6(1), d6(2), d6(1)),
-    (25, d6(2), d6(3), d6(2)),
-    (50, d6(2), d6(4), d6(2)),
-    (100, d6(3), d6(3), d6(3)),
-    (200, d6(3), d6(3), d6(3)),
-    (400, d6(4), d6(2), d6(4)),
-    (800, d6(4), d6(2), d6(4)),
-    (1600, d6(5), d6(2), d6(5)),
-    (3200, d6(6), d6(1), d6(6)),
-    (5000, d6(7), d6(1), d6(7)),
-    (6000, d6(8), d6(1), d6(8)),
-    (7000, d6(9), d6(1), d6(9)),
-    (8000, d6(10), d6(1), d6(10)),
-    (9000, d6(11), d6(1), d6(11)),
-    (10000, d6(12), d6(1), d6(12)),
+    # Stat columns are callables so dice are rolled fresh per animal.
+    (1,     lambda: 1,      lambda: d6(1),  lambda: 1),
+    (3,     lambda: 2,      lambda: d6(1),  lambda: 2),
+    (6,     lambda: d6(1),  lambda: d6(2),  lambda: d6(1)),
+    (12,    lambda: d6(1),  lambda: d6(2),  lambda: d6(1)),
+    (25,    lambda: d6(2),  lambda: d6(3),  lambda: d6(2)),
+    (50,    lambda: d6(2),  lambda: d6(4),  lambda: d6(2)),
+    (100,   lambda: d6(3),  lambda: d6(3),  lambda: d6(3)),
+    (200,   lambda: d6(3),  lambda: d6(3),  lambda: d6(3)),
+    (400,   lambda: d6(4),  lambda: d6(2),  lambda: d6(4)),
+    (800,   lambda: d6(4),  lambda: d6(2),  lambda: d6(4)),
+    (1600,  lambda: d6(5),  lambda: d6(2),  lambda: d6(5)),
+    (3200,  lambda: d6(6),  lambda: d6(1),  lambda: d6(6)),
+    (5000,  lambda: d6(7),  lambda: d6(1),  lambda: d6(7)),
+    (6000,  lambda: d6(8),  lambda: d6(1),  lambda: d6(8)),
+    (7000,  lambda: d6(9),  lambda: d6(1),  lambda: d6(9)),
+    (8000,  lambda: d6(10), lambda: d6(1),  lambda: d6(10)),
+    (9000,  lambda: d6(11), lambda: d6(1),  lambda: d6(11)),
+    (10000, lambda: d6(12), lambda: d6(1),  lambda: d6(12)),
     )
 
 WEAPONS = (
@@ -233,9 +234,9 @@ class Animal(object):
     def get_stats(self, sentient=False):
         self.stats = Stats(animal=True)
         s = cap(d6(2) + self.dms["size"], 1, len(SIZES)) - 1
-        self.stats.Str = Stat(value=SIZES[s][1])
-        self.stats.Dex = Stat(value=SIZES[s][2])
-        self.stats.End = Stat(value=SIZES[s][3])
+        self.stats.Str = Stat(value=SIZES[s][1]())
+        self.stats.Dex = Stat(value=SIZES[s][2]())
+        self.stats.End = Stat(value=SIZES[s][3]())
         if not sentient:
             i = choice([0, 1])
             self.stats.Int = Stat(value=i)
@@ -246,10 +247,7 @@ class Animal(object):
                   "Carnivore": 2, "Scavenger": 3}
         if not behavior:
             r = cap(d6(2) + self.dms["type"], 1, 12)
-            for a in range(len(ANIMAL_TYPES)):
-                if r - 1 <= a:
-                    behavior = ANIMAL_TYPES[r][orders[self.order]]
-                    break
+            behavior = ANIMAL_TYPES[r][orders[self.order]]
         else:
             a = [y for x in ANIMAL_TYPES for y in x]
             self.order = ORDERS[divmod(a.index(behavior), 6)[1]][1]
@@ -278,10 +276,9 @@ class Animal(object):
         self.damage = 1 + self.stats.Str//10 + WEAPONS[w-1][1]
 
     def get_quirks(self):
-        Q = list(QUIRKS.items())
-        sk = sample(range(len(Q)*6), d6(1))
-        cells = [divmod(x, len(Q)) for x in sk]
-        self.quirks = [Q[x][1][y] for x, y in cells]
+        flat = [(item, cat) for cat, items in QUIRKS.items() for item in items]
+        n = min(d6(1), len(flat))
+        self.quirks = [item for item, _ in sample(flat, n)]
 
     def encounter(self):
         size = {0: 1, 1: d3(1), 3: d6(1),

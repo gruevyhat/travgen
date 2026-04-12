@@ -66,7 +66,7 @@ class Stats(object):
             del self.Soc
         self.psi = psi
         if psi == "psi-heavy":
-            self.Psi = Stat(self.Psi+self.Int())
+            self.Psi = Stat(value=self.Psi+self.Int())
         elif psi == "space opera":
             self.Psi = Stat(value=int(self.Psi*1.5))
         elif psi == "science fantasy":
@@ -110,5 +110,5 @@ class SkillSet(defaultdict):
                 self[skill] = value
 
     def list(self):
-        return [(k, v) for k, v in self.iteritems()
+        return [(k, v) for k, v in self.items()
                 if v >= 0]

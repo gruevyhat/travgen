@@ -6,8 +6,8 @@ from traveller.names import NAMES, CTHUVIAN
 
 
 def readdata(fn):
-    with open(fn, 'r') as fi:
-        lines = [line.strip().decode('utf8')
+    with open(fn, 'r', encoding='utf-8') as fi:
+        lines = [line.strip()
                  for line in fi.readlines()
                  if not line.startswith("#")]
     return lines

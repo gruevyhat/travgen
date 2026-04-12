@@ -93,7 +93,6 @@ class Character(object):
         else:
             hw = "denizen of " + self.homeworld
             eth = ""
-        hw = WORLD_ADJ.get(self.homeworld, "denizen of " + self.homeworld)
         o += ["%s %s%s, age %d" % (titlecase(self.gender),
                                    hw, eth, self.age)]
         # Stats

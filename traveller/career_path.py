@@ -2,7 +2,7 @@
 
 from random import choice, sample
 from traveller.dice import d6
-from traveller.attributes import STATS
+from traveller.attributes import Stat, STATS
 from traveller.data import *
 
 
@@ -221,7 +221,6 @@ class CareerPath(object):
 
     def qualify(self, n, career, career_table):
         self.history += [' Career: %s (%s).' % (career, self.terms[n]['Spec'])]
-        self.attempted.append(career)
         if career_table['Qual'][1] and (n == 0 or self.new_career):
             if career_table['Qual'][1]:
                 qualified = True

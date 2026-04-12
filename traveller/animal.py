@@ -267,7 +267,7 @@ class Animal(object):
             else:
                 self.skills[attr] = n
         for r in range(d6(1)):
-            sk = choice(list(elf.skills.keys()))
+            sk = choice(list(self.skills.keys()))
             self.skills[sk] += 1
 
     def get_weap_arm(self):
@@ -278,7 +278,7 @@ class Animal(object):
         self.damage = 1 + self.stats.Str//10 + WEAPONS[w-1][1]
 
     def get_quirks(self):
-        Q = QUIRKS.items()
+        Q = list(QUIRKS.items())
         sk = sample(range(len(Q)*6), d6(1))
         cells = [divmod(x, len(Q)) for x in sk]
         self.quirks = [Q[x][1][y] for x, y in cells]

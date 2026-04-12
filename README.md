@@ -1,4 +1,4 @@
-Travgen 0.0.10
+Travgen 0.1.0
 =============
 
 A gamemaster toolkit for the Chthonian Stars, a campaign setting for Mongoose Traveller(c). The script generates random characters complete with name, gender, UPP, ethnicity, planet of origin, skills, and career path. CT and MGT books are still required for generation of events, and the fleshing out of other details. The scripts also provide functionality for animal generation, UPP generation, and generic dice rolling.
@@ -137,8 +137,59 @@ Standard Python package installation.
     > cd travgen
     > python setup.py install
 
+Requires Python 3.11+.
+
 
 Dependencies
 ------------
 
 docopt>=0.6.1
+
+
+Testing
+-------
+
+A test suite covering dice, stats, skills, character generation, career paths,
+animal generation, and name generation is included.
+
+    > python -m unittest discover -s tests -v
+
+
+Changelog
+---------
+
+**0.1.0**
+- Completed Python 3 migration: fixed `iteritems()`, byte-string `.decode()`,
+  and `random.sample()` rejecting sets (Python 3.11+)
+- Fixed `animal.py`: SIZES table stats were rolled once at import time, causing
+  all animals of the same size category to share identical stats within a run;
+  now rolled fresh per animal
+- Fixed `animal.py`: typo `elf.skills` → `self.skills` in `get_skills()`
+- Fixed `animal.py`: `QUIRKS.items()` result is no longer subscripted directly
+- Fixed `attributes.py`: `Stat(value=...)` keyword arg was being passed
+  positionally as `method`, causing psi-heavy stat to be re-rolled randomly
+- Fixed `career_path.py`: `Stat` was not imported, causing `NameError` on aging
+  penalties; duplicate `attempted.append()` in `qualify()` removed
+- Fixed `character.py`: redundant `hw` reassignment removed
+- Fixed `lc.py`: recursive `gen()` replaced with iterative loop to prevent
+  stack overflow on tight name-length bounds
+- Replaced wildcard `from data import *` in `career_path.py` with explicit
+  imports; removed duplicate constant definitions
+- Added test suite (34 tests)
+
+**0.0.10**
+- Added psionics support (`--psi` option, Psion career)
+- Psi strength degrades by 1 per term served before joining the Psion career
+- Switched to Core Rules benefit rolls
+
+**0.0.9**
+- Added career/specialization listing (`--list`)
+- Added commission failure reporting in career history
+
+**0.0.8**
+- Added random personalities (`--personality`)
+- Added reproducible generation via `--random-seed`
+- Added `--max-careers` option
+- Added Chthonian Stars expansion careers and skills
+- Added void terrain type for animal generation
+- Added Cthuvian animal names

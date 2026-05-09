@@ -6,6 +6,7 @@
  
 # Packages #
 ############
+app/node_modules/
 *.7z
 *.dmg
 *.gz

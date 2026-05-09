@@ -3,6 +3,37 @@ Travgen 0.1.0
 
 A gamemaster toolkit for the Chthonian Stars, a campaign setting for Mongoose Traveller(c). The script generates random characters complete with name, gender, UPP, ethnicity, planet of origin, skills, and career path. CT and MGT books are still required for generation of events, and the fleshing out of other details. The scripts also provide functionality for animal generation, UPP generation, and generic dice rolling.
 
+Browser App
+-----------
+
+Travgen now includes a stand-alone React/Vite browser app. Source files live in
+`app/`; generated GitHub Pages files live in `docs/`.
+
+Run locally:
+
+    > cd app
+    > npm install
+    > npm run dev
+
+Build the GitHub Pages artifact:
+
+    > cd app
+    > npm run build
+
+Run the browser app test suite:
+
+    > cd app
+    > npm test
+
+The build writes to `docs/`. Treat `docs/` as generated output and edit source
+files in `app/`. For repository publishing setup, see the GitHub Pages
+documentation.
+
+The browser app currently supports UPP generation, character generation with
+advanced controls and expansion toggles, copyable plain-text output, animal
+generation, and dice rolling. Hex seeds reproduce results within the browser app;
+they are not intended to match Python's random output byte-for-byte.
+
 
 Usage: Character Generation
 ---------------------------

@@ -1760,11 +1760,14 @@ function buildCombatTable(equipment, skills, stats) {
       const skill = bestWeaponSkill(skills, weapon);
       const characteristicDm = modifier(stats[weapon.characteristic] ?? 0);
       const skillDm = skill.level ?? unskilledDm;
+      const joatNote = skill.level === null && joat > 0 ? `Jack of all Trades ${joat}` : null;
       return {
         weapon: item.name,
         source: item.source,
         skill: skill.name,
         skillLevel: skill.level,
+        skillDm,
+        joatNote,
         characteristic: weapon.characteristic,
         characteristicDm,
         attackDm: characteristicDm + skillDm,

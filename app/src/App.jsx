@@ -493,6 +493,8 @@ function CharacterOutput({ character, showHistory }) {
       attackDm: item.attackDm,
       skill: item.skill,
       skillLevel: item.skillLevel,
+      skillDm: item.skillDm,
+      note: item.joatNote,
       characteristic: item.characteristic,
       characteristicDm: item.characteristicDm,
       damageExpr: item.damage,
@@ -1180,13 +1182,17 @@ function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
   const attackFormula = isWeapon
     ? `${roll.d1} + ${roll.d2}${roll.attackDm !== 0 ? ` ${fmtMod(roll.attackDm)}` : ''} = `
     : roll.type === 'skill'
-      ? `${roll.d1} + ${roll.d2}${roll.skillMod !== 0 ? ` + ${roll.skillMod}` : ''}${roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : ''} (${roll.statName}) = `
+      ? `${roll.d1} + ${roll.d2}${roll.skillMod !== 0 ? ` ${fmtMod(roll.skillMod)}` : ''}${roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : ''} (${roll.statName}) = `
       : `${roll.d1} + ${roll.d2}${roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : ''} = `;
+
+  const weaponSkillLabel = roll.skillLevel === null
+    ? `(untrained, ${fmtMod(roll.skillDm ?? -3)})`
+    : roll.skillLevel;
 
   return (
     <div className={styles.rollOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Task check result">
       <div className={styles.rollPanel} onClick={(e) => e.stopPropagation()}>
-        <p className={styles.kicker}>{isWeapon ? 'Attack roll' : `Task check${roll.note ? ` · ${roll.note}` : ''}`}</p>
+        <p className={styles.kicker}>{isWeapon ? `Attack roll${roll.note ? ` · ${roll.note}` : ''}` : `Task check${roll.note ? ` · ${roll.note}` : ''}`}</p>
         <h3 className={styles.rollName}>{roll.name}</h3>
         <div className={styles.rollDice}>
           <div className={styles.rollDie}>{roll.d1}</div>
@@ -1195,7 +1201,7 @@ function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
         <p className={styles.rollFormula}>{attackFormula}<strong>{roll.total}</strong></p>
         {isWeapon && (
           <p className={styles.rollMeta}>
-            {roll.skill} {roll.skillLevel === null ? '(untrained)' : roll.skillLevel} · {roll.characteristic} {fmtMod(roll.characteristicDm)}
+            {roll.skill} {weaponSkillLabel} · {roll.characteristic} {fmtMod(roll.characteristicDm)}
           </p>
         )}
         {roll.type === 'skill' && (

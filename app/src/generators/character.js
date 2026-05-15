@@ -1751,13 +1751,15 @@ function benefitToEquipment(benefit, rng, skills) {
 }
 
 function buildCombatTable(equipment, skills, stats) {
+  const joat = skills['Jack of all Trades'] ?? 0;
+  const unskilledDm = Math.min(0, -3 + joat);
   return equipment
     .map((item) => {
       const weapon = coreRules.weaponCombat[item.name];
       if (!weapon) return null;
       const skill = bestWeaponSkill(skills, weapon);
       const characteristicDm = modifier(stats[weapon.characteristic] ?? 0);
-      const skillDm = skill.level ?? -3;
+      const skillDm = skill.level ?? unskilledDm;
       return {
         weapon: item.name,
         source: item.source,

@@ -760,6 +760,9 @@ function buildSkillEntries(skills) {
 
 function SkillsSection({ skills, onRoll }) {
   const entries = buildSkillEntries(skills);
+  const joat = skills['Jack of all Trades'] ?? 0;
+  const unskilledDm = Math.min(0, -3 + joat);
+  const unskilledNote = joat > 0 ? `Jack of all Trades ${joat}` : 'unskilled';
   return (
     <section className={`${styles.sheetPanel} ${styles.skillsPanel}`} aria-label="Skills">
       <div className={styles.sectionHeader}>
@@ -773,8 +776,8 @@ function SkillsSection({ skills, onRoll }) {
               className={`${styles.skillRow} ${styles.rollable}`}
               role="button"
               tabIndex={0}
-              onClick={() => absent ? onRoll(base, -3, 'unskilled') : onRoll(base, level)}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (absent ? onRoll(base, -3, 'unskilled') : onRoll(base, level))}
+              onClick={() => absent ? onRoll(base, unskilledDm, unskilledNote) : onRoll(base, level)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (absent ? onRoll(base, unskilledDm, unskilledNote) : onRoll(base, level))}
             >
               <span>{base}</span>
               <strong>{level !== null ? level : '—'}</strong>

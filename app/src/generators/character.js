@@ -724,7 +724,7 @@ function choiceBenefit(rng, stats, skills, career, roll) {
     name,
     source: 'benefit',
     type: benefitToType(benefit),
-    equipment: benefitToEquipment(benefit),
+    equipment: benefitToEquipment(benefit, rng, skills),
   };
 }
 
@@ -1724,11 +1724,23 @@ function benefitToType(benefit) {
   return 'asset';
 }
 
-function benefitToEquipment(benefit) {
+function benefitToEquipment(benefit, rng, skills) {
+  const weaponPools = {
+    Weapon: ['Blade', 'Autopistol', 'Carbine'],
+    Gun:    ['Autopistol', 'Carbine'],
+    Blade:  ['Blade'],
+  };
+  if (weaponPools[benefit]) {
+    const pool = weaponPools[benefit];
+    let chosen = pool[0];
+    if (rng && skills && pool.length > 1) {
+      const scored = pool.map((name) => ({ name, score: weaponSkillScore({ name }, skills) }));
+      const best = scored.filter((w) => w.score === Math.max(...scored.map((w) => w.score)));
+      chosen = choice(rng, best.map((w) => w.name));
+    }
+    return { name: chosen, source: 'benefit', cost: 0 };
+  }
   const map = {
-    Weapon: 'Autopistol',
-    Gun: 'Autopistol',
-    Blade: 'Blade',
     Armor: 'Cloth armor',
     'Scientific Equipment': 'Scientific equipment',
     'Air/Raft': 'Air/Raft',

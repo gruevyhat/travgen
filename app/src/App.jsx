@@ -46,6 +46,16 @@ const CORE_STATS = ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc'];
 
 function roll6() { return Math.floor(Math.random() * 6) + 1; }
 
+function rollDamage(expr) {
+  const match = String(expr).match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return { rolls: [], mod: 0, total: 0 };
+  const count = Number(match[1]);
+  const sides = Number(match[2]);
+  const mod = Number(match[3] ?? 0);
+  const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
+  return { rolls, mod, total: Math.max(0, rolls.reduce((a, b) => a + b, 0) + mod) };
+}
+
 function App() {
   const [active, setActive] = useState('Character');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -170,6 +180,37 @@ function App() {
                 </div>
                 <div className={styles.sidebarFooter}>
                   <button className={styles.primaryAction} type="submit">Generate New Character</button>
+                  <label className={styles.uploadMdLabel}>
+                    <span>Upload .md</span>
+                    <input
+                      type="file"
+                      accept=".md,text/markdown"
+                      className={styles.uploadMdInput}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const text = ev.target.result;
+                          const match = text.match(/^[-\s]*Seed:\s*([a-fA-F0-9]+)/m);
+                          if (match) {
+                            const seed = match[1];
+                            const newForm = { ...characterForm, seed };
+                            setCharacterForm(newForm);
+                            setCharacter(generateCharacter({
+                              ...newForm,
+                              careerPlan: normalizeCareerPlan(newForm.careerPlan, newForm.terms),
+                            }));
+                            closeMenu();
+                          } else {
+                            setMessage('No seed found in uploaded file.');
+                          }
+                          e.target.value = '';
+                        };
+                        reader.readAsText(file);
+                      }}
+                    />
+                  </label>
                 </div>
               </form>
             )}
@@ -413,7 +454,14 @@ function UppOutput({ result }) {
 
 function CharacterOutput({ character, showHistory }) {
   const [roll, setRoll] = useState(null);
-  const allStats = { ...character.stats, ...(character.psionics ? { Psi: character.psionics.rating } : {}) };
+  const [health, setHealth] = useState(null);
+
+  useEffect(() => { setHealth(null); }, [character]);
+
+  const effectiveStats = health
+    ? { ...character.stats, Str: health.Str, Dex: health.Dex, End: health.End }
+    : character.stats;
+  const allStats = { ...effectiveStats, ...(character.psionics ? { Psi: character.psionics.rating } : {}) };
 
   function makeRoll(patch) {
     const d1 = roll6(), d2 = roll6();
@@ -437,17 +485,43 @@ function CharacterOutput({ character, showHistory }) {
     setRoll({ ...roll, statName, statMod, d1, d2, total: d1 + d2 + roll.skillMod + statMod });
   }
 
-  function handleReroll() {
+  function handleWeaponRoll(item) {
     const d1 = roll6(), d2 = roll6();
-    setRoll({ ...roll, d1, d2, total: d1 + d2 + roll.skillMod + roll.statMod });
+    setRoll({
+      type: 'weapon',
+      name: item.weapon,
+      attackDm: item.attackDm,
+      skill: item.skill,
+      skillLevel: item.skillLevel,
+      characteristic: item.characteristic,
+      characteristicDm: item.characteristicDm,
+      damageExpr: item.damage,
+      weaponItem: item,
+      d1, d2,
+      total: d1 + d2 + item.attackDm,
+      damage: rollDamage(item.damage),
+    });
+  }
+
+  function handleReroll() {
+    if (roll.type === 'weapon') {
+      handleWeaponRoll(roll.weaponItem);
+    } else {
+      const d1 = roll6(), d2 = roll6();
+      setRoll({ ...roll, d1, d2, total: d1 + d2 + roll.skillMod + roll.statMod });
+    }
+  }
+
+  function handleHealthChange(newHealth) {
+    setHealth(newHealth);
   }
 
   return (
     <div className={styles.characterSheet}>
-      <CharacterHeader character={character} onRoll={handleStatRoll} />
+      <CharacterHeader character={character} onRoll={handleStatRoll} health={health} onHealthChange={handleHealthChange} />
       <div className={styles.sheetBody}>
         <SkillsSection skills={character.skills} onRoll={handleSkillRoll} />
-        <CombatTable combat={character.combat} />
+        <CombatTable combat={character.combat} onRoll={handleWeaponRoll} />
         <div className={styles.infoRow}>
           <FinancesSection character={character} />
           <PersonalitySection personality={character.personality} />
@@ -465,14 +539,86 @@ function CharacterOutput({ character, showHistory }) {
   );
 }
 
-function CharacterHeader({ character, onRoll }) {
+const PHYSICAL_STATS = ['Str', 'Dex', 'End'];
+
+function healthStatus(health) {
+  if (!health) return null;
+  const zeros = PHYSICAL_STATS.filter((s) => health[s] === 0).length;
+  if (zeros >= 3) return 'Dead';
+  if (zeros >= 2) return 'Unconscious';
+  if (PHYSICAL_STATS.some((s) => health[s] < (health[`_max${s}`] ?? health[s]))) return 'Wounded';
+  return null;
+}
+
+function statHealthClass(name, health) {
+  if (!health || !PHYSICAL_STATS.includes(name)) return '';
+  if (health[name] === 0) return styles.statDamaged0;
+  if (health[name] < (health[`_max${name}`] ?? health[name])) return styles.statDamagedAmber;
+  return '';
+}
+
+function CharacterHeader({ character, onRoll, health, onHealthChange }) {
+  const [damageInput, setDamageInput] = useState('');
+
   const roleText = [...character.careerPath].reverse().map((item, index) => {
     const title = item.title ? `${item.title} ` : '';
     const bracket = `[${item.career}/${item.spec}:${item.rank}]`;
     return index === 0 ? `${title}${bracket}` : `fmr. ${title}${bracket}`;
   }).join(', ');
+
   const statEntries = Object.entries(character.stats)
     .filter(([name]) => ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc', 'Ins', 'Pac'].includes(name));
+
+  function toggleHealth() {
+    if (health) {
+      onHealthChange(null);
+    } else {
+      onHealthChange({
+        Str: character.stats.Str,
+        Dex: character.stats.Dex,
+        End: character.stats.End,
+        _maxStr: character.stats.Str,
+        _maxDex: character.stats.Dex,
+        _maxEnd: character.stats.End,
+      });
+    }
+  }
+
+  function applyDamage() {
+    if (!health) return;
+    const amount = Math.max(0, Number.parseInt(damageInput, 10) || 0);
+    if (amount === 0) { setDamageInput(''); return; }
+    let remaining = amount;
+    let newEnd = health.End;
+    let newStr = health.Str;
+    let newDex = health.Dex;
+    // Damage End first
+    const endDmg = Math.min(newEnd, remaining);
+    newEnd -= endDmg;
+    remaining -= endDmg;
+    // Overflow to Str (arbitrary choice for "apply" button)
+    if (remaining > 0) {
+      const strDmg = Math.min(newStr, remaining);
+      newStr -= strDmg;
+      remaining -= strDmg;
+    }
+    if (remaining > 0) {
+      const dexDmg = Math.min(newDex, remaining);
+      newDex -= dexDmg;
+    }
+    onHealthChange({ ...health, Str: newStr, Dex: newDex, End: newEnd });
+    setDamageInput('');
+  }
+
+  function adjustStat(statName, delta) {
+    if (!health) return;
+    const max = health[`_max${statName}`] ?? character.stats[statName];
+    const next = Math.max(0, Math.min(max, health[statName] + delta));
+    onHealthChange({ ...health, [statName]: next });
+  }
+
+  const status = healthStatus(health);
+
   return (
     <header className={styles.characterHeader}>
       <div className={styles.headerTop}>
@@ -490,13 +636,28 @@ function CharacterHeader({ character, onRoll }) {
         {roleText ? ` · ${roleText}` : ''}
       </p>
       <div className={styles.statStrip}>
-        {statEntries.map(([name, value]) => (
-          <div key={name} className={`${styles.statBox} ${styles.rollable}`} role="button" tabIndex={0} onClick={() => onRoll(name, modifier(value))} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll(name, modifier(value))}>
-            <span className={styles.statLabel}>{name}</span>
-            <span className={styles.statValue}>{value.toString(16).toUpperCase()}</span>
-            <span className={styles.statMod}>{modifier(value) >= 0 ? `+${modifier(value)}` : modifier(value)}</span>
-          </div>
-        ))}
+        {statEntries.map(([name, value]) => {
+          const currentValue = health && PHYSICAL_STATS.includes(name) ? health[name] : value;
+          const currentMod = modifier(currentValue);
+          const dmgClass = statHealthClass(name, health);
+          return (
+            <div
+              key={name}
+              className={`${styles.statBox} ${styles.rollable} ${dmgClass}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => onRoll(name, currentMod)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll(name, currentMod)}
+            >
+              <span className={styles.statLabel}>{name}</span>
+              <span className={styles.statValue}>{value.toString(16).toUpperCase()}</span>
+              {health && PHYSICAL_STATS.includes(name) && (
+                <span className={styles.statCurrentValue}>{currentValue}/{value}</span>
+              )}
+              <span className={styles.statMod}>{currentMod >= 0 ? `+${currentMod}` : currentMod}</span>
+            </div>
+          );
+        })}
         {character.psionics && (
           <div className={`${styles.statBox} ${styles.rollable}`} role="button" tabIndex={0} onClick={() => onRoll('Psi', modifier(character.psionics.rating))} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll('Psi', modifier(character.psionics.rating))}>
             <span className={styles.statLabel}>Psi</span>
@@ -504,7 +665,46 @@ function CharacterHeader({ character, onRoll }) {
             <span className={styles.statMod}>{modifier(character.psionics.rating) >= 0 ? `+${modifier(character.psionics.rating)}` : modifier(character.psionics.rating)}</span>
           </div>
         )}
+        <div className={styles.statBoxToggle}>
+          <button
+            type="button"
+            className={health ? styles.healthResetBtn : styles.healthTrackBtn}
+            onClick={toggleHealth}
+          >
+            {health ? 'Reset' : 'Track Health'}
+          </button>
+        </div>
       </div>
+      {health && (
+        <div className={styles.healthControls}>
+          <div className={styles.healthDamageRow}>
+            <input
+              type="number"
+              className={styles.healthDamageInput}
+              min="0"
+              placeholder="Damage"
+              value={damageInput}
+              onChange={(e) => setDamageInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && applyDamage()}
+            />
+            <button type="button" className={styles.healthApplyBtn} onClick={applyDamage}>Apply</button>
+          </div>
+          <div className={styles.healthAdjustRow}>
+            {PHYSICAL_STATS.map((statName) => (
+              <div key={statName} className={styles.healthAdjust}>
+                <span>{statName}</span>
+                <button type="button" className={styles.healthAdjBtn} onClick={() => adjustStat(statName, 1)}>+1</button>
+                <button type="button" className={styles.healthAdjBtn} onClick={() => adjustStat(statName, -1)}>-1</button>
+              </div>
+            ))}
+          </div>
+          {status && (
+            <div className={`${styles.healthStatus} ${status === 'Dead' ? styles.healthDead : status === 'Unconscious' ? styles.healthUnconscious : styles.healthWounded}`}>
+              {status}
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
@@ -844,7 +1044,7 @@ function ArmorSection({ equipment }) {
   );
 }
 
-function CombatTable({ combat }) {
+function CombatTable({ combat, onRoll }) {
   if (!combat.length) return null;
   return (
     <section className={`${styles.sheetPanel} ${styles.combatPanel}`} aria-label="Weapon combat table">
@@ -868,7 +1068,7 @@ function CombatTable({ combat }) {
           </thead>
           <tbody>
             {combat.map((item) => (
-              <tr key={`${item.weapon}-${item.source}`}>
+              <tr key={`${item.weapon}-${item.source}`} className={styles.rollable} onClick={() => onRoll(item)}>
                 <td>{item.weapon}</td>
                 <td>{signed(item.attackDm)}</td>
                 <td>{item.skill}<span>{item.skillLevel === null ? 'Untrained' : `Level ${item.skillLevel}`} / {item.characteristic} {signed(item.characteristicDm)}</span></td>
@@ -967,27 +1167,34 @@ function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const success = roll.total >= 8;
+  const hit = roll.total >= 8;
   const availableStats = [...CORE_STATS, 'Psi'].filter((s) => s in stats);
 
   function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
 
-  const skillPart = roll.skillMod !== 0 ? ` + ${roll.skillMod}` : '';
-  const statPart = roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : '';
-  const formulaDetail = roll.type === 'skill'
-    ? `${roll.d1} + ${roll.d2}${skillPart}${statPart} (${roll.statName}) = `
-    : `${roll.d1} + ${roll.d2}${statPart} = `;
+  const isWeapon = roll.type === 'weapon';
+
+  const attackFormula = isWeapon
+    ? `${roll.d1} + ${roll.d2}${roll.attackDm !== 0 ? ` ${fmtMod(roll.attackDm)}` : ''} = `
+    : roll.type === 'skill'
+      ? `${roll.d1} + ${roll.d2}${roll.skillMod !== 0 ? ` + ${roll.skillMod}` : ''}${roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : ''} (${roll.statName}) = `
+      : `${roll.d1} + ${roll.d2}${roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : ''} = `;
 
   return (
     <div className={styles.rollOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Task check result">
       <div className={styles.rollPanel} onClick={(e) => e.stopPropagation()}>
-        <p className={styles.kicker}>Task check{roll.note ? ` · ${roll.note}` : ''}</p>
+        <p className={styles.kicker}>{isWeapon ? 'Attack roll' : `Task check${roll.note ? ` · ${roll.note}` : ''}`}</p>
         <h3 className={styles.rollName}>{roll.name}</h3>
         <div className={styles.rollDice}>
           <div className={styles.rollDie}>{roll.d1}</div>
           <div className={styles.rollDie}>{roll.d2}</div>
         </div>
-        <p className={styles.rollFormula}>{formulaDetail}<strong>{roll.total}</strong></p>
+        <p className={styles.rollFormula}>{attackFormula}<strong>{roll.total}</strong></p>
+        {isWeapon && (
+          <p className={styles.rollMeta}>
+            {roll.skill} {roll.skillLevel === null ? '(untrained)' : roll.skillLevel} · {roll.characteristic} {fmtMod(roll.characteristicDm)}
+          </p>
+        )}
         {roll.type === 'skill' && (
           <div className={styles.rollStatPicker}>
             {availableStats.map((s) => (
@@ -1002,9 +1209,21 @@ function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
             ))}
           </div>
         )}
-        <p className={`${styles.rollOutcome} ${success ? styles.rollSuccess : styles.rollFailure}`}>
-          {success ? 'Success' : 'Failure'} · Average (8+)
+        <p className={`${styles.rollOutcome} ${hit ? styles.rollSuccess : styles.rollFailure}`}>
+          {hit ? 'Hit' : 'Miss'} · Average (8+)
         </p>
+        {isWeapon && roll.damage && (
+          <div className={styles.rollDamageRow}>
+            <span className={styles.kicker}>Damage</span>
+            <span className={styles.rollDamageFormula}>
+              {roll.damage.rolls.join(' + ')}
+              {roll.damage.mod !== 0 ? ` ${fmtMod(roll.damage.mod)}` : ''}
+              {' = '}
+              <strong>{roll.damage.total}</strong>
+              <span> ({roll.damageExpr})</span>
+            </span>
+          </div>
+        )}
         <div className={styles.rollActions}>
           <button type="button" className={styles.primaryAction} onClick={onReroll}>Reroll</button>
           <button type="button" className={styles.secondaryAction} onClick={onClose}>Close</button>

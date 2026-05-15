@@ -1561,6 +1561,39 @@
   color: #c98a8a;
 }
 
+.rollMeta {
+  margin: 0 0 8px;
+  color: #9fb4af;
+  font-size: 0.76rem;
+}
+
+.rollDamageRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(185, 199, 188, 0.18);
+  border-radius: 6px;
+  background: rgba(10, 16, 18, 0.4);
+}
+
+.rollDamageFormula {
+  color: #d9d0b8;
+  font-size: 0.88rem;
+}
+
+.rollDamageFormula strong {
+  color: #f1ead8;
+  font-size: 1.05rem;
+}
+
+.rollDamageFormula span {
+  color: #9fb4af;
+  font-size: 0.76rem;
+}
+
 .rollActions {
   display: flex;
   gap: 10px;
@@ -1571,6 +1604,216 @@
 .rollActions .secondaryAction {
   flex: 1;
   max-width: 120px;
+}
+
+/* Health tracker */
+.statCurrentValue {
+  color: #f0bf5b;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.statDamagedAmber {
+  background: rgba(240, 191, 91, 0.1);
+}
+
+.statDamagedAmber .statValue {
+  color: #f0bf5b;
+}
+
+.statDamagedAmber .statCurrentValue {
+  color: #f0bf5b;
+}
+
+.statDamaged0 {
+  background: rgba(201, 138, 138, 0.14);
+}
+
+.statDamaged0 .statValue {
+  color: #c98a8a;
+}
+
+.statDamaged0 .statCurrentValue {
+  color: #c98a8a;
+}
+
+.statBoxToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-right: 0;
+}
+
+.healthTrackBtn,
+.healthResetBtn {
+  min-height: 28px;
+  border: 1px solid rgba(245, 202, 93, 0.42);
+  border-radius: 5px;
+  padding: 3px 8px;
+  background: rgba(214, 162, 58, 0.14);
+  color: #f0bf5b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.healthResetBtn {
+  border-color: rgba(201, 138, 138, 0.5);
+  background: rgba(201, 138, 138, 0.12);
+  color: #c98a8a;
+}
+
+.healthTrackBtn:hover {
+  background: rgba(214, 162, 58, 0.24);
+}
+
+.healthResetBtn:hover {
+  background: rgba(201, 138, 138, 0.22);
+}
+
+.healthControls {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(219, 205, 161, 0.16);
+  background: rgba(8, 14, 14, 0.4);
+}
+
+.healthDamageRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.healthDamageInput {
+  width: 90px;
+  min-height: 30px;
+  border: 1px solid rgba(219, 205, 161, 0.34);
+  border-radius: 5px;
+  padding: 0 8px;
+  background: #0f1717;
+  color: #f1ead8;
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.healthApplyBtn {
+  min-height: 30px;
+  border: 1px solid rgba(201, 138, 138, 0.5);
+  border-radius: 5px;
+  padding: 0 12px;
+  background: rgba(201, 138, 138, 0.14);
+  color: #c98a8a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.healthApplyBtn:hover {
+  background: rgba(201, 138, 138, 0.26);
+}
+
+.healthAdjustRow {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.healthAdjust {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.healthAdjust span {
+  color: #9fb4af;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  width: 28px;
+}
+
+.healthAdjBtn {
+  min-height: 26px;
+  border: 1px solid rgba(219, 205, 161, 0.28);
+  border-radius: 4px;
+  padding: 0 7px;
+  background: rgba(10, 16, 18, 0.55);
+  color: #d9d0b8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.healthAdjBtn:hover {
+  background: rgba(219, 205, 161, 0.1);
+}
+
+.healthStatus {
+  display: inline-block;
+  align-self: start;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.healthWounded {
+  border: 1px solid rgba(240, 191, 91, 0.5);
+  background: rgba(240, 191, 91, 0.12);
+  color: #f0bf5b;
+}
+
+.healthUnconscious {
+  border: 1px solid rgba(201, 138, 138, 0.5);
+  background: rgba(201, 138, 138, 0.14);
+  color: #c98a8a;
+}
+
+.healthDead {
+  border: 1px solid rgba(180, 60, 60, 0.6);
+  background: rgba(180, 60, 60, 0.18);
+  color: #d66060;
+}
+
+/* Upload .md button */
+.uploadMdLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  color: #9fb4af;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.uploadMdLabel span {
+  border: 1px solid rgba(185, 199, 188, 0.28);
+  border-radius: 5px;
+  padding: 4px 10px;
+  background: rgba(10, 16, 18, 0.42);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.uploadMdLabel:hover span {
+  border-color: rgba(185, 199, 188, 0.5);
+  background: rgba(185, 199, 188, 0.08);
+  color: #f1ead8;
+}
+
+.uploadMdInput {
+  display: none;
 }
 
 @media (max-width: 720px) {

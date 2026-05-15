@@ -389,12 +389,22 @@ export function generateCharacter(options = {}) {
       });
       term.Ben = mustered.rolls;
       term.MusteringOut = mustered;
-      term.steps.push({
-        stage: 'Mustering Out',
-        roll: mustered.details.length ? mustered.details.map((roll) => roll.roll).join('; ') : '-',
-        result: mustered.items.length ? mustered.items.map((item) => item.name).join(', ') : 'No benefits',
-        detail: `${mustered.rolls} benefit roll${mustered.rolls === 1 ? '' : 's'} from ${currentSegment.career}.`,
-      });
+      if (mustered.details.length) {
+        for (const detail of mustered.details) {
+          term.steps.push({
+            stage: detail.table,
+            roll: detail.roll,
+            result: detail.result,
+          });
+        }
+      } else {
+        term.steps.push({
+          stage: 'Mustering Out',
+          roll: '-',
+          result: mustered.items.length ? mustered.items.map((item) => item.name).join(', ') : 'No benefits',
+          detail: `${mustered.rolls} benefit roll${mustered.rolls === 1 ? '' : 's'} from ${currentSegment.career}.`,
+        });
+      }
       newCareer = true;
       commissioned = false;
     } else {

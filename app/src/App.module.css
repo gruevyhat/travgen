@@ -1854,4 +1854,70 @@
   .assetGrid {
     grid-template-columns: 1fr;
   }
+
+  .skillColumns {
+    column-count: 3;
+  }
+
+  .historyTable {
+    min-width: 560px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skillColumns {
+    column-count: 2;
+  }
+
+  .transcriptStepMain {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .sheetBody {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .historyPanel {
+    margin: 0 10px 10px;
+  }
+
+  .rollPanel {
+    padding: 18px 14px 14px;
+  }
+
+  .historyTable {
+    min-width: 460px;
+  }
+}
+
+/* Touch-device tap target improvements */
+@media (hover: none) and (pointer: coarse) {
+  .skillRow {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .skillSpec {
+    min-height: 38px;
+    align-items: center;
+  }
+
+  .rollStatBtn {
+    min-height: 40px;
+    padding: 5px 10px;
+    font-size: 0.74rem;
+  }
+
+  .healthAdjBtn {
+    min-height: 38px;
+    padding: 0 10px;
+  }
+
+  .healthTrackBtn,
+  .healthResetBtn,
+  .healthApplyBtn {
+    min-height: 38px;
+  }
 }

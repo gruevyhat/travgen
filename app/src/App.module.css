@@ -435,7 +435,7 @@
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
-  padding: 16px 18px 14px;
+  padding: 16px 18px 0;
 }
 
 .characterTitleBlock h2 {
@@ -453,7 +453,8 @@
 }
 
 .headerSubtitle {
-  margin: 8px 0 0;
+  margin: 0;
+  padding: 6px 18px 14px;
   color: #b9c7bc;
   font-size: 0.9rem;
   line-height: 1.4;
@@ -1414,6 +1415,162 @@
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.88rem;
   font-weight: 400;
+}
+
+/* Rollable interactive elements */
+.rollable {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.rollable:hover,
+.rollable:focus-visible {
+  background: rgba(219, 205, 161, 0.08);
+  outline: none;
+}
+
+/* Roll popup */
+.rollOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.rollPanel {
+  background: #0f1c1c;
+  border: 1px solid rgba(219, 205, 161, 0.32);
+  border-radius: 10px;
+  padding: 24px 28px 20px;
+  min-width: 260px;
+  max-width: 340px;
+  width: 90vw;
+  text-align: center;
+}
+
+.rollName {
+  margin: 4px 0 20px;
+  color: #f1ead8;
+  font-size: 1.05rem;
+}
+
+.rollDice {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.rollDie {
+  width: 62px;
+  height: 62px;
+  border: 2px solid rgba(219, 205, 161, 0.36);
+  border-radius: 10px;
+  background: rgba(10, 16, 18, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0bf5b;
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+.rollFormula {
+  margin: 0 0 10px;
+  color: #b9c7bc;
+  font-size: 0.88rem;
+}
+
+.rollFormula strong {
+  color: #f1ead8;
+  font-size: 1.15rem;
+}
+
+.rollStatPicker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin: 8px 0 10px;
+}
+
+.rollStatBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 7px;
+  border: 1px solid rgba(185, 199, 188, 0.28);
+  border-radius: 5px;
+  background: transparent;
+  color: #b9c7bc;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.rollStatBtn span {
+  color: #9fb4af;
+  font-size: 0.64rem;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.rollStatBtn:hover {
+  background: rgba(219, 205, 161, 0.08);
+  border-color: rgba(219, 205, 161, 0.5);
+}
+
+.rollStatBtnActive {
+  background: rgba(214, 162, 58, 0.18);
+  border-color: rgba(214, 162, 58, 0.6);
+  color: #f0bf5b;
+}
+
+.rollStatBtnActive span {
+  color: #d6a23a;
+}
+
+.rollOutcome {
+  margin: 0 0 18px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.rollSuccess {
+  background: rgba(50, 110, 70, 0.3);
+  border: 1px solid rgba(90, 170, 110, 0.4);
+  color: #8fc99a;
+}
+
+.rollFailure {
+  background: rgba(110, 40, 40, 0.3);
+  border: 1px solid rgba(170, 80, 80, 0.4);
+  color: #c98a8a;
+}
+
+.rollActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.rollActions .primaryAction,
+.rollActions .secondaryAction {
+  flex: 1;
+  max-width: 120px;
 }
 
 @media (max-width: 720px) {

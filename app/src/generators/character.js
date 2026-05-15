@@ -411,6 +411,20 @@ export function generateCharacter(options = {}) {
   credits -= purchased.reduce((total, item) => total + item.cost, 0);
   for (const debt of debts) credits -= debt.amount;
   equipment.push(...purchased);
+  // RAW: specialties are only chosen at level 1+; level-0 specialty entries collapse to the base.
+  // A specialty at 0 is identical to the unspecialized level, so promote it to the base instead.
+  for (const key of [...Object.keys(skills)]) {
+    const match = key.match(/^(.+?)\s*\(/);
+    if (!match || skills[key] !== 0) continue;
+    const parent = match[1].trim();
+    if (skills[parent] === undefined) skills[parent] = 0;
+    delete skills[key];
+  }
+  // RAW: having any specialty grants the parent at 0 for unspecialized checks.
+  for (const key of Object.keys(skills)) {
+    const match = key.match(/^(.+?)\s*\(/);
+    if (match && skills[match[1]] === undefined) skills[match[1]] = 0;
+  }
   const combat = buildCombatTable(equipment, skills, stats);
   const psionics = buildPsionics(skills, stats, terms, options);
   const spacecraft = generateSpacecraft(rng, careerPath, benefits, equipment);

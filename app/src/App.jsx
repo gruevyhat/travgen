@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styles from './App.module.css';
 import { titleCase } from './generators/helpers.js';
 import { generateStats, modifier, PSI_OPTIONS, STAT_METHODS } from './generators/stats.js';
@@ -24,6 +24,27 @@ import {
 import { rollExpression } from './generators/diceExpression.js';
 
 const tabs = ['Character', 'UPP', 'Animal', 'Dice'];
+
+const SKILL_DEFAULT_STAT = {
+  Admin: 'Edu', Advocate: 'Edu', Animals: 'Int', Art: 'Dex',
+  Astrogation: 'Int', Athletics: 'Str', 'Battle Dress': 'Str',
+  Broker: 'Soc', Carouse: 'Soc', Comms: 'Edu', Computers: 'Int',
+  Deception: 'Int', Diplomat: 'Soc', Drive: 'Dex', Engineer: 'Edu',
+  Explosives: 'Edu', Flyer: 'Dex', Gambler: 'Int', 'Gun Combat': 'Dex',
+  Gunner: 'Dex', 'Heavy Weapons': 'Dex', Investigate: 'Int',
+  'Jack of all Trades': 'Int', Language: 'Edu', Leadership: 'Soc',
+  'Life Science': 'Edu', Mechanic: 'Edu', Medic: 'Edu', Melee: 'Str',
+  Navigation: 'Int', Persuade: 'Soc', 'Physical Science': 'Edu',
+  Pilot: 'Dex', Profession: 'Edu', Recon: 'Int', 'Remote Operations': 'Dex',
+  Seafarer: 'Dex', Sensors: 'Int', 'Social Science': 'Edu',
+  'Space Science': 'Edu', Stealth: 'Dex', Steward: 'Soc', Streetwise: 'Soc',
+  Survival: 'End', Tactics: 'Int', Trade: 'Edu', 'Vacc Suit': 'Dex',
+  'Zero-G': 'Dex',
+};
+
+const CORE_STATS = ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc'];
+
+function roll6() { return Math.floor(Math.random() * 6) + 1; }
 
 function App() {
   const [active, setActive] = useState('Character');
@@ -391,11 +412,41 @@ function UppOutput({ result }) {
 }
 
 function CharacterOutput({ character, showHistory }) {
+  const [roll, setRoll] = useState(null);
+  const allStats = { ...character.stats, ...(character.psionics ? { Psi: character.psionics.rating } : {}) };
+
+  function makeRoll(patch) {
+    const d1 = roll6(), d2 = roll6();
+    setRoll({ ...patch, d1, d2, total: d1 + d2 + patch.skillMod + patch.statMod });
+  }
+
+  function handleSkillRoll(skillName, skillMod, note = null) {
+    const baseSkill = skillName.replace(/\s*\(.*\)/, '').trim();
+    const statName = SKILL_DEFAULT_STAT[baseSkill] ?? 'Int';
+    const statMod = modifier(allStats[statName] ?? 7);
+    makeRoll({ type: 'skill', name: skillName, skillMod, statName, statMod, note });
+  }
+
+  function handleStatRoll(statName, statMod) {
+    makeRoll({ type: 'stat', name: statName, skillMod: 0, statName, statMod, note: null });
+  }
+
+  function handleStatChange(statName) {
+    const statMod = modifier(allStats[statName] ?? 7);
+    const d1 = roll6(), d2 = roll6();
+    setRoll({ ...roll, statName, statMod, d1, d2, total: d1 + d2 + roll.skillMod + statMod });
+  }
+
+  function handleReroll() {
+    const d1 = roll6(), d2 = roll6();
+    setRoll({ ...roll, d1, d2, total: d1 + d2 + roll.skillMod + roll.statMod });
+  }
+
   return (
     <div className={styles.characterSheet}>
-      <CharacterHeader character={character} />
+      <CharacterHeader character={character} onRoll={handleStatRoll} />
       <div className={styles.sheetBody}>
-        <SkillsSection skills={character.skills} />
+        <SkillsSection skills={character.skills} onRoll={handleSkillRoll} />
         <CombatTable combat={character.combat} />
         <div className={styles.infoRow}>
           <FinancesSection character={character} />
@@ -409,11 +460,12 @@ function CharacterOutput({ character, showHistory }) {
         <CareerSummary history={character.careerHistory} />
       </div>
       {showHistory ? <CareerHistory character={character} /> : null}
+      {roll && <RollPopup roll={roll} stats={allStats} onStatChange={handleStatChange} onReroll={handleReroll} onClose={() => setRoll(null)} />}
     </div>
   );
 }
 
-function CharacterHeader({ character }) {
+function CharacterHeader({ character, onRoll }) {
   const roleText = [...character.careerPath].reverse().map((item, index) => {
     const title = item.title ? `${item.title} ` : '';
     const bracket = `[${item.career}/${item.spec}:${item.rank}]`;
@@ -427,26 +479,26 @@ function CharacterHeader({ character }) {
         <div className={styles.characterTitleBlock}>
           <p className={styles.kicker}>Character record</p>
           <h2>{character.name} <span>[{character.upp}]</span></h2>
-          <p className={styles.headerSubtitle}>
-            {titleCase(character.gender)} {titleCase(character.ethnicity)}, age {character.age}
-            {roleText ? ` · ${roleText}` : ''}
-          </p>
         </div>
         <div className={styles.headerMeta}>
           <Metric label="Cash" value={`${character.cash.toLocaleString()} Cr.`} />
           <Metric label="Seed" value={character.seed} mono />
         </div>
       </div>
+      <p className={styles.headerSubtitle}>
+        {titleCase(character.gender)} {titleCase(character.ethnicity)}, age {character.age}
+        {roleText ? ` · ${roleText}` : ''}
+      </p>
       <div className={styles.statStrip}>
         {statEntries.map(([name, value]) => (
-          <div key={name} className={styles.statBox}>
+          <div key={name} className={`${styles.statBox} ${styles.rollable}`} role="button" tabIndex={0} onClick={() => onRoll(name, modifier(value))} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll(name, modifier(value))}>
             <span className={styles.statLabel}>{name}</span>
             <span className={styles.statValue}>{value.toString(16).toUpperCase()}</span>
             <span className={styles.statMod}>{modifier(value) >= 0 ? `+${modifier(value)}` : modifier(value)}</span>
           </div>
         ))}
         {character.psionics && (
-          <div className={styles.statBox}>
+          <div className={`${styles.statBox} ${styles.rollable}`} role="button" tabIndex={0} onClick={() => onRoll('Psi', modifier(character.psionics.rating))} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll('Psi', modifier(character.psionics.rating))}>
             <span className={styles.statLabel}>Psi</span>
             <span className={styles.statValue}>{character.psionics.rating.toString(16).toUpperCase()}</span>
             <span className={styles.statMod}>{modifier(character.psionics.rating) >= 0 ? `+${modifier(character.psionics.rating)}` : modifier(character.psionics.rating)}</span>
@@ -499,14 +551,14 @@ function buildSkillEntries(skills) {
   return CORE_SKILLS.map((base) => {
     const specs = Object.entries(skills)
       .filter(([name]) => name.startsWith(`${base} (`))
+      .filter(([, level]) => level > 0)
       .sort(([a], [b]) => a.localeCompare(b));
-    const baseLevel = base in skills ? skills[base] : null;
-    const displayLevel = specs.length > 0 ? Math.max(...specs.map(([, v]) => v)) : baseLevel;
-    return { base, level: displayLevel, absent: displayLevel === null && specs.length === 0, specs };
+    const baseLevel = base in skills ? skills[base] : specs.length > 0 ? 0 : null;
+    return { base, level: baseLevel, absent: baseLevel === null, specs };
   });
 }
 
-function SkillsSection({ skills }) {
+function SkillsSection({ skills, onRoll }) {
   const entries = buildSkillEntries(skills);
   return (
     <section className={`${styles.sheetPanel} ${styles.skillsPanel}`} aria-label="Skills">
@@ -517,12 +569,25 @@ function SkillsSection({ skills }) {
       <div className={styles.skillColumns}>
         {entries.map(({ base, level, absent, specs }) => (
           <div key={base} className={`${styles.skillEntry} ${absent ? styles.skillAbsent : ''}`}>
-            <div className={styles.skillRow}>
+            <div
+              className={`${styles.skillRow} ${styles.rollable}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => absent ? onRoll(base, -3, 'unskilled') : onRoll(base, level)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (absent ? onRoll(base, -3, 'unskilled') : onRoll(base, level))}
+            >
               <span>{base}</span>
               <strong>{level !== null ? level : '—'}</strong>
             </div>
             {specs.map(([name, specLevel]) => (
-              <div key={name} className={styles.skillSpec}>
+              <div
+                key={name}
+                className={`${styles.skillSpec} ${styles.rollable}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => onRoll(name, specLevel)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onRoll(name, specLevel)}
+              >
                 <span>{name.replace(/^[^(]+\(/, '').replace(/\)$/, '')}</span>
                 <strong>{specLevel}</strong>
               </div>
@@ -891,6 +956,60 @@ function ResultHeader({ label, value, seed, prominent = false }) {
         <p className={styles.upp}>{value}</p>
       </div>
       <p className={styles.seed}>Seed {seed}</p>
+    </div>
+  );
+}
+
+function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const success = roll.total >= 8;
+  const availableStats = [...CORE_STATS, 'Psi'].filter((s) => s in stats);
+
+  function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
+
+  const skillPart = roll.skillMod !== 0 ? ` + ${roll.skillMod}` : '';
+  const statPart = roll.statMod !== 0 ? ` ${fmtMod(roll.statMod)}` : '';
+  const formulaDetail = roll.type === 'skill'
+    ? `${roll.d1} + ${roll.d2}${skillPart}${statPart} (${roll.statName}) = `
+    : `${roll.d1} + ${roll.d2}${statPart} = `;
+
+  return (
+    <div className={styles.rollOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Task check result">
+      <div className={styles.rollPanel} onClick={(e) => e.stopPropagation()}>
+        <p className={styles.kicker}>Task check{roll.note ? ` · ${roll.note}` : ''}</p>
+        <h3 className={styles.rollName}>{roll.name}</h3>
+        <div className={styles.rollDice}>
+          <div className={styles.rollDie}>{roll.d1}</div>
+          <div className={styles.rollDie}>{roll.d2}</div>
+        </div>
+        <p className={styles.rollFormula}>{formulaDetail}<strong>{roll.total}</strong></p>
+        {roll.type === 'skill' && (
+          <div className={styles.rollStatPicker}>
+            {availableStats.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`${styles.rollStatBtn} ${s === roll.statName ? styles.rollStatBtnActive : ''}`}
+                onClick={() => onStatChange(s)}
+              >
+                {s}<span>{fmtMod(modifier(stats[s] ?? 7))}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <p className={`${styles.rollOutcome} ${success ? styles.rollSuccess : styles.rollFailure}`}>
+          {success ? 'Success' : 'Failure'} · Average (8+)
+        </p>
+        <div className={styles.rollActions}>
+          <button type="button" className={styles.primaryAction} onClick={onReroll}>Reroll</button>
+          <button type="button" className={styles.secondaryAction} onClick={onClose}>Close</button>
+        </div>
+      </div>
     </div>
   );
 }

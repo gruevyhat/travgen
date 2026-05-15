@@ -86,6 +86,9 @@ export function generateSpacecraft(rng, careerPath, benefits, equipment) {
   } else if (totalShares >= 5) {
     shipType = 'Free Trader';
     ownershipType = `${totalShares} ship shares — minor stake`;
+  } else if (totalShares >= 1) {
+    shipType = 'Free Trader';
+    ownershipType = `${totalShares} ship share${totalShares > 1 ? 's' : ''} — fractional investment (not operational)`;
   } else {
     return null;
   }

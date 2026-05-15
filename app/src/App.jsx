@@ -969,21 +969,37 @@ function equipmentMeta(name) {
   return coreRulesData.equipment.find((e) => e.name === name);
 }
 
+function consolidateCounts(items, getKey) {
+  const counts = new Map();
+  const order = [];
+  for (const item of items) {
+    const key = getKey(item);
+    if (!counts.has(key)) order.push(item);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return order.map((item) => ({ item, count: counts.get(getKey(item)) }));
+}
+
 function PlayAssets({ character }) {
-  const benefits = character.benefits.map((benefit) => benefit.name ?? benefit);
   const injuries = character.injuries.map((injury) => injury.label);
-  const equipmentItems = character.equipment.map((item) => {
+
+  const consolidatedEquip = consolidateCounts(character.equipment, (e) => e.name);
+  const totalMass = character.equipment.reduce((sum, item) => sum + (equipmentMeta(item.name)?.mass ?? 0), 0);
+  const equipmentItems = consolidatedEquip.map(({ item, count }) => {
     const meta = equipmentMeta(item.name);
-    return meta?.mass !== undefined ? `${item.name} (${item.source}) — ${meta.mass} kg` : `${item.name} (${item.source})`;
+    const label = count > 1 ? `${item.name} (x${count})` : item.name;
+    const mass = meta?.mass !== undefined ? ` — ${+(meta.mass * count).toFixed(2)} kg` : '';
+    return `${label}${mass}`;
   });
-  const totalMass = character.equipment.reduce((sum, item) => {
-    const meta = equipmentMeta(item.name);
-    return sum + (meta?.mass ?? 0);
-  }, 0);
-  const equipTitle = equipmentItems.length ? `Equipment — ${totalMass} kg total` : 'Equipment';
+  const equipTitle = equipmentItems.length ? `Equipment — ${+totalMass.toFixed(2)} kg total` : 'Equipment';
+
+  const nonCashBenefits = character.benefits.filter((b) => b.type !== 'cash');
+  const consolidatedBenefits = consolidateCounts(nonCashBenefits, (b) => b.name ?? b)
+    .map(({ item, count }) => count > 1 ? `${item.name ?? item} (x${count})` : (item.name ?? item));
+
   const blocks = [
     { title: equipTitle, items: equipmentItems },
-    { title: 'Benefits', items: benefits },
+    { title: 'Benefits', items: consolidatedBenefits },
     { title: 'Contacts', items: character.contacts },
     { title: 'Enemies', items: character.enemies },
     { title: 'Injuries', items: injuries },
@@ -1051,6 +1067,7 @@ function ArmorSection({ equipment }) {
 
 function CombatTable({ combat, onRoll }) {
   if (!combat.length) return null;
+  const consolidated = consolidateCounts(combat, (item) => item.weapon);
   return (
     <section className={`${styles.sheetPanel} ${styles.combatPanel}`} aria-label="Weapon combat table">
       <div className={styles.sectionHeader}>
@@ -1068,20 +1085,18 @@ function CombatTable({ combat, onRoll }) {
               <th>Range</th>
               <th>Traits</th>
               <th>Mass (kg)</th>
-              <th>Source</th>
             </tr>
           </thead>
           <tbody>
-            {combat.map((item) => (
-              <tr key={`${item.weapon}-${item.source}`} className={styles.rollable} onClick={() => onRoll(item)}>
-                <td>{item.weapon}</td>
+            {consolidated.map(({ item, count }) => (
+              <tr key={item.weapon} className={styles.rollable} onClick={() => onRoll(item)}>
+                <td>{count > 1 ? `${item.weapon} (x${count})` : item.weapon}</td>
                 <td>{signed(item.attackDm)}</td>
                 <td>{item.skill}<span>{item.skillLevel === null ? 'Untrained' : `Level ${item.skillLevel}`} / {item.characteristic} {signed(item.characteristicDm)}</span></td>
                 <td>{item.damage}</td>
                 <td>{item.range}</td>
                 <td>{item.traits}</td>
                 <td>{coreRulesData.weaponCombat[item.weapon]?.mass ?? '—'}</td>
-                <td>{item.source}</td>
               </tr>
             ))}
           </tbody>

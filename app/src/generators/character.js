@@ -2064,18 +2064,20 @@ function clampInt(value, min, max, fallback) {
 export function formatCharacterText(character) {
   const skills = Object.entries(character.skills).map(([skill, value]) => `${skill} ${value}`).join(', ');
   const path = character.careerPath.map((item) => `${item.career} (${item.spec}) [Rank ${item.rank}]`).join(', ');
-  const benefits = [
-    character.cash ? `${character.cash} Cr.` : '',
-    ...character.benefits.map((benefit) => benefit.name ?? benefit),
-  ].filter(Boolean).join(', ');
+  const nonCashBenefits = character.benefits.filter((b) => b.type !== 'cash');
+  const benefitCounts = nonCashBenefits.reduce((m, b) => { const n = b.name ?? b; m.set(n, (m.get(n) || 0) + 1); return m; }, new Map());
+  const benefitList = [...benefitCounts.entries()].map(([n, c]) => c > 1 ? `${n} (x${c})` : n);
+  const benefits = [character.cash ? `${character.cash} Cr.` : '', ...benefitList].filter(Boolean).join(', ');
   const events = [...character.events, ...character.mishaps]
     .sort((a, b) => a.term - b.term)
     .map((item) => `Term ${item.term} ${item.source === 'mishap' ? 'Mishap' : 'Event'} ${item.roll}: ${item.label}`)
     .join('; ');
+  const equipCounts = character.equipment.reduce((m, e) => { m.set(e.name, (m.get(e.name) || 0) + 1); return m; }, new Map());
+  const combatCounts = (character.combat ?? []).reduce((m, e) => { m.set(e.weapon, (m.get(e.weapon) || 0) + 1); return m; }, new Map());
   const combat = `\nCombat: ${character.combat?.length
-    ? character.combat.map((item) => `${item.weapon} ${signed(item.attackDm)} (${item.damage}, ${item.range})`).join('; ')
+    ? [...new Set(character.combat.map((i) => i.weapon))].map((w) => { const item = character.combat.find((i) => i.weapon === w); const c = combatCounts.get(w); return `${w}${c > 1 ? ` (x${c})` : ''} ${signed(item.attackDm)} (${item.damage}, ${item.range})`; }).join('; ')
     : 'None'}`;
-  const equipment = character.equipment?.length ? `\nEquipment: ${character.equipment.map((item) => item.name).join(', ')}` : '';
+  const equipment = equipCounts.size ? `\nEquipment: ${[...equipCounts.entries()].map(([n, c]) => c > 1 ? `${n} (x${c})` : n).join(', ')}` : '';
   const psionics = character.psionics ? `\nPsionics: Psi ${character.psionics.rating}; ${character.psionics.talents.map((talent) => `${talent.name} ${talent.level}`).join(', ')}` : '';
   const personality = character.personality ? `\nPersonality: ${character.personality.type}; ${character.personality.summary}` : '';
   const spacecraft = character.spacecraft ? `\nSpacecraft: ${character.spacecraft.name} (${character.spacecraft.type}) — ${character.spacecraft.ownershipType}` : '';

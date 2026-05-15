@@ -586,9 +586,11 @@
 
 .infoRow > * {
   flex: 1 1 220px;
+  min-width: 0;
 }
 
 .sheetPanel {
+  min-width: 0;
   border: 1px solid rgba(185, 199, 188, 0.18);
   border-radius: 7px;
   padding: 13px;
@@ -1814,6 +1816,19 @@
 
 .uploadMdInput {
   display: none;
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topbarActions {
+    flex-basis: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 720px) {

@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "export-data": "python scripts/export_data.py",
+    "extract-core-local": "python scripts/extract_local_career_tables.py",
     "test": "vitest run"
   },
   "dependencies": {

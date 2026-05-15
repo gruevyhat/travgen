@@ -4,7 +4,7 @@ import { choice, titleCase } from './helpers.js';
 const { NAMES, CTHUVIAN } = nameData;
 
 export const ETHNICITIES = Object.keys(NAMES).sort();
-export const GENDERS = ['female', 'male'];
+export const GENDERS = ['female', 'male', 'non-binary'];
 
 export function generateName(rng, { ethnicity = 'american', gender = 'female', cthuvian = false } = {}) {
   if (cthuvian) {
@@ -12,7 +12,7 @@ export function generateName(rng, { ethnicity = 'american', gender = 'female', c
   }
 
   const eth = NAMES[ethnicity] ? ethnicity : 'american';
-  const gen = gender === 'male' ? 'male' : 'female';
+  const gen = gender === 'male' || gender === 'female' ? gender : choice(rng, ['female', 'male']);
   const familyEthnicity = eth === 'american' ? choice(rng, ETHNICITIES) : eth;
   const givenEthnicity = eth === 'american' ? choice(rng, ETHNICITIES) : eth;
   let family = choice(rng, NAMES[familyEthnicity].family);

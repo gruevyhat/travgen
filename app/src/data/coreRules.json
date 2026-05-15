@@ -1,0 +1,545 @@
+{
+  "metadata": {
+    "id": "mgp3800-core-character",
+    "title": "Traveller Core Rulebook character generation facts",
+    "source": "books/Traveller - Core Rulebook (mgp3800).pdf",
+    "generatedBy": "app/scripts/extract_core_rules.py",
+    "rawTextCommitted": false
+  },
+  "rollTables": {
+    "careerEvents": {
+      "roll": "2d6",
+      "ranges": [
+        {
+          "min": 2,
+          "max": 2,
+          "label": "Disaster",
+          "effect": "enemy_or_injury",
+          "sourcePage": 16
+        },
+        {
+          "min": 3,
+          "max": 3,
+          "label": "Specialist duty",
+          "effect": "career_skill",
+          "sourcePage": 16
+        },
+        {
+          "min": 4,
+          "max": 4,
+          "label": "Life event",
+          "effect": "life_event",
+          "sourcePage": 16
+        },
+        {
+          "min": 5,
+          "max": 5,
+          "label": "Distinguished service",
+          "effect": "promotion_bonus",
+          "sourcePage": 16
+        },
+        {
+          "min": 6,
+          "max": 6,
+          "label": "Unusual assignment",
+          "effect": "career_skill",
+          "sourcePage": 16
+        },
+        {
+          "min": 7,
+          "max": 7,
+          "label": "Contact",
+          "effect": "contact",
+          "sourcePage": 16
+        },
+        {
+          "min": 8,
+          "max": 8,
+          "label": "Training opportunity",
+          "effect": "career_skill",
+          "sourcePage": 16
+        },
+        {
+          "min": 9,
+          "max": 9,
+          "label": "Advancement opportunity",
+          "effect": "advancement_bonus",
+          "sourcePage": 16
+        },
+        {
+          "min": 10,
+          "max": 10,
+          "label": "Commendation",
+          "effect": "award",
+          "sourcePage": 16
+        },
+        {
+          "min": 11,
+          "max": 11,
+          "label": "Patron",
+          "effect": "patron",
+          "sourcePage": 16
+        },
+        {
+          "min": 12,
+          "max": 12,
+          "label": "Heroic deed",
+          "effect": "promotion_bonus",
+          "sourcePage": 16
+        }
+      ]
+    },
+    "careerMishaps": {
+      "roll": "1d6",
+      "ranges": [
+        {
+          "min": 1,
+          "max": 1,
+          "label": "Severely injured",
+          "effect": "injury",
+          "sourcePage": 16
+        },
+        {
+          "min": 2,
+          "max": 2,
+          "label": "Forced out by betrayal",
+          "effect": "enemy",
+          "sourcePage": 16
+        },
+        {
+          "min": 3,
+          "max": 3,
+          "label": "Political fallout",
+          "effect": "rival",
+          "sourcePage": 16
+        },
+        {
+          "min": 4,
+          "max": 4,
+          "label": "Scandal",
+          "effect": "debt_or_contact_loss",
+          "sourcePage": 16
+        },
+        {
+          "min": 5,
+          "max": 5,
+          "label": "Equipment loss",
+          "effect": "debt",
+          "sourcePage": 16
+        },
+        {
+          "min": 6,
+          "max": 6,
+          "label": "Unexpected survival",
+          "effect": "contact",
+          "sourcePage": 16
+        }
+      ]
+    },
+    "lifeEvents": {
+      "roll": "2d6",
+      "ranges": [
+        {
+          "min": 2,
+          "max": 2,
+          "label": "Sickness or injury",
+          "effect": "injury",
+          "sourcePage": 34
+        },
+        {
+          "min": 3,
+          "max": 3,
+          "label": "Birth or death",
+          "effect": "contact",
+          "sourcePage": 34
+        },
+        {
+          "min": 4,
+          "max": 4,
+          "label": "Relationship change",
+          "effect": "ally_or_rival",
+          "sourcePage": 34
+        },
+        {
+          "min": 5,
+          "max": 5,
+          "label": "Improved relationship",
+          "effect": "ally",
+          "sourcePage": 34
+        },
+        {
+          "min": 6,
+          "max": 6,
+          "label": "New contact",
+          "effect": "contact",
+          "sourcePage": 34
+        },
+        {
+          "min": 7,
+          "max": 7,
+          "label": "New ally",
+          "effect": "ally",
+          "sourcePage": 34
+        },
+        {
+          "min": 8,
+          "max": 8,
+          "label": "Betrayal",
+          "effect": "enemy",
+          "sourcePage": 34
+        },
+        {
+          "min": 9,
+          "max": 9,
+          "label": "Travel",
+          "effect": "contact",
+          "sourcePage": 34
+        },
+        {
+          "min": 10,
+          "max": 10,
+          "label": "Good fortune",
+          "effect": "cash",
+          "sourcePage": 34
+        },
+        {
+          "min": 11,
+          "max": 11,
+          "label": "Crime",
+          "effect": "enemy_or_cash",
+          "sourcePage": 34
+        },
+        {
+          "min": 12,
+          "max": 12,
+          "label": "Unusual event",
+          "effect": "patron",
+          "sourcePage": 34
+        }
+      ]
+    },
+    "injuries": {
+      "roll": "1d6",
+      "ranges": [
+        {
+          "min": 1,
+          "max": 1,
+          "label": "Nearly killed",
+          "effect": "reduce_physical",
+          "sourcePage": 35
+        },
+        {
+          "min": 2,
+          "max": 2,
+          "label": "Severely injured",
+          "effect": "reduce_two_physical",
+          "sourcePage": 35
+        },
+        {
+          "min": 3,
+          "max": 3,
+          "label": "Missing eye or limb",
+          "effect": "reduce_physical",
+          "sourcePage": 35
+        },
+        {
+          "min": 4,
+          "max": 4,
+          "label": "Scarred",
+          "effect": "reduce_soc",
+          "sourcePage": 35
+        },
+        {
+          "min": 5,
+          "max": 5,
+          "label": "Injured",
+          "effect": "reduce_physical",
+          "sourcePage": 35
+        },
+        {
+          "min": 6,
+          "max": 6,
+          "label": "Lightly injured",
+          "effect": "minor_injury",
+          "sourcePage": 35
+        }
+      ]
+    }
+  },
+  "homeworldGeneration": {
+    "starports": [
+      {
+        "min": 2,
+        "max": 4,
+        "label": "Class C"
+      },
+      {
+        "min": 5,
+        "max": 6,
+        "label": "Class B"
+      },
+      {
+        "min": 7,
+        "max": 8,
+        "label": "Class A"
+      },
+      {
+        "min": 9,
+        "max": 10,
+        "label": "Class D"
+      },
+      {
+        "min": 11,
+        "max": 12,
+        "label": "Class E"
+      }
+    ],
+    "tradeCodeSkills": {
+      "Agricultural": [
+        "Animals",
+        "Life Science"
+      ],
+      "Asteroid": [
+        "Vacc Suit",
+        "Zero-G"
+      ],
+      "Desert": [
+        "Survival",
+        "Recon"
+      ],
+      "High Population": [
+        "Streetwise",
+        "Admin"
+      ],
+      "High Technology": [
+        "Computers",
+        "Engineering"
+      ],
+      "Industrial": [
+        "Mechanic",
+        "Engineering"
+      ],
+      "Low Population": [
+        "Survival",
+        "Recon"
+      ],
+      "Poor": [
+        "Streetwise",
+        "Survival"
+      ],
+      "Rich": [
+        "Admin",
+        "Broker"
+      ],
+      "Vacuum": [
+        "Vacc Suit",
+        "Zero-G"
+      ],
+      "Water World": [
+        "Seafarer",
+        "Survival"
+      ]
+    }
+  },
+  "ethnicityGeneration": {
+    "standardTraveller": [
+      "american",
+      "arabic",
+      "chinese",
+      "english",
+      "french",
+      "german",
+      "hispanic",
+      "indian",
+      "japanese",
+      "russian"
+    ],
+    "chthonianStars": [
+      "american",
+      "arabic",
+      "chinese",
+      "english",
+      "french",
+      "german",
+      "hispanic",
+      "indian",
+      "japanese",
+      "russian"
+    ]
+  },
+  "equipment": [
+    {
+      "name": "Cloth armor",
+      "cost": 250,
+      "tags": [
+        "armor",
+        "army",
+        "marines",
+        "rogue",
+        "agent"
+      ],
+      "mass": 1,
+      "protection": 5
+    },
+    {
+      "name": "Vacc suit",
+      "cost": 10000,
+      "tags": [
+        "space",
+        "scout",
+        "navy",
+        "merchant"
+      ],
+      "mass": 5,
+      "protection": 6,
+      "notes": "Requires Vacc Suit skill"
+    },
+    {
+      "name": "Blade",
+      "cost": 100,
+      "tags": [
+        "weapon",
+        "melee",
+        "rogue",
+        "nobility"
+      ],
+      "mass": 0.5
+    },
+    {
+      "name": "Autopistol",
+      "cost": 200,
+      "tags": [
+        "weapon",
+        "gun",
+        "agent",
+        "army",
+        "marine",
+        "rogue"
+      ],
+      "mass": 0.5
+    },
+    {
+      "name": "Carbine",
+      "cost": 300,
+      "tags": [
+        "weapon",
+        "gun",
+        "army",
+        "marines",
+        "scout"
+      ],
+      "mass": 2
+    },
+    {
+      "name": "Medikit",
+      "cost": 1000,
+      "tags": [
+        "medical",
+        "scholar",
+        "scout"
+      ],
+      "mass": 1
+    },
+    {
+      "name": "Toolkit",
+      "cost": 1000,
+      "tags": [
+        "technical",
+        "merchant",
+        "scout",
+        "navy"
+      ],
+      "mass": 3
+    },
+    {
+      "name": "Scientific equipment",
+      "cost": 2000,
+      "tags": [
+        "science",
+        "scholar",
+        "agent"
+      ],
+      "mass": 3
+    },
+    {
+      "name": "Portable computer",
+      "cost": 1000,
+      "tags": [
+        "computer",
+        "agent",
+        "scholar",
+        "merchant"
+      ],
+      "mass": 1
+    },
+    {
+      "name": "Survival kit",
+      "cost": 1000,
+      "tags": [
+        "survival",
+        "scout",
+        "drifter",
+        "army"
+      ],
+      "mass": 2
+    },
+    {
+      "name": "Commdot",
+      "cost": 10,
+      "tags": [
+        "utility",
+        "all"
+      ],
+      "mass": 0
+    },
+    {
+      "name": "Respirator",
+      "cost": 100,
+      "tags": [
+        "survival",
+        "industrial",
+        "poor",
+        "desert"
+      ],
+      "mass": 0.5
+    }
+  ],
+  "weaponCombat": {
+    "Blade": {
+      "skill": "Melee (blade)",
+      "fallbackSkills": [
+        "Melee"
+      ],
+      "characteristic": "Str",
+      "damage": "2d6",
+      "range": "Melee",
+      "traits": "Blade",
+      "sourcePage": 98,
+      "mass": 0.5
+    },
+    "Autopistol": {
+      "skill": "Gun Combat (slug pistol)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "3d6-3",
+      "range": "Pistol",
+      "traits": "Auto 4",
+      "sourcePage": 99,
+      "mass": 0.5
+    },
+    "Carbine": {
+      "skill": "Gun Combat (slug rifle)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Rifle",
+      "traits": "Auto 3",
+      "sourcePage": 99,
+      "mass": 2
+    }
+  }
+}

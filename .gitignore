@@ -36,3 +36,11 @@ Thumbs.db
 # History #
 ###########
 .history.gvh
+
+# Local licensed extractions #
+#############################
+app/src/data/coreCareerTables.local.json
+
+# Licensed source PDFs #
+########################
+books/

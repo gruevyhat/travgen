@@ -431,6 +431,55 @@
       "mass": 2
     },
     {
+      "name": "Rifle",
+      "cost": 200,
+      "tags": [
+        "weapon",
+        "gun",
+        "army",
+        "marines",
+        "scout",
+        "drifter"
+      ],
+      "mass": 3
+    },
+    {
+      "name": "Shotgun",
+      "cost": 200,
+      "tags": [
+        "weapon",
+        "gun",
+        "army",
+        "rogue",
+        "drifter"
+      ],
+      "mass": 3.75
+    },
+    {
+      "name": "Laser Pistol",
+      "cost": 2000,
+      "tags": [
+        "weapon",
+        "gun",
+        "navy",
+        "marines",
+        "agent"
+      ],
+      "mass": 1.5
+    },
+    {
+      "name": "Laser Carbine",
+      "cost": 2500,
+      "tags": [
+        "weapon",
+        "gun",
+        "navy",
+        "marines",
+        "scout"
+      ],
+      "mass": 2.5
+    },
+    {
       "name": "Medikit",
       "cost": 1000,
       "tags": [
@@ -518,7 +567,7 @@
       "mass": 0.5
     },
     "Autopistol": {
-      "skill": "Gun Combat (slug pistol)",
+      "skill": "Gun Combat (slug)",
       "fallbackSkills": [
         "Gun Combat"
       ],
@@ -530,7 +579,7 @@
       "mass": 0.5
     },
     "Carbine": {
-      "skill": "Gun Combat (slug rifle)",
+      "skill": "Gun Combat (slug)",
       "fallbackSkills": [
         "Gun Combat"
       ],
@@ -540,6 +589,54 @@
       "traits": "Auto 3",
       "sourcePage": 99,
       "mass": 2
+    },
+    "Rifle": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Rifle",
+      "traits": "",
+      "sourcePage": 100,
+      "mass": 3
+    },
+    "Shotgun": {
+      "skill": "Gun Combat (shotgun)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "4d6",
+      "range": "Shotgun",
+      "traits": "Bulky",
+      "sourcePage": 100,
+      "mass": 3.75
+    },
+    "Laser Pistol": {
+      "skill": "Gun Combat (energy)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "3d6+3",
+      "range": "Pistol",
+      "traits": "Zero-G",
+      "sourcePage": 100,
+      "mass": 1.5
+    },
+    "Laser Carbine": {
+      "skill": "Gun Combat (energy)",
+      "fallbackSkills": [
+        "Gun Combat"
+      ],
+      "characteristic": "Dex",
+      "damage": "4d6",
+      "range": "Assault Weapon",
+      "traits": "Zero-G",
+      "sourcePage": 101,
+      "mass": 2.5
     }
   }
 }

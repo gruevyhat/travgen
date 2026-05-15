@@ -1726,8 +1726,8 @@ function benefitToType(benefit) {
 
 function benefitToEquipment(benefit, rng, skills) {
   const weaponPools = {
-    Weapon: ['Blade', 'Autopistol', 'Carbine'],
-    Gun:    ['Autopistol', 'Carbine'],
+    Weapon: ['Blade', 'Autopistol', 'Carbine', 'Rifle', 'Shotgun', 'Laser Pistol', 'Laser Carbine'],
+    Gun:    ['Autopistol', 'Carbine', 'Rifle', 'Shotgun', 'Laser Pistol', 'Laser Carbine'],
     Blade:  ['Blade'],
   };
   if (weaponPools[benefit]) {

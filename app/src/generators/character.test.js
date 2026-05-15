@@ -141,7 +141,8 @@ describe('character generator', () => {
     })).find((character) => character.combat.length);
 
     expect(withWeapon).toBeTruthy();
-    expect(withWeapon.combat.some((item) => ['Autopistol', 'Blade', 'Carbine'].includes(item.weapon))).toBe(true);
+    const ALL_WEAPONS = ['Autopistol', 'Blade', 'Carbine', 'Rifle', 'Shotgun', 'Laser Pistol', 'Laser Carbine'];
+    expect(withWeapon.combat.some((item) => ALL_WEAPONS.includes(item.weapon))).toBe(true);
   });
 
   it('applies core career timing for aging and mustering out', () => {

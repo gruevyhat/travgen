@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import styles from './App.module.css';
 import { titleCase } from './generators/helpers.js';
-import { generateStats, modifier, PSI_OPTIONS, STAT_METHODS } from './generators/stats.js';
+import { modifier, PSI_OPTIONS, STAT_METHODS } from './generators/stats.js';
 import {
   CAREER_EXPANSIONS,
   CAMPAIGN_MODES,
@@ -14,16 +14,11 @@ import {
   rankTitle,
 } from './generators/character.js';
 import coreRulesData from './data/coreRules.json';
-import {
-  BEHAVIOR_OPTIONS,
-  ORDER_OPTIONS,
-  TERRAIN_OPTIONS,
-  formatAnimalText,
-  generateAnimal,
-} from './generators/animal.js';
-import { rollExpression } from './generators/diceExpression.js';
+import { generateWorld } from './generators/world.js';
+import { generateStandaloneSpaceship, STANDALONE_SHIP_TYPES } from './generators/spacecraft.js';
+import { generateAdventure } from './generators/adventure.js';
 
-const tabs = ['Character', 'UPP', 'Animal', 'Dice'];
+const GENERATORS = ['Character', 'Spaceship', 'World', 'Adventure'];
 
 const SKILL_DEFAULT_STAT = {
   Admin: 'Edu', Advocate: 'Edu', Animals: 'Int', Art: 'Dex',
@@ -59,8 +54,6 @@ function rollDamage(expr) {
 function App() {
   const [active, setActive] = useState('Character');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [uppForm, setUppForm] = useState({ method: 'normal', psi: '', seed: '' });
-  const [upp, setUpp] = useState(() => generateStats({ method: 'normal' }));
   const [characterForm, setCharacterForm] = useState({
     seed: '', method: 'normal', psi: '', terms: 3, name: '', gender: '',
     ethnicity: '', homeworld: '', campaignMode: 'standard', upp: '', careerPlan: [], randAge: false,
@@ -68,21 +61,27 @@ function App() {
     expansions: { psion: false, chthonianStars: false, dilettante: false, agent: false, scoundrel: false },
   });
   const [character, setCharacter] = useState(() => generateCharacter(characterForm));
-  const [animalForm, setAnimalForm] = useState({ seed: '', terrain: '', order: '', behavior: '', sentient: false });
-  const [animal, setAnimal] = useState(() => generateAnimal());
-  const [diceForm, setDiceForm] = useState({ seed: '', expression: '2d6' });
-  const [dice, setDice] = useState(() => rollExpression({ expression: '2d6' }));
+  const [spaceshipForm, setSpaceshipForm] = useState({ type: '', seed: '' });
+  const [spaceship, setSpaceship] = useState(() => generateStandaloneSpaceship({}));
+  const [worldForm, setWorldForm] = useState({ name: '', seed: '' });
+  const [world, setWorld] = useState(() => generateWorld({}));
+  const [adventureForm, setAdventureForm] = useState({ seed: '' });
+  const [adventure, setAdventure] = useState(() => generateAdventure({}));
   const [message, setMessage] = useState('');
 
   const markdownText = useMemo(() => {
-    if (active === 'UPP') return formatUppText(upp);
-    if (active === 'Animal') return formatAnimalText(animal);
-    if (active === 'Dice') return formatDiceText(dice);
+    if (active === 'Spaceship') return formatSpaceshipMarkdown(spaceship);
+    if (active === 'World') return formatWorldMarkdown(world);
+    if (active === 'Adventure') return formatAdventureMarkdown(adventure);
     return formatCharacterMarkdown(character, characterForm.showHistory);
-  }, [active, upp, animal, dice, character, characterForm.showHistory]);
+  }, [active, character, characterForm.showHistory, spaceship, world, adventure]);
 
   async function copyShareLink() {
-    const seed = active === 'UPP' ? upp.seed : active === 'Animal' ? animal.seed : active === 'Dice' ? dice.seed : character.seed;
+    let seed;
+    if (active === 'Spaceship') seed = spaceship.seed;
+    else if (active === 'World') seed = world.seed;
+    else if (active === 'Adventure') seed = adventure.seed;
+    else seed = character.seed;
     const url = new URL(window.location.href);
     url.search = new URLSearchParams({ tool: active.toLowerCase(), seed }).toString();
     try {
@@ -94,11 +93,16 @@ function App() {
   }
 
   function downloadMarkdown() {
+    let seed;
+    if (active === 'Spaceship') seed = spaceship.seed;
+    else if (active === 'World') seed = world.seed;
+    else if (active === 'Adventure') seed = adventure.seed;
+    else seed = character.seed;
     const blob = new Blob([markdownText], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${active.toLowerCase()}-${activeSeed(active, { upp, animal, dice, character })}.md`;
+    link.download = `${active.toLowerCase()}-${seed}.md`;
     document.body.append(link);
     link.click();
     link.remove();
@@ -108,13 +112,29 @@ function App() {
 
   function closeMenu() { setMenuOpen(false); }
 
+  function reroll() {
+    if (active === 'Character') {
+      setCharacter(generateCharacter({
+        ...characterForm,
+        seed: '',
+        careerPlan: normalizeCareerPlan(characterForm.careerPlan, characterForm.terms),
+      }));
+    } else if (active === 'Spaceship') {
+      setSpaceship(generateStandaloneSpaceship({ ...spaceshipForm, seed: '' }));
+    } else if (active === 'World') {
+      setWorld(generateWorld({ ...worldForm, seed: '' }));
+    } else if (active === 'Adventure') {
+      setAdventure(generateAdventure({ seed: '' }));
+    }
+  }
+
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
         <button
           className={styles.menuButton}
           type="button"
-          aria-label="Open controls"
+          aria-label="Open navigation"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
@@ -122,163 +142,113 @@ function App() {
         </button>
         <div>
           <p className={styles.eyebrow}>Travgen frontier office</p>
-          <h1>{active === 'Character' ? 'Character Generator' : active}</h1>
+          <h1>{active === 'Character' ? 'Character Generator' : `${active} Generator`}</h1>
         </div>
         <div className={styles.topbarActions}>
-          {active === 'Character' && (
-            <button
-              className={styles.rerollButton}
-              type="button"
-              onClick={() => setCharacter(generateCharacter({
-                ...characterForm,
-                seed: '',
-                careerPlan: normalizeCareerPlan(characterForm.careerPlan, characterForm.terms),
-              }))}
-            >
-              Reroll
-            </button>
-          )}
-          <button className={styles.secondaryAction} type="button" onClick={downloadMarkdown}>Download as Markdown</button>
-          <button className={styles.secondaryAction} type="button" onClick={copyShareLink}>Copy Share Link</button>
+          <button className={styles.iconAction} type="button" onClick={reroll} aria-label="Reroll" title="Reroll">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10"/>
+              <polyline points="23 20 23 14 17 14"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+            </svg>
+          </button>
+          <button className={styles.iconAction} type="button" onClick={downloadMarkdown} aria-label="Download as Markdown" title="Download as Markdown">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+          <button className={styles.iconAction} type="button" onClick={copyShareLink} aria-label="Copy share link" title="Copy share link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </button>
         </div>
       </header>
 
       {menuOpen && (
         <>
           <div className={styles.backdrop} onClick={closeMenu} aria-hidden="true" />
-          <aside className={styles.sidebar} aria-label="Generator controls">
+          <aside className={styles.sidebar} aria-label="Generator navigation">
             <div className={styles.sidebarHeader}>
-              <nav className={styles.toolNav}>
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    className={active === tab ? styles.activeToolTab : styles.toolTab}
-                    onClick={() => setActive(tab)}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </nav>
+              <p className={styles.sidebarTitle}>Travgen</p>
               <button type="button" className={styles.sidebarClose} onClick={closeMenu} aria-label="Close">✕</button>
             </div>
-
-            {active === 'Character' && (
-              <form
-                className={styles.sidebarForm}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setCharacter(generateCharacter({
-                    ...characterForm,
-                    careerPlan: normalizeCareerPlan(characterForm.careerPlan, characterForm.terms),
-                  }));
-                  closeMenu();
-                }}
-              >
-                <div className={styles.sidebarBody}>
-                  <CharacterForm form={characterForm} setForm={setCharacterForm} />
-                </div>
-                <div className={styles.sidebarFooter}>
-                  <button className={styles.primaryAction} type="submit">Generate New Character</button>
-                  <label className={styles.uploadMdLabel}>
-                    <span>Upload .md</span>
-                    <input
-                      type="file"
-                      accept=".md,text/markdown"
-                      className={styles.uploadMdInput}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          const text = ev.target.result;
-                          const match = text.match(/^[-\s]*Seed:\s*([a-fA-F0-9]+)/m);
-                          if (match) {
-                            const seed = match[1];
-                            const newForm = { ...characterForm, seed };
-                            setCharacterForm(newForm);
-                            setCharacter(generateCharacter({
-                              ...newForm,
-                              careerPlan: normalizeCareerPlan(newForm.careerPlan, newForm.terms),
-                            }));
-                            closeMenu();
-                          } else {
-                            setMessage('No seed found in uploaded file.');
-                          }
-                          e.target.value = '';
-                        };
-                        reader.readAsText(file);
-                      }}
-                    />
-                  </label>
-                </div>
-              </form>
-            )}
-
-            {active === 'UPP' && (
-              <form
-                className={styles.sidebarForm}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setUpp(generateStats(uppForm));
-                  closeMenu();
-                }}
-              >
-                <div className={styles.sidebarBody}>
-                  <UppForm form={uppForm} setForm={setUppForm} />
-                </div>
-                <div className={styles.sidebarFooter}>
-                  <button className={styles.primaryAction} type="submit">Generate New UPP</button>
-                </div>
-              </form>
-            )}
-
-            {active === 'Animal' && (
-              <form
-                className={styles.sidebarForm}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setAnimal(generateAnimal(animalForm));
-                  closeMenu();
-                }}
-              >
-                <div className={styles.sidebarBody}>
-                  <AnimalForm form={animalForm} setForm={setAnimalForm} />
-                </div>
-                <div className={styles.sidebarFooter}>
-                  <button className={styles.primaryAction} type="submit">Generate New Animal</button>
-                </div>
-              </form>
-            )}
-
-            {active === 'Dice' && (
-              <form
-                className={styles.sidebarForm}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setDice(rollExpression(diceForm));
-                  closeMenu();
-                }}
-              >
-                <div className={styles.sidebarBody}>
-                  <DiceForm form={diceForm} setForm={setDiceForm} />
-                </div>
-                <div className={styles.sidebarFooter}>
-                  <button className={styles.primaryAction} type="submit">Roll Again</button>
-                </div>
-              </form>
-            )}
+            <nav className={styles.generatorNav}>
+              {GENERATORS.map((gen) => (
+                <button
+                  key={gen}
+                  type="button"
+                  className={active === gen ? styles.generatorNavItemActive : styles.generatorNavItem}
+                  onClick={() => { setActive(gen); closeMenu(); }}
+                >
+                  <span className={styles.generatorNavLabel}>{gen}</span>
+                  <span className={styles.generatorNavSub}>{generatorSubtitle(gen)}</span>
+                </button>
+              ))}
+            </nav>
           </aside>
         </>
       )}
 
       <div className={styles.outputArea}>
         {active === 'Character' && (
-          <CharacterOutput character={character} showHistory={characterForm.showHistory} />
+          <>
+            <CharacterControlBar
+              form={characterForm}
+              setForm={setCharacterForm}
+              onGenerate={(form) => {
+                setCharacter(generateCharacter({
+                  ...form,
+                  careerPlan: normalizeCareerPlan(form.careerPlan, form.terms),
+                }));
+                setMessage('');
+              }}
+              onUpload={(seed) => {
+                const newForm = { ...characterForm, seed };
+                setCharacterForm(newForm);
+                setCharacter(generateCharacter({
+                  ...newForm,
+                  careerPlan: normalizeCareerPlan(newForm.careerPlan, newForm.terms),
+                }));
+              }}
+              onMessage={setMessage}
+            />
+            <CharacterOutput character={character} showHistory={characterForm.showHistory} />
+          </>
         )}
-        {active === 'UPP' && <UppOutput result={upp} />}
-        {active === 'Animal' && <AnimalOutput animal={animal} />}
-        {active === 'Dice' && <DiceOutput dice={dice} />}
+        {active === 'Spaceship' && (
+          <>
+            <SpaceshipControlBar
+              form={spaceshipForm}
+              setForm={setSpaceshipForm}
+              onGenerate={(form) => setSpaceship(generateStandaloneSpaceship(form))}
+            />
+            <SpaceshipOutput spaceship={spaceship} />
+          </>
+        )}
+        {active === 'World' && (
+          <>
+            <WorldControlBar
+              form={worldForm}
+              setForm={setWorldForm}
+              onGenerate={(form) => setWorld(generateWorld(form))}
+            />
+            <WorldOutput world={world} />
+          </>
+        )}
+        {active === 'Adventure' && (
+          <>
+            <AdventureControlBar
+              form={adventureForm}
+              setForm={setAdventureForm}
+              onGenerate={(form) => setAdventure(generateAdventure(form))}
+            />
+            <AdventureOutput adventure={adventure} />
+          </>
+        )}
       </div>
 
       {(active === 'Character' || message) && (
@@ -303,13 +273,132 @@ function App() {
   );
 }
 
-function UppForm({ form, setForm }) {
+function generatorSubtitle(gen) {
+  if (gen === 'Character') return 'UPP, skills, career history';
+  if (gen === 'Spaceship') return 'Hull, drives, armament';
+  if (gen === 'World') return 'UWP, trade codes, environment';
+  if (gen === 'Adventure') return 'Patron, mission, twist';
+  return '';
+}
+
+function CharacterControlBar({ form, setForm, onGenerate, onUpload, onMessage }) {
   return (
-    <>
-      <Select label="Generation method" value={form.method} onChange={(method) => setForm({ ...form, method })} options={STAT_METHODS.map((o) => [o.value, `${o.label} (${o.description})`])} />
-      <Select label="Psionics mode" value={form.psi} onChange={(psi) => setForm({ ...form, psi })} options={PSI_OPTIONS.map((o) => [o.value, o.label])} />
-      <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => setForm({ ...form, seed })} />
-    </>
+    <details className={styles.controlBar}>
+      <summary className={styles.controlBarSummary}>
+        <span>Build options</span>
+        <small>Stats · career · identity</small>
+      </summary>
+      <form
+        className={styles.controlBarForm}
+        onSubmit={(e) => {
+          e.preventDefault();
+          onGenerate(form);
+        }}
+      >
+        <div className={styles.controlBarBody}>
+          <CharacterForm form={form} setForm={setForm} />
+        </div>
+        <div className={styles.controlBarFooter}>
+          <button className={styles.primaryAction} type="submit">Generate New Character</button>
+          <label className={styles.uploadMdLabel}>
+            <span>Upload .md</span>
+            <input
+              type="file"
+              accept=".md,text/markdown"
+              className={styles.uploadMdInput}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  const text = ev.target.result;
+                  const match = text.match(/^[-\s]*Seed:\s*([a-fA-F0-9]+)/m);
+                  if (match) {
+                    onUpload(match[1]);
+                  } else {
+                    onMessage('No seed found in uploaded file.');
+                  }
+                  e.target.value = '';
+                };
+                reader.readAsText(file);
+              }}
+            />
+          </label>
+        </div>
+      </form>
+    </details>
+  );
+}
+
+function SpaceshipControlBar({ form, setForm, onGenerate }) {
+  const set = (patch) => setForm({ ...form, ...patch });
+  return (
+    <details className={styles.controlBar}>
+      <summary className={styles.controlBarSummary}>
+        <span>Ship options</span>
+        <small>Type · configuration</small>
+      </summary>
+      <form className={styles.controlBarForm} onSubmit={(e) => { e.preventDefault(); onGenerate(form); }}>
+        <div className={styles.controlBarBody}>
+          <div className={styles.controlGrid}>
+            <Select
+              label="Ship type"
+              value={form.type}
+              onChange={(type) => set({ type })}
+              options={[['', 'Random'], ...STANDALONE_SHIP_TYPES.map((t) => [t, t])]}
+            />
+            <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => set({ seed })} />
+          </div>
+        </div>
+        <div className={styles.controlBarFooter}>
+          <button className={styles.primaryAction} type="submit">Generate New Ship</button>
+        </div>
+      </form>
+    </details>
+  );
+}
+
+function WorldControlBar({ form, setForm, onGenerate }) {
+  const set = (patch) => setForm({ ...form, ...patch });
+  return (
+    <details className={styles.controlBar}>
+      <summary className={styles.controlBarSummary}>
+        <span>World options</span>
+        <small>Name · seed</small>
+      </summary>
+      <form className={styles.controlBarForm} onSubmit={(e) => { e.preventDefault(); onGenerate(form); }}>
+        <div className={styles.controlBarBody}>
+          <div className={styles.controlGrid}>
+            <Input label="World name" value={form.name} placeholder="Auto-generate" onChange={(name) => set({ name })} />
+            <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => set({ seed })} />
+          </div>
+        </div>
+        <div className={styles.controlBarFooter}>
+          <button className={styles.primaryAction} type="submit">Generate New World</button>
+        </div>
+      </form>
+    </details>
+  );
+}
+
+function AdventureControlBar({ form, setForm, onGenerate }) {
+  return (
+    <details className={styles.controlBar}>
+      <summary className={styles.controlBarSummary}>
+        <span>Adventure options</span>
+        <small>Seed</small>
+      </summary>
+      <form className={styles.controlBarForm} onSubmit={(e) => { e.preventDefault(); onGenerate(form); }}>
+        <div className={styles.controlBarBody}>
+          <div className={styles.controlGrid}>
+            <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => setForm({ ...form, seed })} />
+          </div>
+        </div>
+        <div className={styles.controlBarFooter}>
+          <button className={styles.primaryAction} type="submit">Generate New Adventure</button>
+        </div>
+      </form>
+    </details>
   );
 }
 
@@ -360,7 +449,6 @@ function CharacterForm({ form, setForm }) {
         </div>
         <div className={styles.optionGrid}>
           <Checkbox label="Random age" checked={form.randAge} onChange={(randAge) => set({ randAge })} />
-          <Checkbox label="Personality" checked={form.personality} onChange={(personality) => set({ personality })} />
         </div>
       </section>
 
@@ -416,39 +504,131 @@ function CharacterForm({ form, setForm }) {
           ))}
         </div>
       </section>
-
     </>
   );
 }
 
-function AnimalForm({ form, setForm }) {
-  const set = (patch) => setForm({ ...form, ...patch });
+function SpaceshipOutput({ spaceship }) {
   return (
-    <>
-      <Select label="Terrain" value={form.terrain} onChange={(terrain) => set({ terrain })} options={[['', 'Random'], ...TERRAIN_OPTIONS.map((v) => [v, v])]} />
-      <Select label="Order" value={form.order} onChange={(order) => set({ order })} options={[['', 'Random'], ...ORDER_OPTIONS.map((v) => [v, v])]} />
-      <Select label="Behavior" value={form.behavior} onChange={(behavior) => set({ behavior })} options={[['', 'Random'], ...BEHAVIOR_OPTIONS.map((v) => [v, v])]} />
-      <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => set({ seed })} />
-      <Checkbox label="Sentient" checked={form.sentient} onChange={(sentient) => set({ sentient })} />
-    </>
+    <div className={styles.generatorSheet}>
+      <div className={styles.sheetHeaderBlock}>
+        <div className={styles.sheetHeaderLeft}>
+          <p className={styles.kicker}>Spacecraft record</p>
+          <h2>{spaceship.name} <span className={styles.shipTypeInline}>({spaceship.type})</span></h2>
+          <p className={styles.headerSubtitle}>{spaceship.ownershipType} · {spaceship.condition}</p>
+        </div>
+        <div className={styles.sheetHeaderRight}>
+          <Metric label="Value" value={`${spaceship.costMCr} MCr`} />
+          <Metric label="Seed" value={spaceship.seed} mono />
+        </div>
+      </div>
+      <div className={styles.sheetBody}>
+        <div className={styles.sheetPanel}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.kicker}>Specifications</p>
+            <h3>Hull &amp; Drives</h3>
+          </div>
+          <dl className={styles.worldFactList}>
+            <div><dt>Hull</dt><dd>{spaceship.hull}T</dd></div>
+            <div><dt>Jump</dt><dd>{spaceship.jumpRating ? `J${spaceship.jumpRating}` : 'N/A'}</dd></div>
+            <div><dt>Maneuver</dt><dd>{spaceship.maneuverRating}G</dd></div>
+            <div><dt>Power Plant</dt><dd>Code {spaceship.powerPlant}</dd></div>
+            <div><dt>Fuel</dt><dd>{spaceship.fuelCapacity}T</dd></div>
+            <div><dt>Staterooms</dt><dd>{spaceship.staterooms}</dd></div>
+            <div><dt>Cargo</dt><dd>{spaceship.cargo}T</dd></div>
+            <div><dt>Hardpoints</dt><dd>{spaceship.hardpoints}</dd></div>
+            <div><dt>Weapons</dt><dd>{spaceship.weapons}</dd></div>
+          </dl>
+          {spaceship.notes && <p className={styles.compactLine}>{spaceship.notes}</p>}
+        </div>
+      </div>
+    </div>
   );
 }
 
-function DiceForm({ form, setForm }) {
+function WorldOutput({ world }) {
   return (
-    <>
-      <Input label="Dice" value={form.expression} placeholder="2d6" onChange={(expression) => setForm({ ...form, expression })} />
-      <Input label="Hex seed" value={form.seed} placeholder="Auto-generate" onChange={(seed) => setForm({ ...form, seed })} />
-    </>
+    <div className={styles.generatorSheet}>
+      <div className={styles.sheetHeaderBlock}>
+        <div className={styles.sheetHeaderLeft}>
+          <p className={styles.kicker}>World profile</p>
+          <h2>{world.name} <span className={styles.uppInline}>[{world.upp}]</span></h2>
+          <p className={styles.headerSubtitle}>{world.sizeDesc} · {world.starport}</p>
+        </div>
+        <div className={styles.sheetHeaderRight}>
+          <Metric label="Population" value={world.populationDesc} />
+          <Metric label="Seed" value={world.seed} mono />
+        </div>
+      </div>
+      <div className={styles.sheetBody}>
+        <div className={styles.sheetPanel}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.kicker}>Profile</p>
+            <h3>World Data</h3>
+          </div>
+          <dl className={styles.worldFactList}>
+            <div><dt>Starport</dt><dd>{world.starport} — {world.starportDesc}</dd></div>
+            <div><dt>Size</dt><dd>{world.sizeDesc} (size {world.size})</dd></div>
+            <div><dt>Atmosphere</dt><dd>{world.atmosphereDesc}</dd></div>
+            <div><dt>Hydrographics</dt><dd>{world.hydroDesc} ({world.hydrographics * 10}%)</dd></div>
+            <div><dt>Population</dt><dd>{world.populationDesc}</dd></div>
+            <div><dt>Government</dt><dd>{world.governmentDesc}</dd></div>
+            <div><dt>Law Level</dt><dd>{world.lawDesc} ({world.law})</dd></div>
+            <div><dt>Tech Level</dt><dd>TL{world.techLevel}</dd></div>
+            <div><dt>Trade Codes</dt><dd>{world.tradeCodes.join(', ')}</dd></div>
+            <div><dt>Background Skills</dt><dd>{world.backgroundSkills.join(', ')}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function UppOutput({ result }) {
+function AdventureOutput({ adventure }) {
   return (
-    <>
-      <ResultHeader label="Generated profile" value={result.upp} seed={result.seed} />
-      <StatGrid stats={result.values} psi={result.psi ? result.psiValue : null} />
-    </>
+    <div className={styles.generatorSheet}>
+      <div className={styles.sheetHeaderBlock}>
+        <div className={styles.sheetHeaderLeft}>
+          <p className={styles.kicker}>Adventure seed</p>
+          <h2>Mission Brief</h2>
+          <p className={styles.headerSubtitle}>{adventure.hook}</p>
+        </div>
+        <div className={styles.sheetHeaderRight}>
+          <Metric label="Seed" value={adventure.seed} mono />
+        </div>
+      </div>
+      <div className={styles.sheetBody}>
+        <div className={`${styles.sheetPanel} ${styles.adventureMainPanel}`}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.kicker}>Situation</p>
+            <h3>Mission Details</h3>
+          </div>
+          <dl className={styles.worldFactList}>
+            <div><dt>Patron</dt><dd>{adventure.patron}</dd></div>
+            <div><dt>Mission</dt><dd style={{ textTransform: 'capitalize' }}>{adventure.mission}</dd></div>
+            <div><dt>Location</dt><dd style={{ textTransform: 'capitalize' }}>{adventure.location}</dd></div>
+            <div><dt>Opposition</dt><dd>{adventure.antagonist}</dd></div>
+            <div><dt>Reward</dt><dd style={{ textTransform: 'capitalize' }}>{adventure.reward}</dd></div>
+          </dl>
+        </div>
+        <div className={styles.sheetPanel}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.kicker}>Complications</p>
+            <h3>Obstacles</h3>
+          </div>
+          <ul className={styles.cleanList} style={{ marginTop: '10px' }}>
+            {adventure.complications.map((c) => <li key={c}>{c}</li>)}
+          </ul>
+        </div>
+        <div className={styles.sheetPanel}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.kicker}>Twist</p>
+            <h3>Hidden Complication</h3>
+          </div>
+          <p className={styles.compactLine}>{adventure.twist}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -525,9 +705,6 @@ function CharacterOutput({ character, showHistory }) {
         <SkillsSection skills={character.skills} onRoll={handleSkillRoll} />
         <CombatTable combat={character.combat} onRoll={handleWeaponRoll} />
         <div className={styles.infoRow}>
-          <FinancesSection character={character} />
-          <PersonalitySection personality={character.personality} />
-          <ArmorSection equipment={character.equipment} />
           <PsionicsSection psionics={character.psionics} />
         </div>
         <PlayAssets character={character} />
@@ -594,11 +771,9 @@ function CharacterHeader({ character, onRoll, health, onHealthChange }) {
     let newEnd = health.End;
     let newStr = health.Str;
     let newDex = health.Dex;
-    // Damage End first
     const endDmg = Math.min(newEnd, remaining);
     newEnd -= endDmg;
     remaining -= endDmg;
-    // Overflow to Str (arbitrary choice for "apply" button)
     if (remaining > 0) {
       const strDmg = Math.min(newStr, remaining);
       newStr -= strDmg;
@@ -720,35 +895,6 @@ function Metric({ label, value, mono = false }) {
   );
 }
 
-function QuickReference({ character }) {
-  const weapons = character.combat.map((item) => item.weapon);
-  const armor = character.equipment.filter((item) => /armor|armour|vacc suit/i.test(item.name)).map((item) => item.name);
-
-  return (
-    <section className={`${styles.sheetPanel} ${styles.overviewPanel}`} aria-label="Quick reference">
-      <div className={styles.sectionHeader}>
-        <p className={styles.kicker}>Characteristics</p>
-        <h3>Stats and Status</h3>
-      </div>
-      <StatGrid stats={character.stats} />
-      <dl className={`${styles.factList} ${styles.statusList}`}>
-        <div><dt>Homeworld</dt><dd>{character.homeworld.summary}</dd></div>
-        <div><dt>Weapons</dt><dd>{weapons.length ? weapons.join(', ') : 'None'}</dd></div>
-        <div><dt>Armor</dt><dd>{armor.length ? armor.join(', ') : 'None'}</dd></div>
-      </dl>
-    </section>
-  );
-}
-
-function skillLevel(skills, masterSkill) {
-  if (masterSkill in skills) return skills[masterSkill];
-  const prefix = `${masterSkill} (`;
-  const levels = Object.entries(skills)
-    .filter(([name]) => name.startsWith(prefix))
-    .map(([, level]) => level);
-  return levels.length ? Math.max(...levels) : null;
-}
-
 function buildSkillEntries(skills) {
   return CORE_SKILLS.map((base) => {
     const specs = Object.entries(skills)
@@ -804,21 +950,6 @@ function SkillsSection({ skills, onRoll }) {
   );
 }
 
-function FinancesSection({ character }) {
-  return (
-    <section className={`${styles.sheetPanel} ${styles.financePanel}`} aria-label="Finances">
-      <div className={styles.sectionHeader}>
-        <p className={styles.kicker}>Finances</p>
-        <h3>Cash and Obligations</h3>
-      </div>
-      <div className={styles.financeGrid}>
-        <Metric label="Cash on hand" value={`${character.cash.toLocaleString()} Cr.`} />
-        {character.pension > 0 ? <Metric label="Pension / month" value={`${character.pension.toLocaleString()} Cr.`} /> : null}
-        {character.totalDebt > 0 ? <Metric label="Debt" value={`${character.totalDebt.toLocaleString()} Cr.`} /> : null}
-      </div>
-    </section>
-  );
-}
 
 function CareerSummary({ history }) {
   if (!history?.length) return null;
@@ -856,37 +987,6 @@ function CareerSummary({ history }) {
   );
 }
 
-function BioSection({ bio }) {
-  return (
-    <section className={`${styles.sheetPanel} ${styles.bioPanel}`} aria-label="Character bio">
-      <div>
-        <p className={styles.kicker}>Character bio</p>
-        <h3>Background and Career</h3>
-      </div>
-      <div className={styles.bioText}>
-        {bio.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-      </div>
-    </section>
-  );
-}
-
-function PersonalitySection({ personality }) {
-  if (!personality) return null;
-  return (
-    <section className={`${styles.sheetPanel} ${styles.personalityPanel}`} aria-label="Personality">
-      <div>
-        <p className={styles.kicker}>Personality</p>
-        <h3>Roleplaying Profile</h3>
-      </div>
-      <div className={styles.personalityGrid}>
-        <Metric label="Primary" value={personality.primary} />
-        <Metric label="Secondary" value={personality.secondary} />
-      </div>
-      <p className={styles.compactLine}>{personality.summary}</p>
-      <p className={styles.compactLine}>Quirk: {personality.quirk}. Drive: {personality.drive}.</p>
-    </section>
-  );
-}
 
 function PsionicsSection({ psionics }) {
   if (!psionics) return null;
@@ -997,8 +1097,16 @@ function PlayAssets({ character }) {
   const consolidatedBenefits = consolidateCounts(nonCashBenefits, (b) => b.name ?? b)
     .map(({ item, count }) => count > 1 ? `${item.name ?? item} (x${count})` : (item.name ?? item));
 
+  const armorItems = character.equipment
+    .filter((item) => equipmentMeta(item.name)?.protection !== undefined)
+    .map((item) => {
+      const meta = equipmentMeta(item.name);
+      return `${item.name} — Protection ${meta.protection}${meta.mass !== undefined ? `, ${meta.mass} kg` : ''}`;
+    });
+
   const blocks = [
     { title: equipTitle, items: equipmentItems },
+    { title: 'Armor', items: armorItems },
     { title: 'Benefits', items: consolidatedBenefits },
     { title: 'Contacts', items: character.contacts },
     { title: 'Enemies', items: character.enemies },
@@ -1033,37 +1141,6 @@ function AssetBlock({ title, items }) {
   );
 }
 
-function ArmorSection({ equipment }) {
-  const armorItems = equipment.filter((item) => {
-    const meta = equipmentMeta(item.name);
-    return meta?.protection !== undefined;
-  });
-  if (!armorItems.length) return null;
-  return (
-    <section className={`${styles.sheetPanel} ${styles.armorPanel}`} aria-label="Armor">
-      <div className={styles.sectionHeader}>
-        <p className={styles.kicker}>Armor</p>
-        <h3>Protection</h3>
-      </div>
-      <div className={styles.armorCards}>
-        {armorItems.map((item) => {
-          const meta = equipmentMeta(item.name);
-          return (
-            <div key={`${item.name}-${item.source}`} className={styles.armorCard}>
-              <strong>{item.name}</strong>
-              <dl className={styles.armorFacts}>
-                <div><dt>Protection</dt><dd>{meta?.protection ?? '—'}</dd></div>
-                <div><dt>Mass</dt><dd>{meta?.mass ?? '—'} kg</dd></div>
-                <div><dt>Source</dt><dd>{item.source}</dd></div>
-                {meta?.notes && <div><dt>Notes</dt><dd>{meta.notes}</dd></div>}
-              </dl>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function CombatTable({ combat, onRoll }) {
   if (!combat.length) return null;
@@ -1147,39 +1224,6 @@ function CareerHistory({ character }) {
   );
 }
 
-function AnimalOutput({ animal }) {
-  return (
-    <>
-      <ResultHeader label={animal.name} value={`${animal.behavior} ${animal.order}`} seed={animal.seed} />
-      <p className={styles.recordLine}>{animal.terrain}, size {animal.size}, pack size {animal.packSize}</p>
-      <StatGrid stats={animal.stats} />
-      <p className={styles.recordLine}>Combat: {animal.weapon} ({animal.damage}d6), Armor {animal.armor}, Move {animal.movement}</p>
-      <div className={styles.pathList}>{animal.quirks.map((quirk) => <span key={quirk}>{quirk}</span>)}</div>
-    </>
-  );
-}
-
-function DiceOutput({ dice }) {
-  return (
-    <>
-      <ResultHeader label={dice.expression} value={String(dice.total)} seed={dice.seed} />
-      <div className={styles.pathList}>{dice.rolls.map((roll, index) => <span key={`${roll}-${index}`}>{roll}</span>)}</div>
-    </>
-  );
-}
-
-function ResultHeader({ label, value, seed, prominent = false }) {
-  return (
-    <div className={`${styles.resultHeader} ${prominent ? styles.prominentHeader : ''}`}>
-      <div>
-        <p className={styles.kicker}>{label}</p>
-        <p className={styles.upp}>{value}</p>
-      </div>
-      <p className={styles.seed}>Seed {seed}</p>
-    </div>
-  );
-}
-
 function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
@@ -1257,34 +1301,6 @@ function RollPopup({ roll, stats, onStatChange, onReroll, onClose }) {
   );
 }
 
-function StatGrid({ stats, psi = null }) {
-  const entries = Object.entries(stats).filter(([name]) => ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc', 'Ins', 'Pac'].includes(name));
-  return (
-    <dl className={styles.statGrid}>
-      {entries.map(([name, value]) => <StatCell key={name} name={name} value={value} />)}
-      {psi !== null ? <StatCell name="Psi" value={psi} /> : null}
-    </dl>
-  );
-}
-
-function StatCell({ name, value }) {
-  return (
-    <div>
-      <dt>{name}</dt>
-      <dd>{value.toString(16).toUpperCase()}<span>{modifier(value) >= 0 ? `+${modifier(value)}` : modifier(value)}</span></dd>
-    </div>
-  );
-}
-
-function KeyValue({ title, items }) {
-  return (
-    <div className={styles.keyValue}>
-      <p className={styles.kicker}>{title}</p>
-      <p>{Object.entries(items).map(([key, value]) => `${key} ${value}`).join(', ')}</p>
-    </div>
-  );
-}
-
 function Select({ label, value, onChange, options }) {
   return (
     <label className={styles.field}>
@@ -1314,21 +1330,73 @@ function Checkbox({ label, checked, onChange }) {
   );
 }
 
-function formatUppText(result) {
-  const stats = Object.entries(result.values).map(([name, value]) => `${name} ${value.toString(16).toUpperCase()} (${modifier(value)})`).join(', ');
-  const psi = result.psi ? `\nPsi: ${result.psiValue.toString(16).toUpperCase()} (${modifier(result.psiValue)})` : '';
-  return `UPP: ${result.upp}
-Method: ${result.method}
-Average: ${result.average.toFixed(1)}
-Stats: ${stats}${psi}
-Seed: ${result.seed}`;
+function formatSpaceshipMarkdown(ship) {
+  return `# ${ship.name}
+
+- Type: ${ship.type}
+- Ownership: ${ship.ownershipType}
+- Condition: ${ship.condition}
+- Seed: ${ship.seed}
+
+## Specifications
+
+- Hull: ${ship.hull}T
+- Jump: ${ship.jumpRating ? `J${ship.jumpRating}` : 'N/A'}
+- Maneuver: ${ship.maneuverRating}G
+- Power Plant: Code ${ship.powerPlant}
+- Fuel: ${ship.fuelCapacity}T
+- Staterooms: ${ship.staterooms}
+- Cargo: ${ship.cargo}T
+- Hardpoints: ${ship.hardpoints}
+- Weapons: ${ship.weapons}
+- Value: ${ship.costMCr} MCr
+${ship.notes ? `\n## Notes\n\n${ship.notes}` : ''}
+`;
 }
 
-function formatDiceText(result) {
-  return `Roll: ${result.expression}
-Dice: ${result.rolls.join(', ')}
-Total: ${result.total}
-Seed: ${result.seed}`;
+function formatWorldMarkdown(world) {
+  return `# ${world.name}
+
+- UWP: ${world.upp}
+- Seed: ${world.seed}
+
+## Profile
+
+- Starport: ${world.starport} — ${world.starportDesc}
+- Size: ${world.sizeDesc} (size ${world.size})
+- Atmosphere: ${world.atmosphereDesc}
+- Hydrographics: ${world.hydroDesc} (${world.hydrographics * 10}%)
+- Population: ${world.populationDesc}
+- Government: ${world.governmentDesc}
+- Law Level: ${world.lawDesc} (${world.law})
+- Tech Level: TL${world.techLevel}
+- Trade Codes: ${world.tradeCodes.join(', ')}
+- Background Skills: ${world.backgroundSkills.join(', ')}
+`;
+}
+
+function formatAdventureMarkdown(adventure) {
+  return `# Mission Brief
+
+- Patron: ${adventure.patron}
+- Mission: ${adventure.mission}
+- Location: ${adventure.location}
+- Opposition: ${adventure.antagonist}
+- Reward: ${adventure.reward}
+- Seed: ${adventure.seed}
+
+## Hook
+
+${adventure.hook}
+
+## Complications
+
+${adventure.complications.map((c) => `- ${c}`).join('\n')}
+
+## Twist
+
+${adventure.twist}
+`;
 }
 
 function formatCharacterMarkdown(character, showHistory) {
@@ -1400,13 +1468,6 @@ function formatBuildTranscript(character) {
   return `${start}\n${background}\n\n${terms}`;
 }
 
-function activeSeed(active, records) {
-  if (active === 'UPP') return records.upp.seed;
-  if (active === 'Animal') return records.animal.seed;
-  if (active === 'Dice') return records.dice.seed;
-  return records.character.seed;
-}
-
 function normalizeCareerPlan(plan = [], terms = 3) {
   const count = Math.max(1, Math.min(8, Number.parseInt(terms, 10) || 3));
   return Array.from({ length: count }, (_, index) => ({
@@ -1414,7 +1475,6 @@ function normalizeCareerPlan(plan = [], terms = 3) {
     spec: plan[index]?.spec ?? '',
   }));
 }
-
 
 function signed(value) {
   return value >= 0 ? `+${value}` : String(value);

@@ -13,7 +13,7 @@ describe('App', () => {
     expect(markup).toContain('Travgen frontier office');
     expect(markup).toContain('Character Generator');
     expect(markup).toContain('Character record');
-    expect(markup).toContain('Reroll');
+    expect(markup).toContain('aria-label="Reroll"');
     expect(markup).toContain('Play assets');
     expect(markup).toContain('Tech Level');
   });

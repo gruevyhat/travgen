@@ -552,23 +552,24 @@
   font-family: "SFMono-Regular", Consolas, monospace;
 }
 
-.rerollButton {
-  align-self: end;
-  min-height: 34px;
-  border: 1px solid rgba(245, 202, 93, 0.54);
-  border-radius: 6px;
-  padding: 0 14px;
-  background: #d6a23a;
-  color: #111817;
+.iconAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(219, 205, 161, 0.32);
+  border-radius: 7px;
+  background: rgba(19, 29, 28, 0.76);
+  color: #d4cab0;
   cursor: pointer;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
-  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
-.rerollButton:hover {
-  background: #e3b052;
+.iconAction:hover {
+  background: rgba(127, 71, 43, 0.32);
+  border-color: rgba(218, 139, 71, 0.78);
+  color: #f1ead8;
 }
 
 .sheetBody {
@@ -1265,7 +1266,7 @@
   z-index: 10;
   display: flex;
   flex-direction: column;
-  width: min(380px, 92vw);
+  width: min(300px, 88vw);
   background: rgba(14, 22, 22, 0.98);
   border-right: 1px solid rgba(219, 205, 161, 0.28);
   box-shadow: 6px 0 48px rgba(0, 0, 0, 0.56);
@@ -1274,52 +1275,28 @@
 
 .sidebarHeader {
   display: flex;
-  align-items: stretch;
-  gap: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
   border-bottom: 1px solid rgba(219, 205, 161, 0.2);
   background: rgba(10, 16, 18, 0.7);
   flex-shrink: 0;
 }
 
-.toolNav {
-  display: flex;
-  flex: 1;
-  overflow-x: auto;
-}
-
-.toolTab,
-.activeToolTab {
-  flex: 1;
-  min-width: 60px;
-  min-height: 46px;
-  border: none;
-  border-right: 1px solid rgba(219, 205, 161, 0.14);
-  padding: 0 10px;
-  background: transparent;
-  color: #9fb4af;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.78rem;
+.sidebarTitle {
+  margin: 0;
+  color: #a9c2bc;
+  font-size: 0.72rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: background 0.12s;
-}
-
-.activeToolTab {
-  background: rgba(214, 162, 58, 0.14);
-  color: #f0bf5b;
-  border-bottom: 2px solid #d6a23a;
-}
-
-.toolTab:hover {
-  background: rgba(185, 199, 188, 0.08);
-  color: #f1ead8;
 }
 
 .sidebarClose {
-  width: 46px;
-  border: none;
-  border-left: 1px solid rgba(219, 205, 161, 0.14);
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(219, 205, 161, 0.2);
+  border-radius: 5px;
   background: transparent;
   color: #9fb4af;
   cursor: pointer;
@@ -1329,33 +1306,162 @@
 
 .sidebarClose:hover {
   color: #f1ead8;
+  border-color: rgba(219, 205, 161, 0.4);
 }
 
-.sidebarForm {
+.generatorNav {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-
-.sidebarBody {
-  flex: 1;
-  display: grid;
-  align-content: start;
-  gap: 10px;
+  gap: 6px;
   padding: 14px;
   overflow-y: auto;
 }
 
-.sidebarFooter {
-  flex-shrink: 0;
-  padding: 12px 14px;
-  border-top: 1px solid rgba(219, 205, 161, 0.2);
-  background: rgba(10, 16, 18, 0.6);
+.generatorNavItem,
+.generatorNavItemActive {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  min-height: 60px;
+  border: 1px solid rgba(219, 205, 161, 0.22);
+  border-radius: 7px;
+  padding: 10px 14px;
+  background: rgba(10, 16, 18, 0.46);
+  color: #f1ead8;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
 }
 
-.sidebarFooter .primaryAction {
-  width: 100%;
+.generatorNavItem:hover {
+  background: rgba(185, 199, 188, 0.08);
+  border-color: rgba(219, 205, 161, 0.4);
+}
+
+.generatorNavItemActive {
+  background: rgba(214, 162, 58, 0.14);
+  border-color: rgba(214, 162, 58, 0.5);
+}
+
+.generatorNavLabel {
+  display: block;
+  color: #f1ead8;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.generatorNavItemActive .generatorNavLabel {
+  color: #f0bf5b;
+}
+
+.generatorNavSub {
+  display: block;
+  color: #9fb4af;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+/* Collapsible control bar */
+.controlBar {
+  border: 1px solid rgba(219, 205, 161, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(30, 38, 38, 0.9), rgba(18, 28, 28, 0.9));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.controlBarSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #f1ead8;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.controlBarSummary::marker {
+  color: #d6a23a;
+}
+
+.controlBarSummary small {
+  color: #9fb4af;
+  font-size: 0.7rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.controlBarForm {
+  border-top: 1px solid rgba(219, 205, 161, 0.16);
+}
+
+.controlBarBody {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+}
+
+.controlBarFooter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(219, 205, 161, 0.14);
+  background: rgba(10, 16, 18, 0.4);
+}
+
+.controlBarFooter .primaryAction {
+  flex: 1;
+  max-width: 280px;
+}
+
+/* Generator sheet for Spaceship, World, Adventure */
+.generatorSheet {
+  border: 1px solid rgba(185, 199, 188, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(17, 31, 31, 0.82), rgba(10, 16, 18, 0.4));
+  overflow: hidden;
+}
+
+.sheetHeaderBlock {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 16px 18px 14px;
+  border-bottom: 2px solid rgba(225, 189, 116, 0.28);
+  background: linear-gradient(180deg, rgba(17, 31, 31, 0.82), rgba(10, 16, 18, 0.4));
+}
+
+.sheetHeaderLeft h2 {
+  margin: 0;
+  color: #f1ead8;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.08;
+}
+
+.sheetHeaderRight {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+
+.shipTypeInline {
+  color: #9fb4af;
+  font-size: 0.72em;
+  font-weight: 400;
+}
+
+.adventureMainPanel {
+  grid-column: 1 / -1;
 }
 
 /* Homeworld panel */

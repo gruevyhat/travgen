@@ -6,6 +6,8 @@ import { createRng, normalizeSeed } from './random.js';
 import { d3, d6 } from './dice.js';
 import { formatUpp, generateStats, modifier, parseUpp, rollStat } from './stats.js';
 import { generateSpacecraft } from './spacecraft.js';
+import { generateWorldFromRng, deriveEthnicity } from './world.js';
+export { deriveEthnicity } from './world.js';
 
 const STAT_NAMES = ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc'];
 const PHYSICAL_STATS = ['Str', 'Dex', 'End'];
@@ -419,8 +421,13 @@ export function generateCharacter(options = {}) {
   const finalUpp = formatUpp(stats, options.psi ? stats.Psi : null);
   const purchased = purchaseCareerKit(rng, careerPath, homeworld, credits, equipment, skills);
   credits -= purchased.reduce((total, item) => total + item.cost, 0);
-  for (const debt of debts) credits -= debt.amount;
   equipment.push(...purchased);
+  const combatWeapon = purchaseCombatWeapon(credits, equipment, skills);
+  if (combatWeapon) {
+    credits -= combatWeapon.cost;
+    equipment.push(combatWeapon);
+  }
+  for (const debt of debts) credits -= debt.amount;
   // RAW: specialties are only chosen at level 1+; level-0 specialty entries collapse to the base.
   // A specialty at 0 is identical to the unspecialized level, so promote it to the base instead.
   for (const key of [...Object.keys(skills)]) {
@@ -893,57 +900,6 @@ function averageCore(stats) {
   return STAT_NAMES.reduce((total, stat) => total + stats[stat], 0) / 6;
 }
 
-const ATMO_DESCS = [
-  'None', 'Trace', 'Very Thin (tainted)', 'Very Thin', 'Thin (tainted)', 'Thin',
-  'Standard', 'Standard (tainted)', 'Dense', 'Dense (tainted)', 'Exotic',
-  'Corrosive', 'Insidious', 'Dense (high)', 'Thin (low)', 'Unusual',
-];
-
-const GOV_DESCS = [
-  'None', 'Company/Corporation', 'Participating Democracy', 'Self-Perpetuating Oligarchy',
-  'Representative Democracy', 'Feudal Technocracy', 'Captive Government', 'Balkanisation',
-  'Civil Service Bureaucracy', 'Impersonal Bureaucracy', 'Charismatic Dictator',
-  'Non-Charismatic Leader', 'Charismatic Oligarchy', 'Religious Dictatorship',
-];
-
-const STARPORT_DESCS = {
-  'Class A': 'Excellent — full repair, refined fuel',
-  'Class B': 'Good — full repair, unrefined fuel',
-  'Class C': 'Routine — limited repair, unrefined fuel',
-  'Class D': 'Poor — limited repair, no fuel',
-  'Class E': 'Frontier — no services',
-};
-
-const POP_DESCS = [
-  'Unpopulated', 'Tens', 'Hundreds', 'Thousands', 'Tens of thousands',
-  'Hundreds of thousands', 'Millions', 'Tens of millions', 'Hundreds of millions',
-  'Billions', 'Tens of billions',
-];
-
-function worldLawDesc(law) {
-  if (law === 0) return 'No restrictions';
-  if (law <= 3) return 'Low law';
-  if (law <= 6) return 'Moderate law';
-  if (law <= 9) return 'High law';
-  return 'Extreme law';
-}
-
-function worldSizeDesc(size) {
-  if (size === 0) return 'Asteroid / Planetoid Belt';
-  if (size <= 3) return 'Small world';
-  if (size <= 6) return 'Medium world';
-  if (size <= 9) return 'Large world';
-  return 'Very large world';
-}
-
-function worldHydroDesc(h) {
-  if (h === 0) return 'Desert world';
-  if (h <= 3) return 'Dry world';
-  if (h <= 6) return 'Wet world';
-  if (h <= 9) return 'Mostly ocean';
-  return 'Water world';
-}
-
 function generateHomeworld(rng, { campaignMode, requested }) {
   if (campaignMode === 'chthonian' || (requested && gameData.WORLDS[requested])) {
     const name = requested || choice(rng, WORLDS);
@@ -958,78 +914,7 @@ function generateHomeworld(rng, { campaignMode, requested }) {
       source: 'cthonian-stars',
     };
   }
-
-  const name = requested || generateWorldName(rng);
-  const starport = lookupRange(coreRules.homeworldGeneration.starports, d6(rng, 2)).label;
-  const size = Math.max(0, d6(rng, 2) - 2);
-  const atmosphere = Math.max(0, d6(rng, 2) - 7 + size);
-  const hydrographics = Math.max(0, Math.min(10, d6(rng, 2) - 7 + size));
-  const population = Math.max(0, d6(rng, 2) - 2);
-  const government = Math.max(0, d6(rng, 2) - 7 + population);
-  const law = Math.max(0, d6(rng, 2) - 7 + government);
-  const techLevel = Math.max(0, d6(rng) + starportTechModifier(starport) + populationTechModifier(population));
-  const tradeCodes = tradeCodesFor({ size, atmosphere, hydrographics, population, techLevel });
-  const backgroundSkills = backgroundSkillsFor(tradeCodes);
-  const upp = `${starport.replace('Class ', '')}${hex(size)}${hex(atmosphere)}${hex(hydrographics)}${hex(population)}${hex(government)}${hex(law)}-${hex(techLevel)}`;
-  return {
-    mode: 'standard',
-    name,
-    upp,
-    starport,
-    size,
-    atmosphere,
-    hydrographics,
-    population,
-    government,
-    law,
-    techLevel,
-    tradeCodes,
-    backgroundSkills,
-    summary: `${name} ${upp}`,
-    source: coreRules.metadata.id,
-    atmosphereDesc: ATMO_DESCS[atmosphere] ?? 'Exotic',
-    governmentDesc: GOV_DESCS[government] ?? 'Unknown',
-    lawDesc: worldLawDesc(law),
-    starportDesc: STARPORT_DESCS[starport] ?? '',
-    sizeDesc: worldSizeDesc(size),
-    populationDesc: POP_DESCS[population] ?? 'Unknown',
-    hydroDesc: worldHydroDesc(hydrographics),
-  };
-}
-
-function tradeCodesFor(world) {
-  const codes = [];
-  if (world.size === 0) codes.push('Asteroid');
-  if (world.atmosphere === 0) codes.push('Vacuum');
-  if (world.atmosphere >= 4 && world.atmosphere <= 9 && world.hydrographics >= 4 && world.hydrographics <= 8 && world.population >= 5 && world.population <= 7) codes.push('Agricultural');
-  if (world.atmosphere >= 2 && world.hydrographics === 0) codes.push('Desert');
-  if (world.population >= 9) codes.push('High Population');
-  if (world.techLevel >= 12) codes.push('High Technology');
-  if ([0, 1, 2, 4, 7, 9].includes(world.atmosphere) && world.population >= 9) codes.push('Industrial');
-  if (world.population <= 3) codes.push('Low Population');
-  if ([2, 3, 4, 5].includes(world.atmosphere) && world.hydrographics <= 3) codes.push('Poor');
-  if ([6, 8].includes(world.atmosphere) && [6, 7, 8].includes(world.population)) codes.push('Rich');
-  if (world.hydrographics === 10) codes.push('Water World');
-  return codes.length ? codes : ['Average'];
-}
-
-function backgroundSkillsFor(tradeCodes) {
-  const entries = tradeCodes.flatMap((code) => coreRules.homeworldGeneration.tradeCodeSkills[code] ?? []);
-  return [...new Set(entries.length ? entries : ['Admin', 'Streetwise'])];
-}
-
-function starportTechModifier(starport) {
-  return { 'Class A': 6, 'Class B': 4, 'Class C': 2, 'Class D': 0, 'Class E': -2 }[starport] ?? 0;
-}
-
-function populationTechModifier(population) {
-  if (population <= 1) return 1;
-  if (population >= 9) return 2;
-  return 0;
-}
-
-function hex(value) {
-  return Math.max(0, value).toString(16).toUpperCase();
+  return generateWorldFromRng(rng, { requested });
 }
 
 function lookupRange(table, roll) {
@@ -1058,24 +943,6 @@ function calculatePension(terms) {
   return PENSION_TABLE[Math.min(eligible, PENSION_TABLE.length - 1)] ?? 10000;
 }
 
-const WORLD_SYLLABLES = [
-  'al', 'ar', 'bek', 'cen', 'dar', 'el', 'for', 'gal', 'het', 'il',
-  'jan', 'kath', 'lor', 'men', 'nar', 'os', 'par', 'ret', 'sol', 'ten',
-  'ul', 'var', 'xan', 'yar', 'zen', 'ath', 'bor', 'cul', 'dex', 'eph',
-  'fir', 'gon', 'hux', 'isp', 'jek', 'kol', 'lun', 'mav', 'nex', 'oth',
-];
-
-function generateWorldName(rng) {
-  const length = choice(rng, [2, 2, 3, 3, 3]);
-  return titleCase(Array.from({ length }, () => choice(rng, WORLD_SYLLABLES)).join(''));
-}
-
-export function deriveEthnicity(worldName) {
-  const last = worldName.slice(-1).toLowerCase();
-  if (last === 'a') return worldName + 'n';
-  if ('eiou'.includes(last)) return worldName + 'an';
-  return worldName + 'ian';
-}
 
 function summarizeLocalTableText(text) {
   const sentence = String(text).split(/(?<=[.!?])\s+/)[0];
@@ -1830,6 +1697,31 @@ function weaponSkillScore(item, skills) {
   if (skills[primarySkill] >= 0) return 10;
   if (Object.keys(skills).some((s) => s === baseName || s.startsWith(`${baseName} (`))) return 5;
   return 0;
+}
+
+function purchaseCombatWeapon(credits, equipment, skills) {
+  const hasCombatSkill = Object.keys(skills).some(
+    (s) => s === 'Melee' || s.startsWith('Melee (') || s === 'Gun Combat' || s.startsWith('Gun Combat ('),
+  );
+  if (!hasCombatSkill) return null;
+
+  const owned = new Set(equipment.map((e) => e.name));
+  const candidates = Object.entries(coreRules.weaponCombat)
+    .filter(([name, weapon]) => {
+      const base = weapon.skill.split(' (')[0];
+      return base === 'Melee' || base === 'Gun Combat';
+    })
+    .map(([name]) => {
+      const equipEntry = coreRules.equipment.find((e) => e.name === name);
+      return equipEntry ? { name, cost: equipEntry.cost } : null;
+    })
+    .filter((w) => w && !owned.has(w.name) && w.cost <= credits)
+    .sort((a, b) => {
+      const scoreDiff = weaponSkillScore(b, skills) - weaponSkillScore(a, skills);
+      return scoreDiff !== 0 ? scoreDiff : a.cost - b.cost;
+    });
+
+  return candidates[0] ? { name: candidates[0].name, cost: candidates[0].cost, source: 'purchased' } : null;
 }
 
 function purchaseCareerKit(rng, careerPath, homeworld, credits, ownedEquipment = [], skills = {}) {

@@ -1,4 +1,5 @@
 import { choice } from './helpers.js';
+import { createRng, normalizeSeed } from './random.js';
 
 // Standard ship type templates from Core Rules
 const SHIP_TYPES = {
@@ -135,5 +136,43 @@ function generateShipsBoat(rng) {
     condition: choice(rng, HULL_CONDITIONS),
     costMCr: 9.724,
     notes: 'Small craft, atmospheric and orbital use',
+  };
+}
+
+export const STANDALONE_SHIP_TYPES = [...Object.keys(SHIP_TYPES), "Ship's Boat"];
+
+export function generateStandaloneSpaceship(options = {}) {
+  const seed = normalizeSeed(options.seed);
+  const rng = createRng(seed);
+
+  if (options.type === "Ship's Boat") {
+    return { seed, ...generateShipsBoat(rng) };
+  }
+
+  const types = Object.keys(SHIP_TYPES);
+  const shipType = options.type && SHIP_TYPES[options.type] ? options.type : choice(rng, types);
+  const template = SHIP_TYPES[shipType];
+  const condition = choice(rng, HULL_CONDITIONS);
+  const weapons = choice(rng, WEAPON_CONFIGS);
+  const namePrefix = choice(rng, SHIP_NAME_PREFIXES);
+  const shipName = choice(rng, SHIP_NAMES);
+
+  return {
+    seed,
+    name: `${namePrefix} ${shipName}`,
+    type: shipType,
+    ownershipType: 'Independently owned',
+    hull: template.hull,
+    jumpRating: template.jumpRating,
+    maneuverRating: template.maneuverRating,
+    powerPlant: template.powerPlant,
+    fuelCapacity: template.fuelCapacity,
+    staterooms: template.staterooms,
+    cargo: template.cargo,
+    hardpoints: template.hardpoints,
+    weapons,
+    condition,
+    costMCr: template.costMCr,
+    notes: template.notes,
   };
 }

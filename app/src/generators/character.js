@@ -59,6 +59,10 @@ const EXPANSIONS = {
   dilettante: 'DILETTANTE',
   agent: 'AGENT',
   scoundrel: 'SCOUNDREL',
+  mercenary: 'MERCENARY',
+  highGuard: 'HIGH_GUARD',
+  scoutBook: 'SCOUT_BOOK',
+  merchantPrince: 'MERCHANT_PRINCE',
 };
 
 export const CORE_SKILLS = [
@@ -79,6 +83,10 @@ export const CAREER_EXPANSIONS = [
   { key: 'dilettante', label: 'Dilettante' },
   { key: 'agent', label: 'Agent' },
   { key: 'scoundrel', label: 'Scoundrel' },
+  { key: 'mercenary', label: 'Mercenary (CSC)' },
+  { key: 'highGuard', label: 'High Guard' },
+  { key: 'scoutBook', label: 'Scout (Supplement)' },
+  { key: 'merchantPrince', label: 'Merchant Prince' },
 ];
 
 export const WORLDS = Object.keys(gameData.WORLDS).sort();

@@ -21,6 +21,16 @@ import { CharacterBuilder } from './CharacterBuilder.jsx';
 
 const GENERATORS = ['Character', 'Build', 'Spaceship', 'World', 'Adventure'];
 
+function toolFromUrl() {
+  const param = new URLSearchParams(window.location.search).get('tool') ?? '';
+  const match = GENERATORS.find((g) => g.toLowerCase() === param.toLowerCase());
+  return match ?? 'Character';
+}
+
+function toolHref(gen) {
+  return `?tool=${gen.toLowerCase()}`;
+}
+
 const SKILL_DEFAULT_STAT = {
   Admin: 'Edu', Advocate: 'Edu', Animals: 'Int', Art: 'Dex',
   Astrogation: 'Int', Athletics: 'Str', 'Battle Dress': 'Str',
@@ -58,7 +68,7 @@ function isEditableTarget(target) {
 }
 
 function App() {
-  const [active, setActive] = useState('Character');
+  const [active, setActive] = useState(toolFromUrl);
   const [menuOpen, setMenuOpen] = useState(false);
   const [characterForm, setCharacterForm] = useState({
     seed: '', method: 'normal', psi: '', terms: 3, name: '', gender: '',
@@ -118,6 +128,18 @@ function App() {
   }
 
   function closeMenu() { setMenuOpen(false); }
+
+  function navigate(gen) {
+    setActive(gen);
+    history.pushState(null, '', toolHref(gen));
+    closeMenu();
+  }
+
+  useEffect(() => {
+    function onPopState() { setActive(toolFromUrl()); }
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   function reroll() {
     if (active === 'Character') {
@@ -198,15 +220,15 @@ function App() {
             </div>
             <nav className={styles.generatorNav}>
               {GENERATORS.map((gen) => (
-                <button
+                <a
                   key={gen}
-                  type="button"
+                  href={toolHref(gen)}
                   className={active === gen ? styles.generatorNavItemActive : styles.generatorNavItem}
-                  onClick={() => { setActive(gen); closeMenu(); }}
+                  onClick={(e) => { e.preventDefault(); navigate(gen); }}
                 >
                   <span className={styles.generatorNavLabel}>{gen}</span>
                   <span className={styles.generatorNavSub}>{generatorSubtitle(gen)}</span>
-                </button>
+                </a>
               ))}
             </nav>
           </aside>
@@ -925,7 +947,12 @@ function Metric({ label, value, mono = false }) {
 }
 
 function buildSkillEntries(skills) {
-  return CORE_SKILLS.map((base) => {
+  const extraBases = Object.keys(skills)
+    .map((name) => name.replace(/\s*\(.+\)$/, ''))
+    .filter((base) => !CORE_SKILLS.includes(base))
+    .sort((a, b) => a.localeCompare(b));
+  const bases = [...CORE_SKILLS, ...new Set(extraBases)];
+  return bases.map((base) => {
     const specs = Object.entries(skills)
       .filter(([name]) => name.startsWith(`${base} (`))
       .filter(([, level]) => level > 0)
@@ -1125,11 +1152,12 @@ function PlayAssets({ character }) {
 
   const nonArmorEquipment = character.equipment.filter((item) => !isArmor(item));
   const consolidatedEquip = consolidateCounts(nonArmorEquipment, (e) => e.name);
-  const totalMass = nonArmorEquipment.reduce((sum, item) => sum + (equipmentMeta(item.name)?.mass ?? 0), 0);
+  const totalMass = nonArmorEquipment.reduce((sum, item) => sum + (equipmentMeta(item.name)?.mass ?? item.mass ?? 0), 0);
   const equipmentItems = consolidatedEquip.map(({ item, count }) => {
     const meta = equipmentMeta(item.name);
     const label = count > 1 ? `${item.name} (x${count})` : item.name;
-    const mass = meta?.mass !== undefined ? ` — ${+(meta.mass * count).toFixed(2)} kg` : '';
+    const itemMass = meta?.mass ?? item.mass;
+    const mass = itemMass !== undefined ? ` — ${+(itemMass * count).toFixed(2)} kg` : '';
     return `${label}${mass}`;
   });
   const equipTitle = equipmentItems.length ? `Equipment — ${+totalMass.toFixed(2)} kg total` : 'Equipment';

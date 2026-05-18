@@ -299,6 +299,28 @@ describe('character generator', () => {
     expect(stats.Int).toBe(8);
   });
 
+  it('randomly resolves scientific equipment benefits to concrete equipment', () => {
+    const equipment = [0, 0.17, 0.34, 0.5, 0.67, 0.84].map((roll) => choiceBenefit(
+      () => roll,
+      { Str: 7, Dex: 7, End: 7, Int: 7 },
+      { Admin: 0 },
+      'Agent',
+      1,
+    ));
+
+    expect(equipment.map((item) => item.name)).toEqual([
+      'Electromagnetic Probe',
+      'Densitometer',
+      'Bioscanner',
+      'NAS',
+      'Geiger Counter',
+      'Probe Drone',
+    ]);
+    expect(equipment.every((item) => item.type === 'equipment')).toBe(true);
+    expect(equipment.every((item) => item.equipment.name === item.name)).toBe(true);
+    expect(equipment.find((item) => item.name === 'Bioscanner').equipment.mass).toBe(3.5);
+  });
+
   it('applies core career timing for aging and mustering out', () => {
     const character = generateCharacter({ seed: 'timing123', terms: 6, campaignMode: 'standard', expansions: {} });
     const musteringRolls = character.terms.reduce((total, term) => total + (term.MusteringOut?.rolls ?? 0), 0);

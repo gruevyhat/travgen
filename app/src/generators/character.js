@@ -85,7 +85,7 @@ export const CAREER_EXPANSIONS = [
   { key: 'scoundrel', label: 'Scoundrel' },
   { key: 'mercenary', label: 'Mercenary (CSC)' },
   { key: 'highGuard', label: 'High Guard' },
-  { key: 'scoutBook', label: 'Scout (Supplement)' },
+  { key: 'scoutBook', label: 'Scout' },
   { key: 'merchantPrince', label: 'Merchant Prince' },
 ];
 
@@ -755,6 +755,15 @@ function choiceBenefit(rng, stats, skills, career, roll) {
       source: 'benefit',
       type: 'equipment',
       equipment: implant,
+    };
+  }
+  if (benefit === 'Scientific Equipment') {
+    const equipment = chooseScientificEquipment(rng);
+    return {
+      name: equipment.name,
+      source: 'benefit',
+      type: 'equipment',
+      equipment,
     };
   }
   const name = benefit === 'Ship Shares' ? `Ship Shares (${mod})` : benefit;
@@ -1708,6 +1717,17 @@ function chooseCombatImplant(rng, stats, skills) {
   return choice(rng, options)();
 }
 
+function chooseScientificEquipment(rng) {
+  return choice(rng, [
+    { name: 'Electromagnetic Probe', source: 'benefit', cost: 1000, tl: 10 },
+    { name: 'Densitometer', source: 'benefit', cost: 20000, tl: 14, mass: 5 },
+    { name: 'Bioscanner', source: 'benefit', cost: 350000, tl: 15, mass: 3.5 },
+    { name: 'NAS', source: 'benefit', cost: 35000, tl: 15, mass: 10 },
+    { name: 'Geiger Counter', source: 'benefit', cost: 250, tl: 5 },
+    { name: 'Probe Drone', source: 'benefit', cost: 15000, tl: 11 },
+  ]);
+}
+
 function benefitToEquipment(benefit, rng, skills) {
   const weaponPools = {
     Weapon: ['Blade', 'Autopistol', 'Carbine', 'Rifle', 'Shotgun', 'Laser Pistol', 'Laser Carbine'],
@@ -1726,7 +1746,6 @@ function benefitToEquipment(benefit, rng, skills) {
   }
   const map = {
     Armor: 'Cloth armor',
-    'Scientific Equipment': 'Scientific equipment',
     'Air/Raft': 'Air/Raft',
     "Ship's Boat": "Ship's Boat",
   };

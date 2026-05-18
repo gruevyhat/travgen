@@ -22,10 +22,29 @@ import {
 } from './generators/character.js';
 import { generateSpacecraft } from './generators/spacecraft.js';
 import { learnSkills } from './generators/helpers.js';
+import { generateName } from './generators/names.js';
 import { d6 } from './generators/dice.js';
 
 const STAT_NAMES = ['Str', 'Dex', 'End', 'Int', 'Edu', 'Soc'];
 const MILITARY_CAREERS = new Set(['Army', 'Navy', 'Marines']);
+
+function snapshotAcc(a) {
+  if (!a) return null;
+  const { rng, careers, fallbackCareers, ...rest } = a;
+  try {
+    return JSON.parse(JSON.stringify(rest, (_, v) =>
+      v instanceof Set ? { __set: [...v] } : v
+    ));
+  } catch { return null; }
+}
+
+function restoreAcc(snapshot, original) {
+  if (!snapshot || !original) return original;
+  const revived = JSON.parse(JSON.stringify(snapshot), (_, v) =>
+    v && typeof v === 'object' && '__set' in v ? new Set(v.__set) : v
+  );
+  return { ...revived, rng: original.rng, careers: original.careers, fallbackCareers: original.fallbackCareers };
+}
 
 const DEFAULT_OPTIONS = {
   name: '', gender: '', homeworld: '', campaignMode: 'standard',
@@ -111,8 +130,27 @@ export function CharacterBuilder({ onViewCharacter }) {
   const [selectedSpec, setSelectedSpec] = useState('');
   const [finalChar, setFinalChar] = useState(null);
   const acc = useRef(null);
+  const phaseHistory = useRef([]);
+
+  function pushHistory() {
+    const snapshot = snapshotAcc(acc.current);
+    if (!snapshot) return;
+    phaseHistory.current.push({ phase, phaseData, accSnapshot: snapshot, rolledStats, selectedCareer, selectedSpec });
+  }
+
+  function handleGoBack() {
+    const prev = phaseHistory.current.pop();
+    if (!prev) return;
+    acc.current = restoreAcc(prev.accSnapshot, acc.current);
+    setPhase(prev.phase);
+    setPhaseData(prev.phaseData);
+    setRolledStats(prev.rolledStats ?? null);
+    setSelectedCareer(prev.selectedCareer ?? '');
+    setSelectedSpec(prev.selectedSpec ?? '');
+  }
 
   function handleStart(opts) {
+    phaseHistory.current = [];
     const newAcc = makeAcc(opts);
     acc.current = newAcc;
     const stats = Object.fromEntries(STAT_NAMES.map((s) => [s, rollStat(newAcc.rng, opts.method)]));
@@ -134,9 +172,10 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleConfirmStats() {
+    pushHistory();
     const a = acc.current;
     a.stats = { ...rolledStats };
-    const name = a.options.name || `Traveller-${Math.floor(Math.random() * 9999)}`;
+    const name = a.options.name || generateName(a.rng, { gender: a.options.gender || 'neutral' });
     a.options = { ...a.options, name };
     a.history[1] = ` Starting UPP: ${formatUpp(a.stats)} [${averageCore(a.stats).toFixed(1)}]`;
     const newBg = backgroundSkillCount(a.stats.Edu);
@@ -155,18 +194,34 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleBeginCareers() {
+    pushHistory();
     startTerm();
   }
 
   function startTerm() {
     const a = acc.current;
-    setSelectedCareer('');
-    setSelectedSpec('');
+    const lastTerm = a.terms[a.terms.length - 1];
+    const canContinue = !a.newCareer && a.terms.length > 0 && a.currentCareer;
+    const mustContinue = Boolean(lastTerm?.MustContinue);
+    if (canContinue) {
+      setSelectedCareer(a.currentCareer);
+      setSelectedSpec(a.currentSpec);
+    } else {
+      setSelectedCareer('');
+      setSelectedSpec('');
+    }
     setPhase('career');
-    setPhaseData({ termIndex: a.termIndex, maxTerms: a.maxTerms, pending: a.pending, careers: a.careers });
+    setPhaseData({
+      termIndex: a.termIndex, maxTerms: a.maxTerms, pending: a.pending, careers: a.careers,
+      previousCareer: canContinue ? a.currentCareer : null,
+      previousSpec: canContinue ? a.currentSpec : null,
+      canContinue,
+      mustContinue,
+    });
   }
 
   function handleQualify(career, spec) {
+    pushHistory();
     const a = acc.current;
     const { careers, fallbackCareers, stats, enteredCareers, pending } = a;
     const wasNewCareer = a.termIndex === 0 || a.currentCareer !== career;
@@ -258,6 +313,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterQualify() {
+    pushHistory();
     rollSurvival();
   }
 
@@ -312,6 +368,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterSurvival() {
+    pushHistory();
     // Queue one service skill pick
     const a = acc.current;
     a.pendingSkillPicks = [{ type: 'service' }];
@@ -323,11 +380,13 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterMishap() {
+    pushHistory();
     const a = acc.current;
     finalizeTerm(true);
   }
 
   function handleSkillPick(tableName) {
+    pushHistory();
     const a = acc.current;
     const result = skillRollOnTable(a.rng, a.stats, a.skills, a.currentCareer, a.currentSpec, tableName, a.history);
     if (!result) return;
@@ -348,6 +407,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterSkillResult() {
+    pushHistory();
     const a = acc.current;
     if (a.pendingSkillPicks.length > 0) {
       // More skill picks needed (event-granted or advancement)
@@ -402,6 +462,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterEvent() {
+    pushHistory();
     const a = acc.current;
     if (a.pendingSkillPicks.length > 0) {
       const nextCtx = a.pendingSkillPicks[0].type;
@@ -512,6 +573,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterAdvancement() {
+    pushHistory();
     const a = acc.current;
     if (a.pendingSkillPicks.length > 0) {
       setPhase('skill-pick');
@@ -525,6 +587,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function applyRankRewardAndContinue() {
+    pushHistory();
     const a = acc.current;
     const term = a.currentTerm;
     if (term.A) {
@@ -594,11 +657,13 @@ export function CharacterBuilder({ onViewCharacter }) {
     }
   }
 
-  function handleMusterPick(useCash) {
+  function handleMusterPick(useCash, useDm = true) {
+    pushHistory();
     const a = acc.current;
     const { rng, stats, skills, benefits, equipment, musterSegment } = a;
     const segment = musterSegment;
-    const dm = (useCash ? 0 : (segment?.highestRank >= 5 ? 1 : 0) + (segment?.benefitDm ?? 0));
+    const availableDm = useCash ? 0 : (segment?.highestRank >= 5 ? 1 : 0) + (segment?.benefitDm ?? 0);
+    const dm = useDm ? availableDm : 0;
     const natural = d6(rng);
     const roll = Math.min(7, natural + dm);
     let result;
@@ -668,6 +733,7 @@ export function CharacterBuilder({ onViewCharacter }) {
   }
 
   function handleAfterAging() {
+    pushHistory();
     startTerm();
   }
 
@@ -675,13 +741,15 @@ export function CharacterBuilder({ onViewCharacter }) {
     const a = acc.current;
     const careerPath = summarizeCareerPath(a.terms);
     const suggestions = purchaseCareerKit(a.rng, careerPath, a.homeworld, a.credits, a.equipment, a.skills);
-    const weapon = purchaseCombatWeapon(a.credits, a.equipment, a.skills);
-    if (suggestions.length === 0 && !weapon) {
+    const kitNames = new Set(suggestions.map((s) => s.name));
+    const weapon = purchaseCombatWeapon(a.credits, [...a.equipment, ...suggestions], a.skills);
+    const filteredWeapon = weapon && !kitNames.has(weapon.name) ? weapon : null;
+    if (suggestions.length === 0 && !filteredWeapon) {
       assembleCharacter();
       return;
     }
     setPhase('equipment');
-    setPhaseData({ suggestions, weapon, credits: a.credits });
+    setPhaseData({ suggestions, weapon: filteredWeapon, credits: a.credits });
   }
 
   function handleEquipmentConfirm(items) {
@@ -813,6 +881,9 @@ export function CharacterBuilder({ onViewCharacter }) {
     <div className={bStyles.builderWrap}>
       {phase !== 'setup' && (
         <div className={bStyles.builderProgress}>
+          {phaseHistory.current.length > 0 && (
+            <button className={bStyles.backBtn} type="button" onClick={handleGoBack}>← Back</button>
+          )}
           <ProgressBar phase={phase} acc={acc.current} />
         </div>
       )}
@@ -837,6 +908,7 @@ export function CharacterBuilder({ onViewCharacter }) {
               onCareerChange={(c) => { setSelectedCareer(c); setSelectedSpec(''); }}
               onSpecChange={setSelectedSpec}
               onQualify={() => handleQualify(selectedCareer, selectedSpec)}
+              onContinuePrevious={() => handleQualify(phaseData.previousCareer, phaseData.previousSpec)}
             />
           )}
           {phase === 'qualify' && phaseData && (
@@ -1002,19 +1074,32 @@ function SetupPhase({ options, setOptions, onStart }) {
 // ── Stats phase ──────────────────────────────────────────────────────────────
 
 function StatsPhase({ stats, onRerollAll, onSwap, onConfirm }) {
-  const [selected, setSelected] = useState(null);
+  const [dragging, setDragging] = useState(null);
+  const [over, setOver] = useState(null);
   const upp = formatUpp(stats);
   const avg = (STAT_NAMES.reduce((s, n) => s + (stats[n] ?? 0), 0) / 6).toFixed(1);
 
-  function handleRowClick(name) {
-    if (!selected) {
-      setSelected(name);
-    } else if (selected === name) {
-      setSelected(null);
-    } else {
-      onSwap(selected, name);
-      setSelected(null);
-    }
+  function handleDragStart(e, name) {
+    setDragging(name);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleDragOver(e, name) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOver(name);
+  }
+
+  function handleDrop(e, name) {
+    e.preventDefault();
+    if (dragging && dragging !== name) onSwap(dragging, name);
+    setDragging(null);
+    setOver(null);
+  }
+
+  function handleDragEnd() {
+    setDragging(null);
+    setOver(null);
   }
 
   return (
@@ -1022,23 +1107,21 @@ function StatsPhase({ stats, onRerollAll, onSwap, onConfirm }) {
       <div className={bStyles.phaseHeader}>
         <p className={styles.kicker}>Step 1</p>
         <h2>Characteristic Rolls</h2>
-        <p className={bStyles.phaseDesc}>
-          {selected
-            ? `${selected} selected — click another stat to swap, or click ${selected} again to deselect.`
-            : 'Click two stats to swap their values, or reroll all.'}
-        </p>
+        <p className={bStyles.phaseDesc}>Drag rows to reorder, or reroll all characteristics.</p>
       </div>
       <div className={bStyles.phaseBody}>
         <div className={bStyles.statsGrid}>
           {STAT_NAMES.map((name) => (
             <div
               key={name}
-              className={`${bStyles.statRollRow} ${selected === name ? bStyles.statRollRowSelected : ''}`}
-              onClick={() => handleRowClick(name)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleRowClick(name)}
+              className={`${bStyles.statRollRow} ${dragging === name ? bStyles.statRollRowDragging : ''} ${over === name && dragging !== name ? bStyles.statRollRowOver : ''}`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, name)}
+              onDragOver={(e) => handleDragOver(e, name)}
+              onDrop={(e) => handleDrop(e, name)}
+              onDragEnd={handleDragEnd}
             >
+              <span className={bStyles.statDragHandle}>⠿</span>
               <span className={bStyles.statRollName}>{name}</span>
               <span className={bStyles.statRollValue}>{stats[name]?.toString(16).toUpperCase()}</span>
               <span className={bStyles.statRollMod}>{modifier(stats[name] ?? 7) >= 0 ? `+${modifier(stats[name] ?? 7)}` : modifier(stats[name] ?? 7)}</span>
@@ -1051,7 +1134,7 @@ function StatsPhase({ stats, onRerollAll, onSwap, onConfirm }) {
         </div>
       </div>
       <div className={bStyles.phaseFooter}>
-        <button className={styles.secondaryAction} type="button" onClick={() => { onRerollAll(); setSelected(null); }}>↺ Reroll All</button>
+        <button className={styles.secondaryAction} type="button" onClick={onRerollAll}>↺ Reroll All</button>
         <button className={styles.primaryAction} type="button" onClick={onConfirm}>Confirm Stats</button>
       </div>
     </div>
@@ -1066,7 +1149,7 @@ function BackgroundPhase({ data, onContinue }) {
   return (
     <div className={bStyles.phaseCard}>
       <div className={bStyles.phaseHeader}>
-        <p className={styles.kicker}>Step 2</p>
+        <p className={styles.kicker}>Step 2 — Background &amp; Homeworld</p>
         <h2>{hw.name}</h2>
         <p className={bStyles.phaseDesc}>{hw.upp ? `UPP: ${hw.upp}` : ''}{hw.tradeCodes?.length > 0 ? ` · ${hw.tradeCodes.join(', ')}` : ''}</p>
       </div>
@@ -1140,12 +1223,14 @@ function BackgroundPhase({ data, onContinue }) {
 
 // ── Career pick phase ────────────────────────────────────────────────────────
 
-function CareerPickPhase({ phaseData, careers, selectedCareer, selectedSpec, onCareerChange, onSpecChange, onQualify }) {
-  const { termIndex, maxTerms, pending } = phaseData;
+function CareerPickPhase({ phaseData, careers, selectedCareer, selectedSpec, onCareerChange, onSpecChange, onQualify, onContinuePrevious }) {
+  const { termIndex, maxTerms, pending, previousCareer, previousSpec, canContinue, mustContinue } = phaseData;
+  const [changingCareer, setChangingCareer] = useState(false);
   const careerList = Object.keys(careers).filter((c) => !c.endsWith('Officer')).sort();
   const specs = selectedCareer ? Object.keys(careers[selectedCareer] ?? {}).sort() : [];
   const forcedCareer = pending?.forceCareer;
   const mustDraft = pending?.forceDraft;
+  const showPicker = !canContinue || mustDraft || changingCareer;
 
   return (
     <div className={bStyles.phaseCard}>
@@ -1155,41 +1240,70 @@ function CareerPickPhase({ phaseData, careers, selectedCareer, selectedSpec, onC
         <p className={bStyles.phaseDesc}>Select the career and specialty to attempt this term.</p>
       </div>
       <div className={bStyles.phaseBody}>
+        {mustContinue && (
+          <div className={bStyles.infoBanner}>
+            Advancement roll was 12 — you must continue in {previousCareer} / {previousSpec}.
+          </div>
+        )}
         {mustDraft && (
           <div className={bStyles.warningBanner}>⚠ You must take the Draft this term. A career will be assigned automatically when you qualify.</div>
         )}
         {forcedCareer && !mustDraft && (
           <div className={bStyles.infoBanner}>You may enter {forcedCareer} without a qualification roll.</div>
         )}
-        <div className={bStyles.careerPickGrid}>
-          <label className={styles.field}>
-            <span>Career</span>
-            <select value={selectedCareer} onChange={(e) => onCareerChange(e.target.value)}>
-              <option value="">— Select a career —</option>
-              {careerList.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-          <label className={styles.field}>
-            <span>Specialty</span>
-            <select value={selectedSpec} onChange={(e) => onSpecChange(e.target.value)} disabled={!selectedCareer}>
-              <option value="">— Select a specialty —</option>
-              {specs.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
-        </div>
+        {canContinue && !mustContinue && !mustDraft && (
+          <div className={bStyles.continueBanner}>
+            <div>
+              <strong>Continue as {previousCareer} / {previousSpec}</strong>
+              <p>No qualification roll needed — you are already established in this career.</p>
+            </div>
+            <div className={bStyles.continueActions}>
+              <button className={styles.primaryAction} type="button" onClick={onContinuePrevious}>
+                Continue →
+              </button>
+              <button className={styles.secondaryAction} type="button" onClick={() => { setChangingCareer(true); onCareerChange(''); }}>
+                Change Career
+              </button>
+            </div>
+          </div>
+        )}
+        {showPicker && !mustContinue && (
+          <div className={bStyles.careerPickGrid}>
+            <label className={styles.field}>
+              <span>Career</span>
+              <select value={selectedCareer} onChange={(e) => onCareerChange(e.target.value)}>
+                <option value="">— Select a career —</option>
+                {careerList.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className={styles.field}>
+              <span>Specialty</span>
+              <select value={selectedSpec} onChange={(e) => onSpecChange(e.target.value)} disabled={!selectedCareer}>
+                <option value="">— Select a specialty —</option>
+                {specs.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+          </div>
+        )}
         {selectedCareer && selectedSpec && careers[selectedCareer]?.[selectedSpec] && (
           <QualTarget table={careers[selectedCareer][selectedSpec]} career={selectedCareer} />
         )}
       </div>
       <div className={bStyles.phaseFooter}>
-        <button
-          className={styles.primaryAction}
-          type="button"
-          disabled={!selectedCareer || !selectedSpec}
-          onClick={onQualify}
-        >
-          Qualify →
-        </button>
+        {mustContinue ? (
+          <button className={styles.primaryAction} type="button" onClick={onContinuePrevious}>
+            Continue in {previousCareer} →
+          </button>
+        ) : showPicker ? (
+          <button
+            className={styles.primaryAction}
+            type="button"
+            disabled={!selectedCareer || !selectedSpec}
+            onClick={onQualify}
+          >
+            Qualify →
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -1443,14 +1557,15 @@ function AdvancementPhase({ data, onContinue }) {
 function MusterPhase({ data, cashRolls, onPick }) {
   const { rollNum, total, career, highRank, benefitDm, aging, results = [] } = data;
   const cashMaxed = cashRolls >= 3;
+  const totalBenefitDm = (highRank ? 1 : 0) + (benefitDm ?? 0);
+  const [useDm, setUseDm] = useState(true);
+
   return (
     <div className={bStyles.phaseCard}>
       <div className={bStyles.phaseHeader}>
         <p className={styles.kicker}>Mustering Out — {career}</p>
         <h2>Benefit Roll {rollNum} of {total}</h2>
         <p className={bStyles.phaseDesc}>
-          {highRank && <span>High rank: +1 DM to Benefits table. </span>}
-          {benefitDm > 0 && <span>+{benefitDm} DM to Benefits. </span>}
           {cashMaxed && <span>Cash limit reached (3 rolls max). </span>}
         </p>
       </div>
@@ -1465,6 +1580,12 @@ function MusterPhase({ data, cashRolls, onPick }) {
             </div>
           </div>
         )}
+        {totalBenefitDm > 0 && (
+          <label className={bStyles.dmToggle}>
+            <input type="checkbox" checked={useDm} onChange={(e) => setUseDm(e.target.checked)} />
+            <span>Apply +{totalBenefitDm} DM to Benefits table{highRank ? ' (high rank)' : ''}{benefitDm > 0 ? ` (+${benefitDm} from events)` : ''}</span>
+          </label>
+        )}
         {aging && (
           <div className={bStyles.resultBlock}>
             <p className={bStyles.resultLabel}>Aging this term</p>
@@ -1474,11 +1595,11 @@ function MusterPhase({ data, cashRolls, onPick }) {
       </div>
       <div className={bStyles.phaseFooter}>
         <div className={bStyles.musterChoices}>
-          <button className={styles.primaryAction} type="button" disabled={cashMaxed} onClick={() => onPick(true)}>
+          <button className={styles.primaryAction} type="button" disabled={cashMaxed} onClick={() => onPick(true, false)}>
             Cash Table
           </button>
-          <button className={styles.primaryAction} type="button" onClick={() => onPick(false)}>
-            Benefits Table
+          <button className={styles.primaryAction} type="button" onClick={() => onPick(false, useDm)}>
+            Benefits Table{totalBenefitDm > 0 && useDm ? ` (+${totalBenefitDm})` : ''}
           </button>
         </div>
       </div>

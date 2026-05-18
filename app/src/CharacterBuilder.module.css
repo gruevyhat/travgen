@@ -14,6 +14,9 @@
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .progressBar {
@@ -502,27 +505,111 @@
   border-top: 1px solid var(--border);
 }
 
-/* ── Stat swap (Feature 1) ──────────────────────────────────────────────── */
+/* ── Stat drag-and-drop (Feature 5) ─────────────────────────────────────── */
 
 .statRollRow {
   display: grid;
-  grid-template-columns: 48px 40px 36px;
+  grid-template-columns: 20px 48px 40px 36px;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 6px 8px;
   border-radius: 6px;
-  cursor: pointer;
+  cursor: grab;
   border: 1px solid transparent;
-  transition: background 0.1s, border-color 0.1s;
+  transition: background 0.1s, border-color 0.1s, opacity 0.1s;
+  user-select: none;
 }
 
 .statRollRow:hover {
   background: var(--surface-2);
 }
 
-.statRollRowSelected {
+.statRollRowDragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.statRollRowOver {
   background: var(--surface-3);
   border-color: var(--accent);
+}
+
+.statDragHandle {
+  color: var(--text-3);
+  font-size: 1rem;
+  cursor: grab;
+}
+
+/* ── Back button ─────────────────────────────────────────────────────────── */
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.1s;
+}
+
+.backBtn:hover {
+  color: var(--text);
+}
+
+/* ── Continue career banner (Feature 1) ─────────────────────────────────── */
+
+.continueBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.continueBanner strong {
+  font-size: 0.95rem;
+}
+
+.continueBanner p {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  margin: 2px 0 0;
+}
+
+.continueActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.continueActions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* ── DM toggle (Feature 2) ───────────────────────────────────────────────── */
+
+.dmToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.dmToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* ── Homeworld details (Feature 2) ──────────────────────────────────────── */

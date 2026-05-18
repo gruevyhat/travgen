@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CORE_SKILLS } from '../generators/character.js';
 import coreRules from './coreRules.json';
 
 function expandRanges(ranges) {
@@ -32,5 +33,6 @@ describe('core rules data', () => {
     const skills = Object.values(coreRules.homeworldGeneration.tradeCodeSkills).flat();
 
     expect(skills.every((skill) => typeof skill === 'string' && skill.length > 0)).toBe(true);
+    expect(skills.every((skill) => CORE_SKILLS.includes(skill))).toBe(true);
   });
 });

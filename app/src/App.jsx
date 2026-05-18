@@ -1009,8 +1009,7 @@ function SkillsSection({ skills, onRoll }) {
 
 function CareerSummary({ history }) {
   if (!history?.length) return null;
-  const showIncidents = history.some((row) => row.event);
-  const showLifeEvents = history.some((row) => row.lifeEvents?.length);
+  const showEvents = history.some((row) => row.event || row.lifeEvents?.length);
   return (
     <section className={`${styles.sheetPanel} ${styles.careerSummaryPanel}`} aria-label="Career history">
       <div className={styles.sectionHeader}>
@@ -1026,26 +1025,27 @@ function CareerSummary({ history }) {
               <th>Branch</th>
               <th>Rank</th>
               <th>Title</th>
-              {showIncidents ? <th>Event/Mishap</th> : null}
-              {showLifeEvents ? <th>Life Events</th> : null}
+              {showEvents ? <th>Event/Mishap</th> : null}
             </tr>
           </thead>
           <tbody>
-            {history.map((row) => (
-              <tr key={row.term} className={!row.survived ? styles.mishapRow : ''}>
-                <td>{row.term}</td>
-                <td>{row.career}</td>
-                <td>{row.spec}</td>
-                <td>{row.rank}</td>
-                <td>{row.title ?? '—'}</td>
-                {showIncidents ? (
-                  <td>{row.event ? `${row.incidentType ?? (row.survived ? 'Event' : 'Mishap')}: ${row.event}` : '—'}</td>
-                ) : null}
-                {showLifeEvents ? (
-                  <td>{row.lifeEvents?.length ? row.lifeEvents.map((event) => event.label).join('; ') : '—'}</td>
-                ) : null}
-              </tr>
-            ))}
+            {history.map((row) => {
+              const parts = [];
+              const lifeEvents = row.lifeEvents ?? [];
+              const isLifeEventTrigger = lifeEvents.length > 0 && /^Life Event\.?\s*$/i.test(row.event?.trim() ?? '');
+              if (row.event && !isLifeEventTrigger) parts.push(`${row.incidentType ?? (row.survived ? 'Event' : 'Mishap')}: ${row.event}`);
+              for (const le of lifeEvents) parts.push(`Life Event: ${le.label}`);
+              return (
+                <tr key={row.term} className={!row.survived ? styles.mishapRow : ''}>
+                  <td>{row.term}</td>
+                  <td>{row.career}</td>
+                  <td>{row.spec}</td>
+                  <td>{row.rank}</td>
+                  <td>{row.title ?? '—'}</td>
+                  {showEvents ? <td>{parts.length ? parts.join('; ') : '—'}</td> : null}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

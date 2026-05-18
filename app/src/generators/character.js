@@ -51,7 +51,8 @@ const DRAFT_TABLE = [
 let localCareerTables = null;
 if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
   const localCareerTableModules = import.meta.glob('../data/coreCareerTables.local.json', { eager: true });
-  localCareerTables = localCareerTableModules['../data/coreCareerTables.local.json']?.default ?? null;
+  const localMod = localCareerTableModules['../data/coreCareerTables.local.json'];
+  localCareerTables = localMod?.default ?? localMod ?? null;
 }
 const EXPANSIONS = {
   psion: 'PSION',
@@ -442,12 +443,21 @@ export function generateCharacter(options = {}) {
     equipment.push(combatWeapon);
   }
   for (const debt of debts) credits -= debt.amount;
-  // RAW: specialties are only chosen at level 1+; level-0 specialty entries collapse to the base.
-  // A specialty at 0 is identical to the unspecialized level, so promote it to the base instead.
+  // RAW: specialties are only chosen at level 1+; a lone level-0 specialty collapses to the base.
+  // When multiple distinct level-0 specialties exist they are kept — collapsing would lose information.
+  const level0SpecialtyCount = {};
+  for (const key of Object.keys(skills)) {
+    const match = key.match(/^(.+?)\s*\(/);
+    if (match && skills[key] === 0) {
+      const parent = match[1].trim();
+      level0SpecialtyCount[parent] = (level0SpecialtyCount[parent] ?? 0) + 1;
+    }
+  }
   for (const key of [...Object.keys(skills)]) {
     const match = key.match(/^(.+?)\s*\(/);
     if (!match || skills[key] !== 0) continue;
     const parent = match[1].trim();
+    if ((level0SpecialtyCount[parent] ?? 0) > 1) continue;
     if (skills[parent] === undefined) skills[parent] = 0;
     delete skills[key];
   }
@@ -1038,8 +1048,8 @@ function detectEventChoiceType(text) {
   }
 
   // GAIN_ONE_OF: multiple named skill options to choose from
-  const oneOf = t.match(/Gain one of ([^.]+?)(?:\.|, but|, and| or a Contact|$)/i)
-    ?? t.match(/Gain one level (?:of|in)\s+([^.]+?)(?:\.|, but| or a Contact|$)/i);
+  const oneOf = t.match(/Gain one of ([^.]+?)(?:\.|,\s*as well|, but|, and| or a Contact|$)/i)
+    ?? t.match(/Gain one level (?:of|in)\s+([^.]+?)(?:\.|,\s*as well|, but| or a Contact|$)/i);
   if (oneOf) {
     const options = extractSkillOptions(oneOf[1]);
     if (options.length > 1) return { type: 'gain_one_of', options };
@@ -1365,10 +1375,10 @@ function resolveUnusualLifeEvent(rng, stats, state) {
 function applyAssociationEffects(rng, text, state) {
   addRepeated(state.contacts, 'Contact', rollQuantity(rng, text, /gain\s+(1d[36]|\d+)\s+Contacts?/i));
   addRepeated(state.enemies, 'Enemy', rollQuantity(rng, text, /gain\s+(1d3|1d6|\d+)\s+Enemies/i));
-  if (/\bgain (?:an |a )?Enemy\b/i.test(text) || /\bgain .+ as an Enemy\b/i.test(text)) state.enemies.push('Enemy');
-  if (/\bgain (?:an |a )?Rival\b/i.test(text) || /\bgain .+ as a Rival\b/i.test(text)) state.enemies.push('Rival');
-  if (/\bgain (?:an |a )?Ally\b/i.test(text) || /becomes an Ally/i.test(text) || /\bgain .+ as an Ally\b/i.test(text)) state.contacts.push('Ally');
-  if (/\bgain (?:a )?Contact\b/i.test(text) || /gain .* as a Contact/i.test(text)) state.contacts.push('Contact');
+  if (/\bgain (?:an |a )?Enemy\b/i.test(text) || /\bgain .+ as an Enemy\b/i.test(text) || /\b(?:as well as|and) an? Enemy\b/i.test(text)) state.enemies.push('Enemy');
+  if (/\bgain (?:an |a )?Rival\b/i.test(text) || /\bgain .+ as a Rival\b/i.test(text) || /\b(?:as well as|and) an? Rival\b/i.test(text)) state.enemies.push('Rival');
+  if (/\bgain (?:an |a )?Ally\b/i.test(text) || /becomes an Ally/i.test(text) || /\bgain .+ as an Ally\b/i.test(text) || /\b(?:as well as|and) an? Ally\b/i.test(text)) state.contacts.push('Ally');
+  if (/\bgain (?:a )?Contact\b/i.test(text) || /gain .* as a Contact/i.test(text) || /\b(?:as well as|and) an? Contact\b/i.test(text)) state.contacts.push('Contact');
   if (/Patron/i.test(text)) state.contacts.push('Patron');
 }
 
@@ -1395,7 +1405,7 @@ function applyStatGainLossEffects(rng, text, stats) {
 function applySkillEffects(rng, text, skills, career, spec, history, choices = {}) {
   const isEitherAdv = /Either .+? or (?:take )?(?:a\s+)?\+?4 DM to/i.test(text);
 
-  const oneOf = text.match(/Gain one of ([^.]+?)(?:\.|, but|, and| or a Contact|$)/i);
+  const oneOf = text.match(/Gain one of ([^.]+?)(?:\.|,\s*as well|, but|, and| or a Contact|$)/i);
   if (oneOf) {
     const options = extractSkillOptions(oneOf[1]);
     const picked = choices.gainOneOf && options.includes(choices.gainOneOf) ? choices.gainOneOf : choice(rng, options);
@@ -1407,7 +1417,7 @@ function applySkillEffects(rng, text, skills, career, spec, history, choices = {
       gainSkill(skills, resolveAwardedSkill(rng, skills, directSkill[1]), Number.parseInt(directSkill[2], 10));
     }
   }
-  const oneLevel = text.match(/Gain one level (?:of|in)\s+([^.]+?)(?:\.|, but|, and| or a Contact|$)/i);
+  const oneLevel = text.match(/Gain one level (?:of|in)\s+([^.]+?)(?:\.|,\s*as well|, but|, and| or a Contact|$)/i);
   if (oneLevel) {
     const options = extractSkillOptions(oneLevel[1]);
     const picked = choices.gainOneOf && options.includes(choices.gainOneOf) ? choices.gainOneOf : choice(rng, options);
@@ -1633,9 +1643,12 @@ function musterOutCareer(rng, stats, skills, segment, benefits, equipment, cashS
   const rollCount = Math.max(0, segment.terms + failedTermRoll + segment.extraBenefitRolls - segment.lostBenefitRolls + rankBenefitRolls(segment.highestRank));
   const items = [];
   const details = [];
+  let remainingBenefitDm = segment.benefitDm;
   for (let index = 0; index < rollCount; index += 1) {
     const useCash = (cashState.getCashRolls?.() ?? cashState.cashRolls) < 3 && rng() < 0.5;
-    const dm = (segment.highestRank >= 5 && !useCash ? 1 : 0) + (!useCash ? segment.benefitDm : 0);
+    const eventDm = !useCash && remainingBenefitDm > 0 ? remainingBenefitDm : 0;
+    const dm = (segment.highestRank >= 5 && !useCash ? 1 : 0) + eventDm;
+    if (eventDm > 0) remainingBenefitDm = 0;
     const natural = d6(rng);
     const roll = Math.min(7, natural + dm);
     if (useCash) {

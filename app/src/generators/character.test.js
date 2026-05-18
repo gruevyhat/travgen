@@ -378,6 +378,28 @@ describe('character generator', () => {
     expect(character.lifeEvents.every((event) => character.careerHistory[event.term - 1].lifeEvents.includes(event))).toBe(true);
   });
 
+  it('replaces life event table instructions with resolved life event results', () => {
+    const character = Array.from({ length: 160 }, (_, index) => generateCharacter({
+      seed: `resolved-life${index}`,
+      terms: 6,
+      campaignMode: 'standard',
+      expansions: {},
+    })).find((generated) => generated.lifeEvents.length);
+
+    expect(character).toBeTruthy();
+    const lifeEventTerms = character.terms.filter((term) => term.lifeEvents?.length);
+    expect(lifeEventTerms.length).toBeGreaterThan(0);
+    for (const term of lifeEventTerms) {
+      const incident = term.event ?? term.mishap;
+      const incidentStep = term.steps.find((step) => ['Event', 'Mishap'].includes(step.stage));
+      expect(incident.label).toMatch(/^Life Event:/);
+      expect(incident.label).not.toMatch(/Roll on the Life Events table/i);
+      expect(incidentStep.result).toBe(incident.label);
+      expect(incidentStep.detail).not.toMatch(/Roll on the Life Events table|page 34/i);
+      expect(character.careerHistory[term.T].event).toBe(incident.label);
+    }
+  });
+
   it('uses 3 plus Education DM as the background skill budget', () => {
     const character = generateCharacter({ seed: 'home1234', terms: 1, campaignMode: 'chthonian', homeworld: 'Mars', upp: '222292' });
     const awards = backgroundAwards(character);

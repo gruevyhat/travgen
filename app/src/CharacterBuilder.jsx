@@ -869,10 +869,13 @@ export function CharacterBuilder({ onViewCharacter }) {
     const a = acc.current;
     const { rng, stats, skills, benefits, equipment, musterSegment } = a;
     const segment = musterSegment;
-    const availableDm = useCash ? 0 : (segment?.highestRank >= 5 ? 1 : 0) + (segment?.benefitDm ?? 0);
+    const rankDm = segment?.highestRank >= 5 ? 1 : 0;
+    const eventDm = segment?.benefitDm ?? 0;
+    const availableDm = useCash ? 0 : rankDm + eventDm;
     const dm = useDm ? availableDm : 0;
     const natural = d6(rng);
     const roll = Math.min(7, natural + dm);
+    if (!useCash && useDm && eventDm > 0) a.musterSegment.benefitDm = 0;
     let result;
     if (useCash) {
       a.cashRolls += 1;
@@ -998,17 +1001,22 @@ export function CharacterBuilder({ onViewCharacter }) {
     const bio = buildCharacterBio({ name: options.name, gender: options.gender || 'neutral', homeworld, backgroundSkills: backgroundSkills.map(([skill]) => skill), careerPath, events, mishaps, lifeEvents });
     const pension = calculatePension(terms);
     const totalDebt = debts.reduce((sum, d) => sum + d.amount, 0);
-    const careerHistory = terms.map((term) => ({
-      term: term.T + 1,
-      career: term.Career,
-      spec: term.Spec,
-      rank: term.Rnk ?? 0,
-      title: rankTitle(term.Career, term.Rnk),
-      event: term.mishap ? term.mishap.label : (term.event ? term.event.label : null),
-      incidentType: term.mishap ? 'Mishap' : (term.event ? 'Event' : null),
-      incidentRoll: term.mishap?.roll ?? term.event?.roll ?? null,
-      survived: Boolean(term.S),
-    }));
+    const careerHistory = terms.map((term) => {
+      const nested = [...(term.event?.nested ?? []), ...(term.mishap?.nested ?? [])];
+      const termLifeEvents = nested.filter((e) => e.source === 'life_event' || e.source === 'unusual_life_event');
+      return {
+        term: term.T + 1,
+        career: term.Career,
+        spec: term.Spec,
+        rank: term.Rnk ?? 0,
+        title: rankTitle(term.Career, term.Rnk),
+        event: term.mishap ? term.mishap.label : (term.event ? term.event.label : null),
+        incidentType: term.mishap ? 'Mishap' : (term.event ? 'Event' : null),
+        incidentRoll: term.mishap?.roll ?? term.event?.roll ?? null,
+        lifeEvents: termLifeEvents,
+        survived: Boolean(term.S),
+      };
+    });
 
     const character = {
       seed: 'interactive',

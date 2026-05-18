@@ -262,6 +262,7 @@ export function generateCharacter(options = {}) {
       term.A = false;
       newCareer = true;
       const mishap = d6(rng);
+      const lifeEventStart = lifeEvents.length;
       term.EM = `m[${mishap}]`;
       term.mishap = termRecord(resolveMishap(rng, mishap, stats, {
         contacts,
@@ -278,6 +279,7 @@ export function generateCharacter(options = {}) {
         setCredits: (value) => { credits = value; },
       }), index, currentCareer, currentSpec);
       term.incidents = [term.mishap];
+      term.lifeEvents = attachLifeEventsToTerm(lifeEvents, lifeEventStart, index, currentCareer, currentSpec);
       mishaps.push(term.mishap);
       term.S = Boolean(term.mishap.continueCareer);
       newCareer = !term.S;
@@ -292,6 +294,7 @@ export function generateCharacter(options = {}) {
       newCareer = false;
       term.steps.push(skillStep('Service Skill', skillRoll(rng, stats, skills, currentCareer, currentSpec, history, { commissioned })));
       const event = [d6(rng), d6(rng)];
+      const lifeEventStart = lifeEvents.length;
       term.EM = `e[${event[0]},${event[1]}]`;
       term.event = termRecord(resolveCareerEvent(rng, event[0] + event[1], stats, skills, currentCareer, currentSpec, {
         contacts,
@@ -308,6 +311,7 @@ export function generateCharacter(options = {}) {
         creditsRef: () => credits,
       }, history), index, currentCareer, currentSpec);
       term.incidents = [term.event];
+      term.lifeEvents = attachLifeEventsToTerm(lifeEvents, lifeEventStart, index, currentCareer, currentSpec);
       events.push(term.event);
       history.push(` Event: ${term.event.label}.`);
       term.steps.push({
@@ -464,6 +468,9 @@ export function generateCharacter(options = {}) {
     rank: term.Rnk ?? 0,
     title: rankTitle(term.Career, term.Rnk),
     event: term.mishap ? term.mishap.label : (term.event ? term.event.label : null),
+    incidentType: term.mishap ? 'Mishap' : (term.event ? 'Event' : null),
+    incidentRoll: term.mishap?.roll ?? term.event?.roll ?? null,
+    lifeEvents: term.lifeEvents ?? [],
     survived: Boolean(term.S),
   }));
 
@@ -572,7 +579,8 @@ function draftOrDrift(rng, careers, fallbackCareers, usedDraft) {
       return [career, spec && careers[career][spec] ? spec : choice(rng, Object.keys(careers[career])), true];
     }
   }
-  const drifter = fallbackCareers.includes('Drifter') && careers.Drifter ? 'Drifter' : choice(fallbackCareers.filter((career) => careers[career]) || ['Drifter']);
+  const filtered = fallbackCareers.filter((career) => careers[career]);
+  const drifter = fallbackCareers.includes('Drifter') && careers.Drifter ? 'Drifter' : choice(rng, filtered.length ? filtered : ['Drifter']);
   return [drifter, choice(rng, Object.keys(careers[drifter])), usedDraft];
 }
 
@@ -740,6 +748,15 @@ function choiceBenefit(rng, stats, skills, career, roll) {
     addSkill(skills, skill, mod);
     return { name: `${skill} +${mod}`, source: 'benefit', type: 'skill' };
   }
+  if (benefit === 'Combat Implant') {
+    const implant = chooseCombatImplant(rng, stats, skills);
+    return {
+      name: implant.name,
+      source: 'benefit',
+      type: 'equipment',
+      equipment: implant,
+    };
+  }
   const name = benefit === 'Ship Shares' ? `Ship Shares (${mod})` : benefit;
   return {
     name,
@@ -859,7 +876,10 @@ function skillStep(stage, roll) {
 
 function detailForIncident(incident) {
   const parts = [];
-  if (incident.text) parts.push(incident.text);
+  if (incident.text) parts.push(`Text: ${incident.text}`);
+  else parts.push(`Text: ${incident.label}.`);
+  const effect = effectSummary(incident);
+  if (effect) parts.push(`Effect: ${effect}.`);
   if (incident.checks?.length) {
     parts.push(`Checks: ${incident.checks.map((check) => `${check.skill} ${check.target}+ rolled ${check.roll}, total ${check.total}: ${check.success ? 'success' : 'failure'}`).join('; ')}`);
   }
@@ -870,6 +890,31 @@ function detailForIncident(incident) {
     parts.push(`Applied: ${incident.applied.join('; ')}.`);
   }
   return parts.join(' ');
+}
+
+function effectSummary(incident) {
+  const summaries = {
+    advancement_bonus: 'Gain +2 DM to this term\'s Advancement roll',
+    ally: 'Gain an ally',
+    ally_or_rival: 'Gain an ally or rival',
+    award: 'Gain a commendation',
+    career_skill: 'Gain one career skill roll',
+    cash: 'Gain 1000 credits',
+    contact: 'Gain a contact',
+    debt: 'Lose 1000 credits',
+    debt_or_contact_loss: 'Lose 1000 credits or a contact',
+    enemy: 'Gain an enemy',
+    enemy_or_cash: 'Gain an enemy or 1000 credits',
+    enemy_or_injury: 'Gain an enemy or roll on the Injury table',
+    injury: 'Roll on the Injury table',
+    life_event: 'Roll on the Life Events table',
+    patron: 'Gain a patron',
+    promotion_bonus: incident.roll === 12
+      ? 'Gain +2 DM to Advancement and automatic promotion on success'
+      : 'Gain +2 DM to this term\'s Advancement roll',
+    rival: 'Gain a rival',
+  };
+  return summaries[incident.effect] ?? null;
 }
 
 function agingResultText(aging) {
@@ -966,7 +1011,9 @@ function summarizeLocalTableText(text) {
 function resolveCareerEvent(rng, roll, stats, skills, career, spec, state, history) {
   const entry = lookupRange(coreRules.rollTables.careerEvents.ranges, roll);
   const localEntry = localCareerEntry(career, 'events', roll);
+  const before = localEntry ? null : snapshotEffectState(stats, skills, state);
   const generic = localEntry ? {} : applyRuleEffect(rng, entry.effect, stats, skills, career, spec, state, history);
+  const genericApplied = before ? diffEffectState(before, stats, skills, state) : [];
   const raw = localEntry ? applyRawTableText(rng, localEntry.text, stats, skills, career, spec, state, history, 'event') : {};
   return {
     roll,
@@ -980,14 +1027,16 @@ function resolveCareerEvent(rng, roll, stats, skills, career, spec, state, histo
     automaticCommission: Boolean(raw.automaticCommission),
     checks: raw.checks ?? [],
     nested: raw.nested ?? [],
-    applied: raw.applied ?? [],
+    applied: raw.applied ?? genericApplied,
   };
 }
 
 function resolveMishap(rng, roll, stats, state) {
   const entry = lookupRange(coreRules.rollTables.careerMishaps.ranges, roll);
   const localEntry = localCareerEntry(state.career, 'mishaps', roll);
+  const before = localEntry ? null : snapshotEffectState(stats, state.skills ?? {}, state);
   const generic = localEntry ? {} : applyRuleEffect(rng, entry.effect, stats, state.skills ?? {}, state.career ?? 'Drifter', state.spec ?? 'Wanderer', state, []);
+  const genericApplied = before ? diffEffectState(before, stats, state.skills ?? {}, state) : [];
   const raw = localEntry ? applyRawTableText(rng, localEntry.text, stats, state.skills ?? {}, state.career ?? 'Drifter', state.spec ?? 'Wanderer', state, [], 'mishap') : {};
   return {
     roll,
@@ -998,7 +1047,7 @@ function resolveMishap(rng, roll, stats, state) {
     tableSource: localEntry ? 'local-pdf' : 'structured-fallback',
     checks: raw.checks ?? generic.checks ?? [],
     nested: raw.nested ?? generic.nested ?? [],
-    applied: raw.applied ?? [],
+    applied: raw.applied ?? genericApplied,
     continueCareer: Boolean(raw.continueCareer),
   };
 }
@@ -1322,6 +1371,7 @@ function snapshotEffectState(stats, skills, state) {
   return {
     stats: Object.fromEntries([...STAT_NAMES, 'Psi'].map((stat) => [stat, stats[stat]])),
     skills: { ...skills },
+    credits: state.creditsRef?.() ?? null,
     contacts: [...(state.contacts ?? [])],
     enemies: [...(state.enemies ?? [])],
     awards: [...(state.awards ?? [])],
@@ -1353,6 +1403,10 @@ function diffEffectState(before, stats, skills, state) {
     if (before.skills[skill] !== value) {
       applied.push(`${before.skills[skill] === undefined ? 'Added' : 'Updated'} ${skill} ${value}`);
     }
+  }
+  const credits = state.creditsRef?.() ?? null;
+  if (before.credits !== null && credits !== null && credits !== before.credits) {
+    applied.push(`Credits ${signed(credits - before.credits)}`);
   }
   appendNew(applied, 'Contact gained', before.contacts, state.contacts);
   appendNew(applied, 'Enemy/Rival gained', before.enemies, state.enemies);
@@ -1599,10 +1653,59 @@ function termRecord(record, index, career, specialty) {
   };
 }
 
+function attachLifeEventsToTerm(lifeEvents, startIndex, index, career, specialty) {
+  return lifeEvents.slice(startIndex).map((event) => {
+    Object.assign(event, {
+      term: index + 1,
+      career,
+      specialty,
+    });
+    return event;
+  });
+}
+
 function benefitToType(benefit) {
   if (['Weapon', 'Gun', 'Blade', 'Armor', 'Scientific Equipment', 'Air/Raft', "Ship's Boat"].includes(benefit)) return 'equipment';
   if (['Contact', 'Ally', 'TAS Membership'].includes(benefit)) return 'relationship';
   return 'asset';
+}
+
+function chooseCombatImplant(rng, stats, skills) {
+  const knownSkills = Object.keys(skills)
+    .filter((skill) => skills[skill] >= 0)
+    .sort();
+  const stat = choice(rng, ['Str', 'Dex', 'End', 'Int']);
+  const options = [
+    () => ({
+      name: `Skill Augmentation (${knownSkills.length ? choice(rng, knownSkills) : 'Jack of all Trades'})`,
+      source: 'benefit',
+      cost: 0,
+      tl: 12,
+    }),
+    () => ({
+      name: 'Wafer Jack',
+      source: 'benefit',
+      cost: 0,
+      tl: 12,
+    }),
+    () => ({
+      name: 'Subdermal Armour',
+      source: 'benefit',
+      cost: 0,
+      tl: 10,
+      protection: 1,
+    }),
+    () => {
+      stats[stat] = Math.max(0, (stats[stat] ?? 0) + 1);
+      return {
+        name: `Characteristic Augmentation (${stat} +1)`,
+        source: 'benefit',
+        cost: 0,
+        tl: stat === 'Int' ? 12 : 11,
+      };
+    },
+  ];
+  return choice(rng, options)();
 }
 
 function benefitToEquipment(benefit, rng, skills) {
@@ -1626,7 +1729,6 @@ function benefitToEquipment(benefit, rng, skills) {
     'Scientific Equipment': 'Scientific equipment',
     'Air/Raft': 'Air/Raft',
     "Ship's Boat": "Ship's Boat",
-    'Combat Implant': 'Combat implant',
   };
   return map[benefit] ? { name: map[benefit], source: 'benefit', cost: 0 } : null;
 }
@@ -1697,10 +1799,13 @@ function bestWeaponSkill(skills, weapon) {
   return known[0] ?? { name: weapon.skill, level: null };
 }
 
-function matchingSkillEntries(skills, baseName) {
-  return Object.entries(skills)
-    .filter(([name]) => name === baseName || name.startsWith(`${baseName} (`))
-    .map(([name, level]) => ({ name, level }));
+function matchingSkillEntries(skills, skillName) {
+  if (skills[skillName] !== undefined) return [{ name: skillName, level: skills[skillName] }];
+  return [];
+}
+
+function hasSkillBase(skills, baseName) {
+  return Object.keys(skills).some((name) => name === baseName || name.startsWith(`${baseName} (`));
 }
 
 function weaponSkillScore(item, skills) {
@@ -1709,8 +1814,22 @@ function weaponSkillScore(item, skills) {
   const primarySkill = combatData.skill;
   const baseName = primarySkill.split(' (')[0];
   if (skills[primarySkill] >= 0) return 10;
-  if (Object.keys(skills).some((s) => s === baseName || s.startsWith(`${baseName} (`))) return 5;
+  if (hasSkillBase(skills, baseName)) return 5;
   return 0;
+}
+
+function weaponSkillKey(item, skills) {
+  const combatData = coreRules.weaponCombat[item.name];
+  if (!combatData) return null;
+  const baseName = combatData.skill.split(' (')[0];
+  return hasSkillBase(skills, baseName) ? baseName : null;
+}
+
+function armorSkillKey(item, skills) {
+  if (item.protection === undefined) return null;
+  const required = item.notes?.match(/Requires\s+(.+?)\s+\d+/i)?.[1];
+  if (!required) return 'Armor';
+  return hasSkillBase(skills, required) ? required : null;
 }
 
 function purchaseCombatWeapon(credits, equipment, skills) {
@@ -1720,6 +1839,7 @@ function purchaseCombatWeapon(credits, equipment, skills) {
   if (!hasCombatSkill) return null;
 
   const owned = new Set(equipment.map((e) => e.name));
+  const ownedWeaponSkills = new Set(equipment.map((item) => weaponSkillKey(item, skills)).filter(Boolean));
   const candidates = Object.entries(coreRules.weaponCombat)
     .filter(([name, weapon]) => {
       const base = weapon.skill.split(' (')[0];
@@ -1727,9 +1847,9 @@ function purchaseCombatWeapon(credits, equipment, skills) {
     })
     .map(([name]) => {
       const equipEntry = coreRules.equipment.find((e) => e.name === name);
-      return equipEntry ? { name, cost: equipEntry.cost } : null;
+      return equipEntry ? { name, cost: equipEntry.cost, skillKey: weaponSkillKey(equipEntry, skills) } : null;
     })
-    .filter((w) => w && !owned.has(w.name) && w.cost <= credits)
+    .filter((w) => w && w.skillKey && !ownedWeaponSkills.has(w.skillKey) && !owned.has(w.name) && w.cost <= credits)
     .sort((a, b) => {
       const scoreDiff = weaponSkillScore(b, skills) - weaponSkillScore(a, skills);
       return scoreDiff !== 0 ? scoreDiff : a.cost - b.cost;
@@ -1743,8 +1863,12 @@ function purchaseCareerKit(rng, careerPath, homeworld, credits, ownedEquipment =
   if (budget <= 0) return [];
   const careerTags = careerPath.flatMap(({ career }) => String(career).toLowerCase().split(/\s+/));
   const tags = new Set([...careerTags, ...homeworld.tradeCodes.map((code) => code.toLowerCase().split(/\s+/)[0]), 'all']);
+  const purchasedWeaponSkills = new Set(ownedEquipment.map((item) => weaponSkillKey(item, skills)).filter(Boolean));
+  const purchasedArmorSkills = new Set(ownedEquipment.map((item) => armorSkillKey(item, skills)).filter(Boolean));
   const candidates = coreRules.equipment
     .filter((item) => item.tags.some((tag) => tags.has(tag)))
+    .filter((item) => !coreRules.weaponCombat[item.name] || weaponSkillKey(item, skills))
+    .filter((item) => item.protection === undefined || armorSkillKey(item, skills))
     .sort((a, b) => {
       const scoreDiff = weaponSkillScore(b, skills) - weaponSkillScore(a, skills);
       return scoreDiff !== 0 ? scoreDiff : (a.cost - b.cost || a.name.localeCompare(b.name));
@@ -1752,10 +1876,16 @@ function purchaseCareerKit(rng, careerPath, homeworld, credits, ownedEquipment =
   let remaining = budget;
   const kit = [];
   for (const item of sample(rng, candidates, candidates.length)) {
-    if (item.cost <= remaining && !kit.some((owned) => owned.name === item.name) && !ownedEquipment.some((owned) => owned.name === item.name)) {
-      kit.push({ name: item.name, cost: item.cost, source: 'purchased' });
-      remaining -= item.cost;
-    }
+    if (item.cost > remaining) continue;
+    if (kit.some((owned) => owned.name === item.name) || ownedEquipment.some((owned) => owned.name === item.name)) continue;
+    const weaponKey = weaponSkillKey(item, skills);
+    if (coreRules.weaponCombat[item.name] && purchasedWeaponSkills.has(weaponKey)) continue;
+    const armorKey = armorSkillKey(item, skills);
+    if (item.protection !== undefined && purchasedArmorSkills.has(armorKey)) continue;
+    kit.push({ name: item.name, cost: item.cost, source: 'purchased' });
+    if (weaponKey) purchasedWeaponSkills.add(weaponKey);
+    if (armorKey) purchasedArmorSkills.add(armorKey);
+    remaining -= item.cost;
   }
   return kit.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -2000,3 +2130,69 @@ Seed: ${character.seed}`;
 function signed(value) {
   return value >= 0 ? `+${value}` : String(value);
 }
+
+// ── Builder helpers ──────────────────────────────────────────────────────────
+
+export function availableSkillTables(career, spec, stats, commissioned = false) {
+  const tabs = ['Personal Development', 'Service', 'Specialization'];
+  const table = gameData.SKILLS[`${career}|${spec}`] ?? gameData.SKILLS['Drifter|Wanderer'];
+  if (career !== 'Drifter' && table.length > 24 && stats.Edu >= 8) tabs.push('Advanced Education');
+  if (commissioned && MILITARY_CAREERS.has(career)) tabs.push('Officer');
+  return tabs;
+}
+
+export function skillRollOnTable(rng, stats, skills, career, spec, tableName, history) {
+  const roll = d6(rng);
+  const entry = getSkillSlice(career.replace(' Officer', ''), spec, tableName)[roll - 1];
+  if (!entry) return null;
+  const applied = applySkillOrStat(rng, stats, skills, entry[0], entry[1], history, `from the ${tableName} table`);
+  return { table: tableName, roll, entry, applied };
+}
+
+export function musterOutRollCount(segment) {
+  if (!segment) return 0;
+  const failedTermRoll = segment.leftByMishap && segment.keepFailedTermBenefit ? 1 : 0;
+  return Math.max(0, segment.terms + failedTermRoll + segment.extraBenefitRolls - segment.lostBenefitRolls + rankBenefitRolls(segment.highestRank));
+}
+
+export {
+  buildCareers,
+  buildFallbackCareers,
+  generateHomeworld,
+  backgroundSkillCount,
+  chooseBackgroundSkills,
+  qualify,
+  draftOrDrift,
+  canEnterCareer,
+  startCareerSegment,
+  careerTermCount,
+  basicTrainingCount,
+  getSkillSlice,
+  gainSkill,
+  resolveAwardedSkill,
+  applySkillOrStat,
+  rollCheck,
+  shouldAttemptCommission,
+  resolveMishap,
+  resolveCareerEvent,
+  termRecord,
+  blankTerm,
+  rankRoll,
+  rankForTerm,
+  applyAging,
+  choiceCredit,
+  choiceBenefit,
+  rankBenefitRolls,
+  buildCombatTable,
+  buildPsionics,
+  buildResume,
+  buildCharacterBio,
+  calculatePension,
+  purchaseCareerKit,
+  purchaseCombatWeapon,
+  generatePersonality,
+  summarizeCareerPath,
+  averageCore,
+  formatCheckRoll,
+  formatTarget,
+};

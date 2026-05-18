@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { formatCharacterText, generateCharacter } from './character.js';
+import coreRules from '../data/coreRules.json';
+import { buildCombatTable, choiceBenefit, formatCharacterText, generateCharacter } from './character.js';
 
 function backgroundAwards(character) {
   const end = character.history.indexOf('TERM 0');
@@ -10,6 +11,16 @@ function backgroundAwards(character) {
       const match = line.match(/ Learned (.+) 0 from (Homeworld|Education)\./);
       return { skill: match?.[1], source: match?.[2], line };
     });
+}
+
+function weaponSkillBase(name) {
+  return coreRules.weaponCombat[name]?.skill.split(' (')[0] ?? null;
+}
+
+function armorSkillBase(name) {
+  const item = coreRules.equipment.find((entry) => entry.name === name);
+  if (item?.protection === undefined) return null;
+  return item.notes?.match(/Requires\s+(.+?)\s+\d+/i)?.[1] ?? 'Armor';
 }
 
 describe('character generator', () => {
@@ -117,6 +128,41 @@ describe('character generator', () => {
     expect(character.terms.every((term) => term.steps.every((step) => step.result))).toBe(true);
   });
 
+  it('includes event and mishap text and effects in the build transcript', () => {
+    const characters = Array.from({ length: 80 }, (_, index) => generateCharacter({
+      seed: `incident-text${index}`,
+      terms: 4,
+      campaignMode: 'standard',
+      expansions: {},
+    }));
+    const incidentSteps = characters.flatMap((character) => character.terms
+      .flatMap((term) => term.steps.filter((step) => ['Event', 'Mishap'].includes(step.stage))));
+
+    expect(incidentSteps.length).toBeGreaterThan(0);
+    expect(incidentSteps.every((step) => step.detail.includes('Text:'))).toBe(true);
+    expect(incidentSteps.every((step) => step.detail.includes('Effect:'))).toBe(true);
+    expect(incidentSteps.some((step) => step.detail.includes('Applied:'))).toBe(true);
+  });
+
+  it('records mishaps in career history and build transcript steps', () => {
+    const character = Array.from({ length: 160 }, (_, index) => generateCharacter({
+      seed: `history-mishap${index}`,
+      terms: 6,
+      campaignMode: 'standard',
+      expansions: {},
+    })).find((generated) => generated.mishaps.length);
+
+    expect(character).toBeTruthy();
+    for (const mishap of character.mishaps) {
+      const historyRow = character.careerHistory[mishap.term - 1];
+      const term = character.terms[mishap.term - 1];
+      expect(historyRow.event).toBe(mishap.label);
+      expect(historyRow.incidentType).toBe('Mishap');
+      expect(historyRow.incidentRoll).toBe(mishap.roll);
+      expect(term.steps.some((step) => step.stage === 'Mishap' && step.result === mishap.label)).toBe(true);
+    }
+  });
+
   it('makes transcript incidents verbose about applied effects and benefits', () => {
     const character = Array.from({ length: 120 }, (_, index) => generateCharacter({
       seed: `verbose${index}`,
@@ -152,8 +198,105 @@ describe('character generator', () => {
     })).find((character) => character.combat.length);
 
     expect(withWeapon).toBeTruthy();
-    const ALL_WEAPONS = ['Autopistol', 'Blade', 'Carbine', 'Rifle', 'Shotgun', 'Laser Pistol', 'Laser Carbine'];
-    expect(withWeapon.combat.some((item) => ALL_WEAPONS.includes(item.weapon))).toBe(true);
+    expect(withWeapon.combat.every((item) => withWeapon.equipment.some((equipment) => equipment.name === item.weapon))).toBe(true);
+  });
+
+  it('uses exact weapon specialty before falling back to base combat skill', () => {
+    const combat = buildCombatTable(
+      [
+        { name: 'Rifle', source: 'test' },
+        { name: 'Shotgun', source: 'test' },
+        { name: 'ACR', source: 'test' },
+        { name: 'Revolver', source: 'test' },
+      ],
+      {
+        'Gun Combat': 0,
+        'Gun Combat (shotgun)': 1,
+        'Gun Combat (energy)': 2,
+      },
+      { Dex: 7 },
+    );
+
+    expect(combat.find((item) => item.weapon === 'Rifle').skill).toBe('Gun Combat');
+    expect(combat.find((item) => item.weapon === 'Rifle').skillLevel).toBe(0);
+    expect(combat.find((item) => item.weapon === 'Shotgun').skill).toBe('Gun Combat (shotgun)');
+    expect(combat.find((item) => item.weapon === 'Shotgun').skillLevel).toBe(1);
+    expect(combat.find((item) => item.weapon === 'ACR').skill).toBe('Gun Combat');
+    expect(combat.find((item) => item.weapon === 'ACR').skillLevel).toBe(0);
+    expect(combat.find((item) => item.weapon === 'Revolver').skill).toBe('Gun Combat');
+    expect(combat.find((item) => item.weapon === 'Revolver').skillLevel).toBe(0);
+  });
+
+  it('does not use an unrelated specialty for a weapon when no base skill exists', () => {
+    const combat = buildCombatTable(
+      [
+        { name: 'ACR', source: 'test' },
+        { name: 'Revolver', source: 'test' },
+      ],
+      { 'Gun Combat (energy)': 1 },
+      { Dex: 5 },
+    );
+
+    expect(combat.find((item) => item.weapon === 'ACR').skill).toBe('Gun Combat (slug)');
+    expect(combat.find((item) => item.weapon === 'ACR').skillLevel).toBeNull();
+    expect(combat.find((item) => item.weapon === 'Revolver').skill).toBe('Gun Combat (slug)');
+    expect(combat.find((item) => item.weapon === 'Revolver').skillLevel).toBeNull();
+  });
+
+  it('does not auto-buy more than one weapon per combat skill', () => {
+    const characters = Array.from({ length: 80 }, (_, index) => generateCharacter({
+      seed: `kit-weapons${index}`,
+      terms: 6,
+      campaignMode: 'standard',
+      expansions: {},
+    }));
+
+    for (const character of characters) {
+      const purchasedWeapons = character.equipment.filter((item) => item.source === 'purchased' && character.combat.some((weapon) => weapon.weapon === item.name));
+      const purchasedSkillBases = purchasedWeapons.map((item) => weaponSkillBase(item.name)).filter(Boolean);
+      expect(new Set(purchasedSkillBases).size).toBe(purchasedSkillBases.length);
+    }
+  });
+
+  it('does not auto-buy more than one armor item per armor skill', () => {
+    const characters = Array.from({ length: 80 }, (_, index) => generateCharacter({
+      seed: `kit-armor${index}`,
+      terms: 6,
+      campaignMode: 'standard',
+      expansions: {},
+    }));
+
+    for (const character of characters) {
+      const purchasedArmor = character.equipment.filter((item) => item.source === 'purchased' && armorSkillBase(item.name));
+      const armorSkillBases = purchasedArmor.map((item) => armorSkillBase(item.name)).filter(Boolean);
+      expect(new Set(armorSkillBases).size).toBe(armorSkillBases.length);
+    }
+  });
+
+  it('randomly resolves combat implant benefits to concrete implants', () => {
+    const skills = { Admin: 0, 'Gun Combat': 1 };
+    const implants = [0, 0.3, 0.55, 0.8].map((roll) => {
+      const stats = { Str: 7, Dex: 7, End: 7, Int: 7 };
+      return choiceBenefit(() => roll, stats, skills, 'Agent', 5);
+    });
+
+    expect(implants.map((implant) => implant.name)).toEqual([
+      'Skill Augmentation (Admin)',
+      'Wafer Jack',
+      'Subdermal Armour',
+      'Characteristic Augmentation (Int +1)',
+    ]);
+    expect(implants.every((implant) => implant.type === 'equipment')).toBe(true);
+    expect(implants.every((implant) => implant.equipment.name === implant.name)).toBe(true);
+    expect(implants[2].equipment.protection).toBe(1);
+  });
+
+  it('applies characteristic augmentation from combat implant benefits', () => {
+    const stats = { Str: 7, Dex: 7, End: 7, Int: 7 };
+    const benefit = choiceBenefit(() => 0.75, stats, { Admin: 0 }, 'Agent', 5);
+
+    expect(benefit.name).toBe('Characteristic Augmentation (Int +1)');
+    expect(stats.Int).toBe(8);
   });
 
   it('applies core career timing for aging and mustering out', () => {
@@ -198,6 +341,19 @@ describe('character generator', () => {
       + affected.awards.length
       + affected.lifeEvents.length,
     ).toBeGreaterThan(0);
+  });
+
+  it('records rolled life events on the matching career history term', () => {
+    const character = Array.from({ length: 120 }, (_, index) => generateCharacter({
+      seed: `life-history${index}`,
+      terms: 6,
+      campaignMode: 'standard',
+      expansions: {},
+    })).find((generated) => generated.lifeEvents.length);
+
+    expect(character).toBeTruthy();
+    expect(character.lifeEvents.every((event) => event.term && event.career && event.specialty)).toBe(true);
+    expect(character.lifeEvents.every((event) => character.careerHistory[event.term - 1].lifeEvents.includes(event))).toBe(true);
   });
 
   it('uses 3 plus Education DM as the background skill budget', () => {

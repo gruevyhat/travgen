@@ -1,0 +1,678 @@
+/* CharacterBuilder wizard styles */
+
+.builderWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.builderProgress {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.progressBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.progressSep {
+  color: var(--text-3);
+}
+
+.progressActive {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.progressDone {
+  color: var(--text-2);
+}
+
+.progressFuture {
+  color: var(--text-3);
+}
+
+/* Card layout */
+
+.phaseCard {
+  width: 100%;
+  max-width: 580px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.phaseHeader {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.phaseHeader h2 {
+  margin: 4px 0 0;
+  font-size: 1.4rem;
+}
+
+.phaseDesc {
+  margin: 8px 0 0;
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+
+.phaseBody {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.phaseFooter {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+
+/* Setup form */
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formSectionLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.expansionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+}
+
+/* Stats phase */
+
+.statsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.statRollName {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.statRollValue {
+  font-family: monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.statRollMod {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  text-align: center;
+}
+
+
+.statSummary {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.statSummary strong {
+  color: var(--text);
+}
+
+/* Career pick */
+
+.careerPickGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qualNote {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 4px;
+}
+
+/* Result blocks */
+
+.resultBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.resultLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.resultValue {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.resultSub {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.gainedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gainedList li {
+  font-size: 0.875rem;
+}
+
+.gainedList li span {
+  color: var(--text-2);
+}
+
+/* Roll result */
+
+.rollResult {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rollResultHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rollResultLabel {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  flex: 1;
+}
+
+.rollResultRoll {
+  font-family: monospace;
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.rollResultOutcome {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rollSuccess {
+  color: var(--green, #4caf50);
+}
+
+.rollFailure {
+  color: var(--red, #e53935);
+}
+
+.rollResultDetail {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  margin: 0;
+}
+
+/* Event text */
+
+.eventText {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin: 0;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent);
+}
+
+/* Skill pick */
+
+.tablePickGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tablePickBtn {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.tablePickBtn:hover {
+  background: var(--surface-3, var(--surface));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Muster pick */
+
+.musterChoices {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.musterChoices button {
+  flex: 1;
+}
+
+/* Banners */
+
+.warningBanner {
+  background: rgba(229, 57, 53, 0.1);
+  border: 1px solid rgba(229, 57, 53, 0.3);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--red, #e53935);
+}
+
+.infoBanner {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+/* Complete screen */
+
+.builderComplete {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  flex: 1;
+}
+
+.completeHeader {
+  max-width: 500px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.completeHeader h2 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.completeSubtitle {
+  color: var(--text-2);
+  margin: 0;
+}
+
+.completeActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Layout with sidebar ────────────────────────────────────────────────── */
+
+.builderContent {
+  display: flex;
+  gap: 20px;
+  padding: 24px 20px;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.builderCardArea {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* ── Character sheet sidebar ────────────────────────────────────────────── */
+
+.charSheet {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 24px;
+  font-size: 0.8rem;
+}
+
+.csName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.csUpp {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.csHomeworld {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.csSectionLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.csSkillGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 6px;
+}
+
+.csSkill {
+  font-size: 0.75rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csTermRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.csTermRow:last-child {
+  border-bottom: none;
+}
+
+.csTermCareer {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.csEvent {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csMishap {
+  font-size: 0.72rem;
+  color: var(--red);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csBenefitList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.csBenefit {
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.csCredits {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Stat swap (Feature 1) ──────────────────────────────────────────────── */
+
+.statRollRow {
+  display: grid;
+  grid-template-columns: 48px 40px 36px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.statRollRow:hover {
+  background: var(--surface-2);
+}
+
+.statRollRowSelected {
+  background: var(--surface-3);
+  border-color: var(--accent);
+}
+
+/* ── Homeworld details (Feature 2) ──────────────────────────────────────── */
+
+.homeworldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hwStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hwLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.hwValue {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.hwDesc {
+  font-size: 0.75rem;
+  color: var(--text-2);
+  line-height: 1.3;
+}
+
+.hwSummary {
+  font-size: 0.85rem;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin: 0;
+  padding: 10px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent);
+}
+
+/* ── Muster results (Feature 4) ─────────────────────────────────────────── */
+
+.musterResults {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.musterResultChip {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-2);
+}
+
+/* ── Equipment phase (Feature 5) ────────────────────────────────────────── */
+
+.equipmentGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.equipmentItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.equipmentItem:hover {
+  background: var(--surface-3);
+}
+
+.equipmentItemChecked {
+  border-color: var(--accent);
+}
+
+.equipmentItemName {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.equipmentItemCost {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.equipmentItemTags {
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+.equipmentCredits {
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.equipmentCreditsLabel {
+  color: var(--text-2);
+}
+
+.equipmentCreditsValue {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.equipmentActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.equipmentActions button {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .charSheet {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .builderContent {
+    padding: 16px 12px;
+  }
+
+  .phaseHeader,
+  .phaseBody,
+  .phaseFooter {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

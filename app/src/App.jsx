@@ -17,8 +17,9 @@ import coreRulesData from './data/coreRules.json';
 import { generateWorld } from './generators/world.js';
 import { generateStandaloneSpaceship, STANDALONE_SHIP_TYPES } from './generators/spacecraft.js';
 import { generateAdventure } from './generators/adventure.js';
+import { CharacterBuilder } from './CharacterBuilder.jsx';
 
-const GENERATORS = ['Character', 'Spaceship', 'World', 'Adventure'];
+const GENERATORS = ['Character', 'Build', 'Spaceship', 'World', 'Adventure'];
 
 const SKILL_DEFAULT_STAT = {
   Admin: 'Edu', Advocate: 'Edu', Animals: 'Int', Art: 'Dex',
@@ -51,6 +52,11 @@ function rollDamage(expr) {
   return { rolls, mod, total: Math.max(0, rolls.reduce((a, b) => a + b, 0) + mod) };
 }
 
+function isEditableTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+}
+
 function App() {
   const [active, setActive] = useState('Character');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -70,6 +76,7 @@ function App() {
   const [message, setMessage] = useState('');
 
   const markdownText = useMemo(() => {
+    if (active === 'Build') return '';
     if (active === 'Spaceship') return formatSpaceshipMarkdown(spaceship);
     if (active === 'World') return formatWorldMarkdown(world);
     if (active === 'Adventure') return formatAdventureMarkdown(adventure);
@@ -128,6 +135,19 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key.toLowerCase() !== 'r') return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+      if (isEditableTarget(event.target)) return;
+      event.preventDefault();
+      reroll();
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [active, characterForm, spaceshipForm, worldForm, adventureForm]);
+
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
@@ -142,10 +162,10 @@ function App() {
         </button>
         <div>
           <p className={styles.eyebrow}>Travgen frontier office</p>
-          <h1>{active === 'Character' ? 'Character Generator' : `${active} Generator`}</h1>
+          <h1>{active === 'Character' ? 'Character Generator' : active === 'Build' ? 'Character Build' : `${active} Generator`}</h1>
         </div>
         <div className={styles.topbarActions}>
-          <button className={styles.iconAction} type="button" onClick={reroll} aria-label="Reroll" title="Reroll">
+          <button className={styles.iconAction} type="button" onClick={reroll} aria-label="Reroll" aria-keyshortcuts="R" title="Reroll (R)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polyline points="1 4 1 10 7 10"/>
               <polyline points="23 20 23 14 17 14"/>
@@ -194,6 +214,14 @@ function App() {
       )}
 
       <div className={styles.outputArea}>
+        {active === 'Build' && (
+          <CharacterBuilder
+            onViewCharacter={(char) => {
+              setCharacter(char);
+              setActive('Character');
+            }}
+          />
+        )}
         {active === 'Character' && (
           <>
             <CharacterControlBar
@@ -275,6 +303,7 @@ function App() {
 
 function generatorSubtitle(gen) {
   if (gen === 'Character') return 'UPP, skills, career history';
+  if (gen === 'Build') return 'Step-by-step interactive';
   if (gen === 'Spaceship') return 'Hull, drives, armament';
   if (gen === 'World') return 'UWP, trade codes, environment';
   if (gen === 'Adventure') return 'Patron, mission, twist';
@@ -953,6 +982,8 @@ function SkillsSection({ skills, onRoll }) {
 
 function CareerSummary({ history }) {
   if (!history?.length) return null;
+  const showIncidents = history.some((row) => row.event);
+  const showLifeEvents = history.some((row) => row.lifeEvents?.length);
   return (
     <section className={`${styles.sheetPanel} ${styles.careerSummaryPanel}`} aria-label="Career history">
       <div className={styles.sectionHeader}>
@@ -968,6 +999,8 @@ function CareerSummary({ history }) {
               <th>Branch</th>
               <th>Rank</th>
               <th>Title</th>
+              {showIncidents ? <th>Event/Mishap</th> : null}
+              {showLifeEvents ? <th>Life Events</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -978,6 +1011,12 @@ function CareerSummary({ history }) {
                 <td>{row.spec}</td>
                 <td>{row.rank}</td>
                 <td>{row.title ?? '—'}</td>
+                {showIncidents ? (
+                  <td>{row.event ? `${row.incidentType ?? (row.survived ? 'Event' : 'Mishap')}: ${row.event}` : '—'}</td>
+                ) : null}
+                {showLifeEvents ? (
+                  <td>{row.lifeEvents?.length ? row.lifeEvents.map((event) => event.label).join('; ') : '—'}</td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -1082,9 +1121,11 @@ function consolidateCounts(items, getKey) {
 
 function PlayAssets({ character }) {
   const injuries = character.injuries.map((injury) => injury.label);
+  const isArmor = (item) => equipmentMeta(item.name)?.protection !== undefined || item.protection !== undefined;
 
-  const consolidatedEquip = consolidateCounts(character.equipment, (e) => e.name);
-  const totalMass = character.equipment.reduce((sum, item) => sum + (equipmentMeta(item.name)?.mass ?? 0), 0);
+  const nonArmorEquipment = character.equipment.filter((item) => !isArmor(item));
+  const consolidatedEquip = consolidateCounts(nonArmorEquipment, (e) => e.name);
+  const totalMass = nonArmorEquipment.reduce((sum, item) => sum + (equipmentMeta(item.name)?.mass ?? 0), 0);
   const equipmentItems = consolidatedEquip.map(({ item, count }) => {
     const meta = equipmentMeta(item.name);
     const label = count > 1 ? `${item.name} (x${count})` : item.name;
@@ -1098,20 +1139,21 @@ function PlayAssets({ character }) {
     .map(({ item, count }) => count > 1 ? `${item.name ?? item} (x${count})` : (item.name ?? item));
 
   const armorItems = character.equipment
-    .filter((item) => equipmentMeta(item.name)?.protection !== undefined)
+    .filter(isArmor)
     .map((item) => {
       const meta = equipmentMeta(item.name);
-      return `${item.name} — Protection ${meta.protection}${meta.mass !== undefined ? `, ${meta.mass} kg` : ''}`;
+      const protection = meta?.protection ?? item.protection;
+      return `${item.name} — Protection ${protection}${meta?.mass !== undefined ? `, ${meta.mass} kg` : ''}`;
     });
 
   const blocks = [
     { title: equipTitle, items: equipmentItems },
     { title: 'Armor', items: armorItems },
     { title: 'Benefits', items: consolidatedBenefits },
-    { title: 'Contacts', items: character.contacts },
-    { title: 'Enemies', items: character.enemies },
+    { title: 'Contacts', items: character.contacts ?? [], always: true },
+    { title: 'Enemies', items: character.enemies ?? [], always: true },
     { title: 'Injuries', items: injuries },
-  ].filter((b) => b.items.length > 0);
+  ].filter((b) => b.always || b.items.length > 0);
 
   if (blocks.length === 0) return null;
   return (
@@ -1192,7 +1234,7 @@ function CareerHistory({ character }) {
       </div>
       <div className={styles.transcriptIntro}>
         <span>Starting UPP {character.history.find((line) => line.includes('Starting UPP'))?.replace('Starting UPP:', '').trim()}</span>
-        <span>Background skills {character.homeworld.backgroundSkills.join(', ')}</span>
+        <span>Background skills {(character.backgroundSkills ?? character.homeworld.backgroundSkills).join(', ')}</span>
       </div>
       <div className={styles.transcriptTerms}>
         {character.terms.map((term) => (
@@ -1204,6 +1246,8 @@ function CareerHistory({ character }) {
                 Rank {term.Rnk ?? 0}
                 {rankTitle(term.Career, term.Rnk) ? ` — ${rankTitle(term.Career, term.Rnk)}` : ''}
               </span>
+              {term.mishap ? <span>Mishap: {term.mishap.label}</span> : null}
+              {!term.mishap && term.event ? <span>Event: {term.event.label}</span> : null}
             </div>
             <ol className={styles.transcriptSteps}>
               {(term.steps ?? []).filter(Boolean).map((step, index) => (
@@ -1457,13 +1501,16 @@ ${combat || '- None'}${spacecraft}${psionics}${personality}${history}
 
 function formatBuildTranscript(character) {
   const start = character.history.find((line) => line.includes('Starting UPP'))?.trim() ?? `Starting UPP: ${character.upp}`;
-  const background = `Background skills: ${character.homeworld.backgroundSkills.join(', ')}`;
+  const background = `Background skills: ${(character.backgroundSkills ?? character.homeworld.backgroundSkills).join(', ')}`;
   const terms = character.terms.map((term) => {
+    const incident = term.mishap
+      ? `\nIncident: Mishap ${term.mishap.roll}: ${term.mishap.label}`
+      : (term.event ? `\nIncident: Event ${term.event.roll}: ${term.event.label}` : '');
     const steps = (term.steps ?? []).filter(Boolean).map((step) => {
       const detail = step.detail ? ` ${step.detail}` : '';
       return `  - ${step.stage}: ${step.roll || '-'} -> ${step.result}.${detail}`;
     }).join('\n');
-    return `### Term ${term.T + 1}: ${term.Career} / ${term.Spec}\n${steps}`;
+    return `### Term ${term.T + 1}: ${term.Career} / ${term.Spec}${incident}\n${steps}`;
   }).join('\n\n');
   return `${start}\n${background}\n\n${terms}`;
 }

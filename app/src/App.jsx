@@ -1162,10 +1162,6 @@ function PlayAssets({ character }) {
   });
   const equipTitle = equipmentItems.length ? `Equipment — ${+totalMass.toFixed(2)} kg total` : 'Equipment';
 
-  const nonCashBenefits = character.benefits.filter((b) => b.type !== 'cash');
-  const consolidatedBenefits = consolidateCounts(nonCashBenefits, (b) => b.name ?? b)
-    .map(({ item, count }) => count > 1 ? `${item.name ?? item} (x${count})` : (item.name ?? item));
-
   const armorItems = character.equipment
     .filter(isArmor)
     .map((item) => {
@@ -1177,7 +1173,6 @@ function PlayAssets({ character }) {
   const blocks = [
     { title: equipTitle, items: equipmentItems },
     { title: 'Armor', items: armorItems },
-    { title: 'Benefits', items: consolidatedBenefits },
     { title: 'Contacts', items: character.contacts ?? [], always: true },
     { title: 'Enemies', items: character.enemies ?? [], always: true },
     { title: 'Injuries', items: injuries },

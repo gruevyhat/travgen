@@ -1688,8 +1688,8 @@ function applyRuleEffect(rng, effect, stats, skills, career, spec, state, histor
     else resolveInjury(rng, stats, state);
   } else if (effect === 'career_skill') {
     skillRoll(rng, stats, skills, career, spec, history);
-  } else if (effect === 'promotion_bonus' || effect === 'advancement_bonus') {
-    state.awards?.push(effect === 'promotion_bonus' ? 'Distinguished service' : 'Advancement opportunity');
+  } else if (effect === 'advancement_bonus') {
+    state.awards?.push('Advancement opportunity');
   } else if (effect === 'contact') {
     state.contacts?.push('Professional contact');
   } else if (effect === 'patron') {

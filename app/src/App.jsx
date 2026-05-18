@@ -58,7 +58,7 @@ function App() {
     seed: '', method: 'normal', psi: '', terms: 3, name: '', gender: '',
     ethnicity: '', homeworld: '', campaignMode: 'standard', upp: '', careerPlan: [], randAge: false,
     personality: true, showHistory: false,
-    expansions: { psion: false, chthonianStars: false, dilettante: false, agent: false, scoundrel: false },
+    expansions: { psion: false, chthonianStars: false, dilettante: false, agent: false, scoundrel: false, mercenary: false, highGuard: false, scoutBook: false, merchantPrince: false },
   });
   const [character, setCharacter] = useState(() => generateCharacter(characterForm));
   const [spaceshipForm, setSpaceshipForm] = useState({ type: '', seed: '' });

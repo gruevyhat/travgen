@@ -369,6 +369,20 @@
   },
   "equipment": [
     {
+      "name": "Jack",
+      "cost": 50,
+      "tags": ["armor", "rogue", "drifter"],
+      "mass": 1,
+      "protection": 1
+    },
+    {
+      "name": "Mesh",
+      "cost": 150,
+      "tags": ["armor", "army", "rogue", "agent"],
+      "mass": 2,
+      "protection": 2
+    },
+    {
       "name": "Cloth armor",
       "cost": 250,
       "tags": [
@@ -378,8 +392,29 @@
         "rogue",
         "agent"
       ],
+      "mass": 2,
+      "protection": 3
+    },
+    {
+      "name": "Cloth armor (TL10)",
+      "cost": 500,
+      "tags": ["armor", "army", "marines", "agent"],
       "mass": 1,
       "protection": 5
+    },
+    {
+      "name": "Flak Jacket",
+      "cost": 100,
+      "tags": ["armor", "army", "marines"],
+      "mass": 2,
+      "protection": 4
+    },
+    {
+      "name": "Flak Jacket (TL8)",
+      "cost": 300,
+      "tags": ["armor", "army", "marines"],
+      "mass": 2,
+      "protection": 6
     },
     {
       "name": "Vacc suit",
@@ -390,13 +425,45 @@
         "navy",
         "merchant"
       ],
-      "mass": 5,
+      "mass": 12,
       "protection": 6,
-      "notes": "Requires Vacc Suit skill"
+      "notes": "Requires Vacc Suit 0"
+    },
+    {
+      "name": "Ablat",
+      "cost": 75,
+      "tags": ["armor", "scout", "rogue", "army"],
+      "mass": 2,
+      "protection": 1,
+      "notes": "Protection 6 against lasers; ablated by each laser hit"
+    },
+    {
+      "name": "Reflec",
+      "cost": 1500,
+      "tags": ["armor", "agent", "navy"],
+      "mass": 1,
+      "protection": 0,
+      "notes": "Protection 10 against lasers only; can be worn over other armour"
+    },
+    {
+      "name": "Combat Armour",
+      "cost": 200000,
+      "tags": ["armor", "marines", "army"],
+      "mass": 18,
+      "protection": 12,
+      "notes": "Requires Vacc Suit 0; not generally available on open market"
+    },
+    {
+      "name": "Battle Dress",
+      "cost": 2000000,
+      "tags": ["armor", "marines"],
+      "mass": 26,
+      "protection": 16,
+      "notes": "Requires Battle Dress 1; powered armour, STR/DEX +4 while worn"
     },
     {
       "name": "Blade",
-      "cost": 100,
+      "cost": 50,
       "tags": [
         "weapon",
         "melee",
@@ -551,6 +618,108 @@
         "desert"
       ],
       "mass": 0.5
+    },
+    {
+      "name": "Club",
+      "cost": 0,
+      "tags": ["weapon", "melee", "rogue", "drifter"],
+      "mass": 1
+    },
+    {
+      "name": "Dagger",
+      "cost": 10,
+      "tags": ["weapon", "melee", "rogue", "scout", "drifter"],
+      "mass": 0.25
+    },
+    {
+      "name": "Broadsword",
+      "cost": 300,
+      "tags": ["weapon", "melee", "marines", "navy", "nobility"],
+      "mass": 3
+    },
+    {
+      "name": "Cutlass",
+      "cost": 100,
+      "tags": ["weapon", "melee", "marines", "navy", "rogue"],
+      "mass": 1
+    },
+    {
+      "name": "Rapier",
+      "cost": 100,
+      "tags": ["weapon", "melee", "nobility"],
+      "mass": 0.5
+    },
+    {
+      "name": "Stunstick",
+      "cost": 300,
+      "tags": ["weapon", "melee", "agent", "rogue"],
+      "mass": 0.5
+    },
+    {
+      "name": "Revolver",
+      "cost": 150,
+      "tags": ["weapon", "gun", "rogue", "drifter", "scout"],
+      "mass": 1
+    },
+    {
+      "name": "Snub Pistol",
+      "cost": 150,
+      "tags": ["weapon", "gun", "navy", "agent"],
+      "mass": 0.25
+    },
+    {
+      "name": "Body Pistol",
+      "cost": 500,
+      "tags": ["weapon", "gun", "agent", "rogue"],
+      "mass": 0.25
+    },
+    {
+      "name": "Autorifle",
+      "cost": 1000,
+      "tags": ["weapon", "gun", "army", "marines"],
+      "mass": 5
+    },
+    {
+      "name": "Assault Rifle",
+      "cost": 500,
+      "tags": ["weapon", "gun", "army", "marines", "rogue"],
+      "mass": 4
+    },
+    {
+      "name": "Accelerator Rifle",
+      "cost": 900,
+      "tags": ["weapon", "gun", "marines", "navy", "scout"],
+      "mass": 2
+    },
+    {
+      "name": "ACR",
+      "cost": 1000,
+      "tags": ["weapon", "gun", "army", "marines", "agent"],
+      "mass": 3
+    },
+    {
+      "name": "Gauss Pistol",
+      "cost": 500,
+      "tags": ["weapon", "gun", "marines", "agent"],
+      "mass": 0.5
+    },
+    {
+      "name": "Gauss Rifle",
+      "cost": 1500,
+      "tags": ["weapon", "gun", "marines", "army"],
+      "mass": 4
+    },
+    {
+      "name": "Stunner",
+      "cost": 500,
+      "tags": ["weapon", "gun", "agent", "navy"],
+      "mass": 0.5
+    },
+    {
+      "name": "Laser Rifle",
+      "cost": 3500,
+      "tags": ["weapon", "gun", "marines", "navy", "scout"],
+      "mass": 8
     }
   ],
   "weaponCombat": {
@@ -635,8 +804,178 @@
       "damage": "4d6",
       "range": "Assault Weapon",
       "traits": "Zero-G",
-      "sourcePage": 101,
-      "mass": 2.5
+      "sourcePage": 100,
+      "mass": 4
+    },
+    "Club": {
+      "skill": "Melee (bludgeon)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Str",
+      "damage": "2d6",
+      "range": "Melee",
+      "traits": "",
+      "sourcePage": 98,
+      "mass": 1
+    },
+    "Dagger": {
+      "skill": "Melee (blade)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Str",
+      "damage": "1d6+2",
+      "range": "Melee",
+      "traits": "Thrown",
+      "sourcePage": 98,
+      "mass": 0.25
+    },
+    "Broadsword": {
+      "skill": "Melee (blade)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Str",
+      "damage": "4d6",
+      "range": "Melee",
+      "traits": "Bulky",
+      "sourcePage": 98,
+      "mass": 3
+    },
+    "Cutlass": {
+      "skill": "Melee (blade)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Str",
+      "damage": "2d6+4",
+      "range": "Melee",
+      "traits": "",
+      "sourcePage": 98,
+      "mass": 1
+    },
+    "Rapier": {
+      "skill": "Melee (blade)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Dex",
+      "damage": "1d6+4",
+      "range": "Melee",
+      "traits": "",
+      "sourcePage": 98,
+      "mass": 0.5
+    },
+    "Stunstick": {
+      "skill": "Melee (bludgeon)",
+      "fallbackSkills": ["Melee"],
+      "characteristic": "Str",
+      "damage": "1d6",
+      "range": "Melee",
+      "traits": "Stun (2d6)",
+      "sourcePage": 98,
+      "mass": 0.5
+    },
+    "Revolver": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6-3",
+      "range": "Pistol",
+      "traits": "",
+      "sourcePage": 99,
+      "mass": 1
+    },
+    "Snub Pistol": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6-3",
+      "range": "Pistol",
+      "traits": "Zero-G",
+      "sourcePage": 99,
+      "mass": 0.25
+    },
+    "Body Pistol": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6-3",
+      "range": "Pistol",
+      "traits": "Very Difficult to detect",
+      "sourcePage": 99,
+      "mass": 0.25
+    },
+    "Autorifle": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Rifle",
+      "traits": "Auto 4",
+      "sourcePage": 99,
+      "mass": 5
+    },
+    "Assault Rifle": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Assault Weapon",
+      "traits": "Auto 4",
+      "sourcePage": 99,
+      "mass": 4
+    },
+    "Accelerator Rifle": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Rifle",
+      "traits": "Zero-G",
+      "sourcePage": 99,
+      "mass": 2
+    },
+    "ACR": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Rifle",
+      "traits": "Auto 6, Scope",
+      "sourcePage": 99,
+      "mass": 3
+    },
+    "Gauss Pistol": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "3d6",
+      "range": "Pistol",
+      "traits": "Auto 4, Zero-G",
+      "sourcePage": 99,
+      "mass": 0.5
+    },
+    "Gauss Rifle": {
+      "skill": "Gun Combat (slug)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "4d6",
+      "range": "Rifle",
+      "traits": "Auto 4, Zero-G, Scope",
+      "sourcePage": 99,
+      "mass": 4
+    },
+    "Stunner": {
+      "skill": "Gun Combat (energy)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "2d6",
+      "range": "Pistol",
+      "traits": "Stun, Zero-G",
+      "sourcePage": 100,
+      "mass": 0.5
+    },
+    "Laser Rifle": {
+      "skill": "Gun Combat (energy)",
+      "fallbackSkills": ["Gun Combat"],
+      "characteristic": "Dex",
+      "damage": "5d6",
+      "range": "Rifle",
+      "traits": "Zero-G",
+      "sourcePage": 100,
+      "mass": 8
     }
   }
 }

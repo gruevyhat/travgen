@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { formatCharacterText, generateCharacter } from './character.js';
 
+function backgroundAwards(character) {
+  const end = character.history.indexOf('TERM 0');
+  return character.history
+    .slice(0, end)
+    .filter((line) => line.includes(' Learned '))
+    .map((line) => {
+      const match = line.match(/ Learned (.+) 0 from (Homeworld|Education)\./);
+      return { skill: match?.[1], source: match?.[2], line };
+    });
+}
+
 describe('character generator', () => {
   it('generates reproducible characters within the web app', () => {
     const options = { seed: 'cd515598', terms: 3, expansions: { chthonianStars: true, psion: true } };
@@ -189,12 +200,25 @@ describe('character generator', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('keeps mandatory homeworld background skills', () => {
-    const character = generateCharacter({ seed: 'home1234', terms: 1, campaignMode: 'standard', upp: '222222' });
+  it('uses 3 plus Education DM as the background skill budget', () => {
+    const character = generateCharacter({ seed: 'home1234', terms: 1, campaignMode: 'chthonian', homeworld: 'Mars', upp: '222292' });
+    const awards = backgroundAwards(character);
 
-    for (const skill of character.homeworld.backgroundSkills) {
-      expect(character.skills[skill]).toBeGreaterThanOrEqual(0);
-    }
+    expect(awards).toHaveLength(4);
+    expect(awards.map((award) => award.skill)).toEqual(character.backgroundSkills);
+    expect(awards.slice(0, 2).map((award) => award.skill)).toEqual(['Computers', 'Survival']);
+    expect(awards.slice(0, 2).every((award) => award.source === 'Homeworld')).toBe(true);
+    expect(awards.slice(2).every((award) => award.source === 'Education')).toBe(true);
+  });
+
+  it('caps background skills to the 1 to 5 Education DM range', () => {
+    const lowEdu = generateCharacter({ seed: 'lowedu1234', terms: 1, campaignMode: 'chthonian', homeworld: 'Mars', upp: '222202' });
+    const highEdu = generateCharacter({ seed: 'highedu1234', terms: 1, campaignMode: 'chthonian', homeworld: 'Mars', upp: '2222f2' });
+
+    expect(backgroundAwards(lowEdu)).toHaveLength(1);
+    expect(lowEdu.backgroundSkills).toEqual(['Computers']);
+    expect(lowEdu.bio).toContain('trained in Computers before leaving home');
+    expect(backgroundAwards(highEdu)).toHaveLength(5);
   });
 
   it('keeps Chthonian Stars on solar-system homeworlds', () => {

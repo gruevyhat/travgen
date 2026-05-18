@@ -154,11 +154,11 @@ export function generateCharacter(options = {}) {
     autoQualifyCareers: new Set(),
   };
 
-  const eduCount = Math.max(0, gameData.STARTING_SKILLS + modifier(stats.Edu));
-  const educationSkills = chooseBackgroundSkills(rng, homeworld, eduCount);
-  learnSkills(skills, educationSkills);
-  for (const [skill, value] of educationSkills) {
-    history.push(` Learned ${skill} ${value} from Education.`);
+  const backgroundSkillBudget = backgroundSkillCount(stats.Edu);
+  const backgroundSkills = chooseBackgroundSkills(rng, homeworld, backgroundSkillBudget);
+  learnSkills(skills, backgroundSkills);
+  for (const [skill, value, source] of backgroundSkills) {
+    history.push(` Learned ${skill} ${value} from ${source}.`);
   }
 
   const requestedPath = options.careerPlan?.length
@@ -229,7 +229,7 @@ export function generateCharacter(options = {}) {
       currentSegment = startCareerSegment(currentCareer);
     }
 
-    term.Edu = index === 0 ? eduCount : 0;
+    term.Edu = index === 0 ? backgroundSkillBudget : 0;
     term.BT = basicTrainingCount(index, newCareer, terms, currentCareer);
     if (term.BT) {
       const basic = getSkillSlice(currentCareer, currentSpec, 'BT');
@@ -454,7 +454,7 @@ export function generateCharacter(options = {}) {
   const psionics = buildPsionics(skills, stats, terms, options);
   const spacecraft = generateSpacecraft(rng, careerPath, benefits, equipment);
   const resume = buildResume({ terms, skills, benefits, equipment, contacts, enemies, awards, injuries, events, mishaps, lifeEvents, careerPath });
-  const bio = buildCharacterBio({ name, gender, homeworld, careerPath, events, mishaps, lifeEvents });
+  const bio = buildCharacterBio({ name, gender, homeworld, backgroundSkills: backgroundSkills.map(([skill]) => skill), careerPath, events, mishaps, lifeEvents });
   const pension = calculatePension(terms);
   const totalDebt = debts.reduce((sum, d) => sum + d.amount, 0);
   const careerHistory = terms.map((term) => ({
@@ -475,6 +475,7 @@ export function generateCharacter(options = {}) {
     ethnicity,
     campaignMode,
     homeworld,
+    backgroundSkills: backgroundSkills.map(([skill]) => skill),
     age,
     stats,
     upp: finalUpp,
@@ -538,15 +539,20 @@ function buildFallbackCareers(expansions) {
   return fallback;
 }
 
+function backgroundSkillCount(education) {
+  return Math.max(1, Math.min(5, gameData.STARTING_SKILLS + modifier(education)));
+}
+
 function chooseBackgroundSkills(rng, homeworld, count) {
   const mandatory = uniqueSkillEntries(homeworld.backgroundSkills.map((skill) => [skill, 0]));
-  const remaining = Math.max(0, count - mandatory.length);
+  const homeworldSkills = mandatory.slice(0, count).map(([skill, value]) => [skill, value, 'Homeworld']);
+  const remaining = Math.max(0, count - homeworldSkills.length);
   const extras = sample(
     rng,
     gameData.EDU_SKILLS.filter(([skill]) => !mandatory.some(([owned]) => owned === skill)),
     remaining,
-  );
-  return [...mandatory, ...extras].slice(0, Math.max(count, mandatory.length));
+  ).map(([skill, value]) => [skill, value, 'Education']);
+  return [...homeworldSkills, ...extras];
 }
 
 function canEnterCareer(career, currentCareer, enteredCareers, pending = null) {
@@ -1784,9 +1790,10 @@ function buildResume({ terms, skills, benefits, equipment, contacts, enemies, aw
   };
 }
 
-function buildCharacterBio({ name, gender, homeworld, careerPath, events, mishaps, lifeEvents }) {
+function buildCharacterBio({ name, gender, homeworld, backgroundSkills = homeworld.backgroundSkills, careerPath, events, mishaps, lifeEvents }) {
   const subject = bioSubject(name, gender);
-  const background = `${subject.full} comes from ${homeworld.summary}, ${worldArticle(homeworld.tradeCodes)} ${homeworld.tradeCodes.join(', ')} world. ${subject.pronoun.capSubject} trained in ${homeworld.backgroundSkills.join(', ')} before leaving home.`;
+  const trainedSkills = backgroundSkills.length ? backgroundSkills.join(', ') : 'no formal background skills';
+  const background = `${subject.full} comes from ${homeworld.summary}, ${worldArticle(homeworld.tradeCodes)} ${homeworld.tradeCodes.join(', ')} world. ${subject.pronoun.capSubject} trained in ${trainedSkills} before leaving home.`;
   const path = careerPath.length
     ? `Professionally, ${subject.last} served ${careerPath.map((item) => careerPhrase(item)).join('; ')}.`
     : `${subject.last} has no formal career service recorded.`;

@@ -69,6 +69,7 @@ function isEditableTarget(target) {
 
 function App() {
   const [active, setActive] = useState(toolFromUrl);
+  const [buildKey, setBuildKey] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [characterForm, setCharacterForm] = useState({
     seed: '', method: 'normal', psi: '', terms: 3, name: '', gender: '',
@@ -131,6 +132,7 @@ function App() {
 
   function navigate(gen) {
     setActive(gen);
+    if (gen === 'Build') setBuildKey((k) => k + 1);
     history.pushState(null, '', toolHref(gen));
     closeMenu();
   }
@@ -238,6 +240,7 @@ function App() {
       <div className={styles.outputArea}>
         {active === 'Build' && (
           <CharacterBuilder
+            key={buildKey}
             onViewCharacter={(char) => {
               setCharacter(char);
               setActive('Character');

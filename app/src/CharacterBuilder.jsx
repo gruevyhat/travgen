@@ -4,14 +4,14 @@ import bStyles from './CharacterBuilder.module.css';
 import { rollStat, formatUpp, modifier, STAT_METHODS, PSI_OPTIONS } from './generators/stats.js';
 import {
   CAREER_EXPANSIONS, CAMPAIGN_MODES, WORLDS, ETHNICITIES, GENDERS,
-  careerCatalog, rankTitle,
+  careerCatalog, careerGroups, rankTitle,
   buildCareers, buildFallbackCareers, generateHomeworld,
   backgroundSkillCount, chooseBackgroundSkills,
   qualify, draftOrDrift, canEnterCareer,
   startCareerSegment, careerTermCount, basicTrainingCount,
   getSkillSlice, gainSkill, resolveAwardedSkill,
   rollCheck, shouldAttemptCommission,
-  resolveMishap, resolveCareerEvent,
+  resolveMishap, resolveCareerEvent, rollCareerTable,
   termRecord, blankTerm, rankRoll, rankForTerm,
   applyAging, choiceCredit, choiceBenefit,
   buildCombatTable, buildPsionics,
@@ -354,11 +354,11 @@ export function CharacterBuilder({ onViewCharacter }) {
     });
 
     if (!survResult.success) {
-      const mishapRoll = d6(rng);
-      a.currentTerm.EM = `m[${mishapRoll}]`;
-      const rawMishapText = getRawEventText(a.currentCareer, 'mishaps', mishapRoll);
+      const mishapRollInfo = rollCareerTable(rng, a.currentCareer, 'mishaps');
+      a.currentTerm.EM = `m[${mishapRollInfo.roll}]`;
+      const rawMishapText = getRawEventText(a.currentCareer, 'mishaps', mishapRollInfo.roll);
       const mishapChoices = autoResolveChoice(detectEventChoiceType(rawMishapText), rng);
-      applyAndShowMishap(mishapRoll, survResult, mishapChoices);
+      applyAndShowMishap(mishapRollInfo, survResult, mishapChoices);
       return;
     }
 
@@ -383,9 +383,9 @@ export function CharacterBuilder({ onViewCharacter }) {
     a.pendingSkillPicks.shift();
 
     // Step 3: Event
-    const eventDice = [d6(rng), d6(rng)];
-    const eventRoll = eventDice[0] + eventDice[1];
-    a.currentTerm.EM = `e[${eventDice[0]},${eventDice[1]}]`;
+    const eventRollInfo = rollCareerTable(rng, a.currentCareer, 'events');
+    const eventRoll = eventRollInfo.roll;
+    a.currentTerm.EM = `e[${eventRoll}]`;
     const rawText = getRawEventText(a.currentCareer, 'events', eventRoll);
     const eventChoices = autoResolveChoice(detectEventChoiceType(rawText), rng);
     const stateObj = {
@@ -404,7 +404,7 @@ export function CharacterBuilder({ onViewCharacter }) {
     a.history.push(` Event: ${event.label}.`);
     a.currentTerm.steps.push({
       stage: 'Event',
-      roll: `2d6 = ${eventDice[0]} + ${eventDice[1]} = ${eventRoll}`,
+      roll: eventRollInfo.text,
       result: event.label,
       detail: event.text || event.label,
     });
@@ -505,18 +505,18 @@ export function CharacterBuilder({ onViewCharacter }) {
 
     if (!survResult.success) {
       // Mishap
-      const mishapRoll = d6(a.rng);
-      a.currentTerm.EM = `m[${mishapRoll}]`;
-      const rawMishapText = getRawEventText(a.currentCareer, 'mishaps', mishapRoll);
+      const mishapRollInfo = rollCareerTable(a.rng, a.currentCareer, 'mishaps');
+      a.currentTerm.EM = `m[${mishapRollInfo.roll}]`;
+      const rawMishapText = getRawEventText(a.currentCareer, 'mishaps', mishapRollInfo.roll);
       const mishapChoiceInfo = detectEventChoiceType(rawMishapText);
       if (mishapChoiceInfo) {
-        a.pendingMishapRoll = mishapRoll;
+        a.pendingMishapRoll = mishapRollInfo;
         a.pendingMishapSurvResult = survResult;
         setPhase('event-choice');
-        setPhaseData({ choiceInfo: mishapChoiceInfo, mishapRoll, rawText: rawMishapText, kind: 'mishap', survResult });
+        setPhaseData({ choiceInfo: mishapChoiceInfo, rollText: mishapRollInfo.text, rawText: rawMishapText, kind: 'mishap', survResult });
         return;
       }
-      applyAndShowMishap(mishapRoll, survResult, {});
+      applyAndShowMishap(mishapRollInfo, survResult, {});
     } else {
       a.newCareer = false;
       setPhase('survival');
@@ -590,24 +590,24 @@ export function CharacterBuilder({ onViewCharacter }) {
 
   function rollEvent() {
     const a = acc.current;
-    const eventDice = [d6(a.rng), d6(a.rng)];
-    a.currentTerm.EM = `e[${eventDice[0]},${eventDice[1]}]`;
-    const eventRoll = eventDice[0] + eventDice[1];
+    const eventRollInfo = rollCareerTable(a.rng, a.currentCareer, 'events');
+    a.currentTerm.EM = `e[${eventRollInfo.roll}]`;
+    const eventRoll = eventRollInfo.roll;
     const rawText = getRawEventText(a.currentCareer, 'events', eventRoll);
     const choiceInfo = detectEventChoiceType(rawText);
     if (choiceInfo) {
-      a.pendingEventRoll = eventDice;
+      a.pendingEventRoll = eventRollInfo;
       a.pendingEventKind = 'event';
       setPhase('event-choice');
-      setPhaseData({ choiceInfo, eventDice, rawText, kind: 'event' });
+      setPhaseData({ choiceInfo, rollText: eventRollInfo.text, rawText, kind: 'event' });
       return;
     }
-    applyAndShowEvent(eventDice, {});
+    applyAndShowEvent(eventRollInfo, {});
   }
 
-  function applyAndShowEvent(eventDice, choices) {
+  function applyAndShowEvent(eventRollInfo, choices) {
     const a = acc.current;
-    const eventRoll = eventDice[0] + eventDice[1];
+    const eventRoll = eventRollInfo.roll;
     const event = termRecord(resolveCareerEvent(a.rng, eventRoll, a.stats, a.skills, a.currentCareer, a.currentSpec, {
       contacts: a.contacts, enemies: a.enemies, awards: a.awards, lifeEvents: a.lifeEvents,
       injuries: a.injuries, career: a.currentCareer, spec: a.currentSpec,
@@ -620,7 +620,7 @@ export function CharacterBuilder({ onViewCharacter }) {
     a.history.push(` Event: ${event.label}.`);
     a.currentTerm.steps.push({
       stage: 'Event',
-      roll: `2d6 = ${eventDice[0]} + ${eventDice[1]} = ${eventDice[0] + eventDice[1]}`,
+      roll: eventRollInfo.text,
       result: event.label,
       detail: event.text || event.label,
     });
@@ -628,13 +628,13 @@ export function CharacterBuilder({ onViewCharacter }) {
       a.pendingSkillPicks.push({ type: 'event' });
     }
     setPhase('event');
-    setPhaseData({ event, eventDice });
+    setPhaseData({ event, rollText: eventRollInfo.text });
   }
 
-  function applyAndShowMishap(mishapRoll, survResult, choices) {
+  function applyAndShowMishap(mishapRollInfo, survResult, choices) {
     const a = acc.current;
     const { stats, pending } = a;
-    const mishap = termRecord(resolveMishap(a.rng, mishapRoll, stats, {
+    const mishap = termRecord(resolveMishap(a.rng, mishapRollInfo.roll, stats, {
       contacts: a.contacts, enemies: a.enemies, injuries: a.injuries,
       lifeEvents: a.lifeEvents, career: a.currentCareer, spec: a.currentSpec,
       skills: a.skills, awards: a.awards, currentSegment: a.currentSegment, pending,
@@ -649,7 +649,7 @@ export function CharacterBuilder({ onViewCharacter }) {
     a.history.push(` Mishap: ${mishap.label}.`);
     a.currentTerm.steps.push({
       stage: 'Mishap',
-      roll: `1d6 = ${mishapRoll}`,
+      roll: mishapRollInfo.text,
       result: mishap.label,
       detail: mishap.text || mishap.label,
     });
@@ -1118,6 +1118,7 @@ export function CharacterBuilder({ onViewCharacter }) {
             <CareerPickPhase
               phaseData={phaseData}
               careers={acc.current?.careers ?? {}}
+              expansions={options.expansions}
               selectedCareer={selectedCareer}
               selectedSpec={selectedSpec}
               onCareerChange={(c) => { setSelectedCareer(c); setSelectedSpec(''); }}
@@ -1203,6 +1204,9 @@ function ProgressBar({ phase, acc }) {
 function SetupPhase({ options, setOptions, onStart }) {
   const set = (patch) => setOptions((prev) => ({ ...prev, ...patch }));
   const setExpansion = (key, val) => set({ expansions: { ...options.expansions, [key]: val } });
+  const allChecked = CAREER_EXPANSIONS.length > 0 && CAREER_EXPANSIONS.every((exp) => Boolean(options.expansions[exp.key]));
+  const someChecked = CAREER_EXPANSIONS.some((exp) => Boolean(options.expansions[exp.key]));
+  const setAllExpansions = (val) => set({ expansions: Object.fromEntries(CAREER_EXPANSIONS.map((exp) => [exp.key, val])) });
 
   return (
     <div className={bStyles.phaseCard}>
@@ -1275,6 +1279,15 @@ function SetupPhase({ options, setOptions, onStart }) {
           <section className={bStyles.formSection}>
             <p className={bStyles.formSectionLabel}>Career Books</p>
             <div className={bStyles.expansionGrid}>
+              <label className={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={allChecked}
+                  ref={(el) => { if (el) el.indeterminate = someChecked && !allChecked; }}
+                  onChange={(e) => setAllExpansions(e.target.checked)}
+                />
+                <span>Select all</span>
+              </label>
               {CAREER_EXPANSIONS.map((exp) => (
                 <label key={exp.key} className={styles.checkbox}>
                   <input type="checkbox" checked={Boolean(options.expansions[exp.key])} onChange={(e) => setExpansion(exp.key, e.target.checked)} />
@@ -1446,10 +1459,10 @@ function BackgroundPhase({ data, onContinue }) {
 
 // ── Career pick phase ────────────────────────────────────────────────────────
 
-function CareerPickPhase({ phaseData, careers, selectedCareer, selectedSpec, onCareerChange, onSpecChange, onQualify, onContinuePrevious }) {
+function CareerPickPhase({ phaseData, careers, expansions, selectedCareer, selectedSpec, onCareerChange, onSpecChange, onQualify, onContinuePrevious }) {
   const { termIndex, maxTerms, pending, previousCareer, previousSpec, canContinue, mustContinue } = phaseData;
   const [changingCareer, setChangingCareer] = useState(false);
-  const careerList = Object.keys(careers).filter((c) => !c.endsWith('Officer')).sort();
+  const groups = careerGroups(expansions, careers);
   const specs = selectedCareer ? Object.keys(careers[selectedCareer] ?? {}).sort() : [];
   const forcedCareer = pending?.forceCareer;
   const mustDraft = pending?.forceDraft;
@@ -1496,7 +1509,11 @@ function CareerPickPhase({ phaseData, careers, selectedCareer, selectedSpec, onC
               <span>Career</span>
               <select value={selectedCareer} onChange={(e) => onCareerChange(e.target.value)}>
                 <option value="">— Select a career —</option>
-                {careerList.map((c) => <option key={c} value={c}>{c}</option>)}
+                {groups.map(({ label, careers: group }) => (
+                  <optgroup key={label} label={label}>
+                    {group.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </optgroup>
+                ))}
               </select>
             </label>
             <label className={styles.field}>
@@ -1706,10 +1723,10 @@ function SkillResultPhase({ data, onContinue }) {
 // ── Event choice phase ───────────────────────────────────────────────────────
 
 function EventChoicePhase({ data, benefitRollsAvailable, currentSkills, onChoose }) {
-  const { choiceInfo, rawText, kind, eventDice, mishapRoll } = data;
+  const { choiceInfo, rawText, kind, rollText } = data;
   const rollLabel = kind === 'mishap'
-    ? `Mishap — 1d6 = ${mishapRoll}`
-    : `Event — 2d6 = ${eventDice?.[0]} + ${eventDice?.[1]} = ${(eventDice?.[0] ?? 0) + (eventDice?.[1] ?? 0)}`;
+    ? `Mishap — ${rollText}`
+    : `Event — ${rollText}`;
 
   if (choiceInfo.type === 'wager_amount') {
     return <WagerAmountChoice choiceInfo={choiceInfo} rawText={rawText} rollLabel={rollLabel} benefitRollsAvailable={benefitRollsAvailable} onChoose={onChoose} />;
@@ -1930,11 +1947,11 @@ function AcceptRefuseChoice({ rawText, rollLabel, onChoose }) {
 // ── Event phase ──────────────────────────────────────────────────────────────
 
 function EventPhase({ data, onContinue }) {
-  const { event, eventDice } = data;
+  const { event, rollText } = data;
   return (
     <div className={bStyles.phaseCard}>
       <div className={bStyles.phaseHeader}>
-        <p className={styles.kicker}>Event — 2d6 = {eventDice[0]} + {eventDice[1]} = {eventDice[0] + eventDice[1]}</p>
+        <p className={styles.kicker}>Event — {rollText}</p>
         <h2>{event.label}</h2>
       </div>
       <div className={bStyles.phaseBody}>

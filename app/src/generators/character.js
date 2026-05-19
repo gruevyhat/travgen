@@ -104,6 +104,20 @@ export function careerCatalog(expansions = {}) {
   );
 }
 
+export function careerGroups(expansions = {}, activeCareers = {}) {
+  const active = new Set(Object.keys(activeCareers).filter((c) => !c.endsWith(' Officer')));
+  const groups = [];
+  const coreNames = Object.keys(gameData.CAREERS).filter((c) => !c.endsWith(' Officer') && active.has(c)).sort();
+  if (coreNames.length) groups.push({ label: 'Core Rulebook', careers: coreNames });
+  for (const { key, label } of CAREER_EXPANSIONS) {
+    const dataKey = EXPANSIONS[key];
+    if (!expansions[key] || !dataKey || !gameData[dataKey]) continue;
+    const names = Object.keys(gameData[dataKey]).filter((c) => !c.endsWith(' Officer') && active.has(c)).sort();
+    if (names.length) groups.push({ label, careers: names });
+  }
+  return groups;
+}
+
 export function generateCharacter(options = {}) {
   const seed = normalizeSeed(options.seed);
   const rng = createRng(seed);
@@ -262,10 +276,10 @@ export function generateCharacter(options = {}) {
     if (!term.S) {
       term.A = false;
       newCareer = true;
-      const mishap = d6(rng);
+      const mishap = rollCareerTable(rng, currentCareer, 'mishaps');
       const lifeEventStart = lifeEvents.length;
-      term.EM = `m[${mishap}]`;
-      term.mishap = termRecord(resolveMishap(rng, mishap, stats, {
+      term.EM = `m[${mishap.roll}]`;
+      term.mishap = termRecord(resolveMishap(rng, mishap.roll, stats, {
         contacts,
         enemies,
         injuries,
@@ -288,17 +302,17 @@ export function generateCharacter(options = {}) {
       history.push(` Mishap: ${term.mishap.label}.`);
       term.steps.push({
         stage: 'Mishap',
-        roll: `1d6 = ${mishap}`,
+        roll: mishap.text,
         result: term.mishap.label,
         detail: detailForIncident(term.mishap),
       });
     } else {
       newCareer = false;
       term.steps.push(skillStep('Service Skill', skillRoll(rng, stats, skills, currentCareer, currentSpec, history, { commissioned })));
-      const event = [d6(rng), d6(rng)];
+      const event = rollCareerTable(rng, currentCareer, 'events');
       const lifeEventStart = lifeEvents.length;
-      term.EM = `e[${event[0]},${event[1]}]`;
-      term.event = termRecord(resolveCareerEvent(rng, event[0] + event[1], stats, skills, currentCareer, currentSpec, {
+      term.EM = `e[${event.roll}]`;
+      term.event = termRecord(resolveCareerEvent(rng, event.roll, stats, skills, currentCareer, currentSpec, {
         contacts,
         enemies,
         awards,
@@ -319,7 +333,7 @@ export function generateCharacter(options = {}) {
       history.push(` Event: ${term.event.label}.`);
       term.steps.push({
         stage: 'Event',
-        roll: `2d6 = ${event[0]} + ${event[1]} = ${event[0] + event[1]}`,
+        roll: event.text,
         result: term.event.label,
         detail: detailForIncident(term.event),
       });
@@ -546,6 +560,11 @@ function buildCareers(expansions) {
   }
   if (expansions.scoundrel) {
     delete careers.Drifter;
+  }
+  if (localCareerTables) {
+    for (const career of Object.keys(careers)) {
+      if (!hasCompleteLocalEventTable(career)) delete careers[career];
+    }
   }
   return careers;
 }
@@ -925,7 +944,6 @@ function effectSummary(incident) {
     advancement_bonus: 'Gain +2 DM to this term\'s Advancement roll',
     ally: 'Gain an ally',
     ally_or_rival: 'Gain an ally or rival',
-    award: 'Gain a commendation',
     career_skill: 'Gain one career skill roll',
     cash: 'Gain 1000 credits',
     contact: 'Gain a contact',
@@ -1009,8 +1027,46 @@ function lookupRange(table, roll) {
 }
 
 function localCareerEntry(career, table, roll) {
-  const careerTables = localCareerTables?.careers?.[career.replace(' Officer', '')];
-  return careerTables?.[table]?.entries?.find((entry) => entry.roll === roll) ?? null;
+  return localCareerTable(career, table)?.entries?.find((entry) => entry.roll === roll) ?? null;
+}
+
+function localCareerTable(career, table) {
+  return localCareerTables?.careers?.[career.replace(' Officer', '')]?.[table] ?? null;
+}
+
+const D66_ROLLS = Array.from({ length: 6 }, (_, tens) =>
+  Array.from({ length: 6 }, (_, ones) => (tens + 1) * 10 + ones + 1)
+).flat();
+
+function expectedCareerRolls(rollType) {
+  if (rollType === 'd66') return D66_ROLLS;
+  if (rollType === '1d6') return [1, 2, 3, 4, 5, 6];
+  return Array.from({ length: 11 }, (_, index) => index + 2);
+}
+
+function rollCareerTable(rng, career, table) {
+  const rollType = localCareerTable(career, table)?.roll ?? (table === 'mishaps' ? '1d6' : '2d6');
+  if (rollType === 'd66') {
+    const tens = d6(rng);
+    const ones = d6(rng);
+    const roll = tens * 10 + ones;
+    return { roll, text: `d66 = ${roll}`, dice: [tens, ones], rollType };
+  }
+  if (rollType === '2d6') {
+    const dice = [d6(rng), d6(rng)];
+    const roll = dice[0] + dice[1];
+    return { roll, text: `2d6 = ${dice[0]} + ${dice[1]} = ${roll}`, dice, rollType };
+  }
+  const roll = d6(rng);
+  return { roll, text: `1d6 = ${roll}`, dice: [roll], rollType };
+}
+
+function hasCompleteLocalEventTable(career) {
+  const table = localCareerTable(career, 'events');
+  if (!table) return false;
+  const entries = table.entries ?? [];
+  const rolls = new Set(entries.map((entry) => entry.roll));
+  return expectedCareerRolls(table.roll).every((roll) => rolls.has(roll));
 }
 
 function getRawEventText(career, eventType, roll) {
@@ -1067,6 +1123,14 @@ function localLifeEventEntry(roll) {
   return localCareerTables?.lifeEvents?.entries?.find((entry) => entry.roll === roll) ?? null;
 }
 
+function localWartimeEventEntry(roll) {
+  return localCareerTables?.wartimeEvents?.entries?.find((entry) => entry.roll === roll) ?? null;
+}
+
+function localNavalEventEntry(roll) {
+  return localCareerTables?.navalEvents?.entries?.find((entry) => entry.roll === roll) ?? null;
+}
+
 function defaultSpec(career) {
   const specs = gameData.CAREERS[career];
   return specs ? Object.keys(specs)[0] : null;
@@ -1096,26 +1160,25 @@ function displayRuleText(text) {
 }
 
 function resolveCareerEvent(rng, roll, stats, skills, career, spec, state, history, choices = {}) {
-  const entry = lookupRange(coreRules.rollTables.careerEvents.ranges, roll);
   const localEntry = localCareerEntry(career, 'events', roll);
-  const before = localEntry ? null : snapshotEffectState(stats, skills, state);
-  const generic = localEntry ? {} : applyRuleEffect(rng, entry.effect, stats, skills, career, spec, state, history);
-  const genericApplied = before ? diffEffectState(before, stats, skills, state) : [];
-  const raw = localEntry ? applyRawTableText(rng, localEntry.text, stats, skills, career, spec, state, history, 'event', choices) : {};
-  const localText = localEntry ? displayRuleText(localEntry.text) : null;
+  if (!localEntry) {
+    throw new Error(`Missing career-specific event text for ${career} event ${roll}`);
+  }
+  const raw = applyRawTableText(rng, localEntry.text, stats, skills, career, spec, state, history, 'event', choices);
+  const localText = raw.replacementText ?? displayRuleText(localEntry.text);
   return {
     roll,
-    label: localEntry ? summarizeLocalTableText(localText) : entry.label,
+    label: raw.replacementLabel ?? summarizeLocalTableText(localText),
     text: localText,
-    effect: localEntry ? null : entry.effect,
+    effect: null,
     source: 'event',
-    tableSource: localEntry ? 'local-pdf' : 'structured-fallback',
-    advancementDm: raw.advancementDm ?? generic.advancementDm ?? (entry.effect === 'advancement_bonus' || entry.effect === 'promotion_bonus' ? 2 : 0),
-    automaticPromotion: Boolean(raw.automaticPromotion || generic.automaticPromotion || (entry.effect === 'promotion_bonus' && roll === 12)),
+    tableSource: 'local-pdf',
+    advancementDm: raw.advancementDm ?? 0,
+    automaticPromotion: Boolean(raw.automaticPromotion),
     automaticCommission: Boolean(raw.automaticCommission),
     checks: raw.checks ?? [],
     nested: raw.nested ?? [],
-    applied: raw.applied ?? genericApplied,
+    applied: raw.applied ?? [],
   };
 }
 
@@ -1126,10 +1189,10 @@ function resolveMishap(rng, roll, stats, state, choices = {}) {
   const generic = localEntry ? {} : applyRuleEffect(rng, entry.effect, stats, state.skills ?? {}, state.career ?? 'Drifter', state.spec ?? 'Wanderer', state, []);
   const genericApplied = before ? diffEffectState(before, stats, state.skills ?? {}, state) : [];
   const raw = localEntry ? applyRawTableText(rng, localEntry.text, stats, state.skills ?? {}, state.career ?? 'Drifter', state.spec ?? 'Wanderer', state, [], 'mishap', choices) : {};
-  const localText = localEntry ? displayRuleText(localEntry.text) : null;
+  const localText = localEntry ? (raw.replacementText ?? displayRuleText(localEntry.text)) : null;
   return {
     roll,
-    label: localEntry ? summarizeLocalTableText(localText) : entry.label,
+    label: localEntry ? (raw.replacementLabel ?? summarizeLocalTableText(localText)) : entry.label,
     text: localText,
     effect: localEntry ? null : entry.effect,
     source: 'mishap',
@@ -1161,6 +1224,62 @@ function resolveLifeEvent(rng, stats, state) {
   };
   state.lifeEvents?.push(event);
   return event;
+}
+
+function resolveWartimeEvent(rng, stats, skills, career, spec, state, history) {
+  const roll = d6(rng, 2);
+  const localEntry = localWartimeEventEntry(roll);
+  if (!localEntry) {
+    return {
+      roll,
+      label: 'Wartime event',
+      text: 'Wartime event table not available.',
+      source: 'wartime_event',
+      tableSource: 'missing-local',
+      applied: [],
+      nested: [],
+    };
+  }
+  const raw = applyRawTableText(rng, localEntry.text, stats, skills, career, spec, state, history, 'wartime_event');
+  const localText = displayRuleText(localEntry.text);
+  return {
+    roll,
+    label: summarizeLocalTableText(localText),
+    text: localText,
+    source: 'wartime_event',
+    tableSource: 'local-pdf',
+    checks: raw.checks ?? [],
+    nested: raw.nested ?? [],
+    applied: raw.applied ?? [],
+  };
+}
+
+function resolveNavalEvent(rng, stats, skills, career, spec, state, history) {
+  const roll = d6(rng, 2);
+  const localEntry = localNavalEventEntry(roll);
+  if (!localEntry) {
+    return {
+      roll,
+      label: 'Naval event',
+      text: 'Naval event table not available.',
+      source: 'naval_event',
+      tableSource: 'missing-local',
+      applied: [],
+      nested: [],
+    };
+  }
+  const raw = applyRawTableText(rng, localEntry.text, stats, skills, career, spec, state, history, 'naval_event');
+  const localText = displayRuleText(localEntry.text);
+  return {
+    roll,
+    label: summarizeLocalTableText(localText),
+    text: localText,
+    source: 'naval_event',
+    tableSource: 'local-pdf',
+    checks: raw.checks ?? [],
+    nested: raw.nested ?? [],
+    applied: raw.applied ?? [],
+  };
 }
 
 function resolveInjury(rng, stats, state, forcedRoll = null) {
@@ -1210,9 +1329,19 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
   const pathText = choices.acceptRefuse === 'refuse'
     ? chooseRefusePath(branchRuleText(normalized, result.checks))
     : chooseOpportunityPath(branchRuleText(normalized, result.checks));
-  const effectText = isWagerOptional && choices.wagerOptional === false
+  let effectText = isWagerOptional && choices.wagerOptional === false
     ? normalized.replace(/If you wish[^.]+\.[^$]*/i, '').trim()
     : pathText;
+  const inlineOutcome = chooseInlineD6Outcome(rng, effectText);
+  if (inlineOutcome) {
+    effectText = inlineOutcome.text;
+    result.nested.push({
+      roll: inlineOutcome.roll,
+      label: summarizeLocalTableText(effectText),
+      text: displayRuleText(effectText),
+      source: `${source}_subtable`,
+    });
+  }
 
   applyAssociationEffects(rng, effectText, state);
   applyStatReductionEffects(rng, effectText, stats);
@@ -1245,7 +1374,17 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
     }
   }
 
-  if (/Unusual Event/i.test(effectText)) {
+  if (/Wartime Event|Wartime Events table/i.test(effectText)) {
+    const wartimeEvent = resolveWartimeEvent(rng, stats, skills, career, spec, state, history);
+    result.nested.push(wartimeEvent);
+    result.replacementLabel = `Wartime Event: ${wartimeEvent.label}`;
+    result.replacementText = `Resolved wartime event: ${wartimeEvent.label}.`;
+  } else if (/Naval Event|Naval Events table/i.test(effectText)) {
+    const navalEvent = resolveNavalEvent(rng, stats, skills, career, spec, state, history);
+    result.nested.push(navalEvent);
+    result.replacementLabel = `Naval Event: ${navalEvent.label}`;
+    result.replacementText = `Resolved naval event: ${navalEvent.label}.`;
+  } else if (/Unusual Event/i.test(effectText)) {
     result.nested.push(resolveUnusualLifeEvent(rng, stats, state));
   } else if (/life event/i.test(effectText)) {
     result.nested.push(resolveLifeEvent(rng, stats, state));
@@ -1260,7 +1399,7 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
       const nestedSpec = defaultSpec(nestedCareer);
       if (nestedSpec) {
         const nestedState = { ...state, depth: (state.depth ?? 0) + 1 };
-        result.nested.push(resolveCareerEvent(rng, d6(rng, 2), stats, skills, nestedCareer, nestedSpec, nestedState, history));
+        result.nested.push(resolveCareerEvent(rng, rollCareerTable(rng, nestedCareer, 'events').roll, stats, skills, nestedCareer, nestedSpec, nestedState, history));
         skillRoll(rng, stats, skills, nestedCareer, nestedSpec, history);
       }
     }
@@ -1269,7 +1408,7 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
       const nestedCareer = choice(rng, [careerMishapMatch[1], careerMishapMatch[2]].filter(Boolean));
       const nestedSpec = defaultSpec(nestedCareer);
       if (nestedSpec) {
-        result.nested.push(resolveMishap(rng, d6(rng), stats, {
+        result.nested.push(resolveMishap(rng, rollCareerTable(rng, nestedCareer, 'mishaps').roll, stats, {
           ...state,
           depth: (state.depth ?? 0) + 1,
           career: nestedCareer,
@@ -1280,11 +1419,11 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
     }
   }
   if (/roll on (?:the )?mishap table/i.test(effectText) && source !== 'mishap') {
-    const nested = resolveMishap(rng, d6(rng), stats, { ...state, career, spec, skills });
+    const nested = resolveMishap(rng, rollCareerTable(rng, career, 'mishaps').roll, stats, { ...state, career, spec, skills });
     result.nested.push(nested);
   }
 
-  const advancementMatch = effectText.match(/\+([124])\s*DM to (?:your |an )?(?:next )?Advancement/i);
+  const advancementMatch = effectText.match(/\+([124])\s*DM to (?:your |an )?(?:next )?(?:Advancement|promotion)/i);
   if (advancementMatch) {
     const isEitherAdv = /Either .+? or (?:take )?(?:a\s+)?\+?4 DM to/i.test(effectText);
     if (!isEitherAdv || choices.eitherPath !== 'skill') {
@@ -1297,10 +1436,16 @@ function applyRawTableText(rng, text, stats, skills, career, spec, state, histor
   if (qualificationMatch) state.pending.nextQualificationDm += Number.parseInt(qualificationMatch[1], 10);
   const survivalPenalty = effectText.match(/[−-]([12])\s*DM to (?:your )?next Survival/i);
   if (survivalPenalty) state.pending.nextSurvivalDm -= Number.parseInt(survivalPenalty[1], 10);
+  const survivalBonus = effectText.match(/\+([124])\s*DM (?:on|to) (?:your )?next Survival/i);
+  if (survivalBonus) state.pending.nextSurvivalDm += Number.parseInt(survivalBonus[1], 10);
   if (/must take the Draft/i.test(effectText)) state.pending.forceDraft = true;
   if (/may take the Rogue career for your next term without needing to roll for quali/i.test(effectText)) {
     state.pending.forceCareer = 'Rogue';
     state.pending.autoQualifyCareers.add('Rogue');
+  }
+  if (/automatically (?:become|join|enter|take) (?:the |a )?Psion(?:ist)?(?: career)? next term|take the Psionist\s+career next term/i.test(effectText)) {
+    state.pending.forceCareer = 'Psion';
+    state.pending.autoQualifyCareers.add('Psion');
   }
   if (/may not re-enlist in\s+the\s+Scouts/i.test(effectText)) state.pending.blockedCareers.add('Scout');
   if (/does not cause you to leave|you do not have to leave|not ejected from this career|may stay with/i.test(effectText)) result.continueCareer = true;
@@ -1314,6 +1459,25 @@ function requiresInjuryRoll(text) {
   return /roll (?:twice on |on |either [^.]* or [^.]* to avoid a roll on )(?:the )?Injury table/i.test(text)
     || /same as a result of 2 on the Injury table/i.test(text)
     || /\byou are injured\b/i.test(text);
+}
+
+function chooseInlineD6Outcome(rng, text) {
+  const normalized = String(text).replace(/\s+/g, ' ').trim();
+  const first = normalized.search(/\b1\s*[:.)]\s+/);
+  const second = normalized.search(/\b2\s*[:.)]\s+/);
+  if (first === -1 || second === -1 || second <= first) return null;
+  const roll = d6(rng);
+  const markers = [];
+  for (let value = 1; value <= 6; value += 1) {
+    const regex = new RegExp(`\\b${value}\\s*[:.)]\\s+`, 'g');
+    const match = regex.exec(normalized);
+    if (match) markers.push({ value, start: match.index, bodyStart: match.index + match[0].length });
+  }
+  if (markers.length < 2 || markers[0].value !== 1) return null;
+  const marker = markers.find((item) => item.value === roll) ?? markers[0];
+  const next = markers.find((item) => item.start > marker.start);
+  const outcome = normalized.slice(marker.bodyStart, next?.start ?? normalized.length).trim();
+  return outcome ? { roll: marker.value, text: outcome } : null;
 }
 
 function applyLifeEventRawEffect(rng, roll, stats, state) {
@@ -1380,6 +1544,15 @@ function applyAssociationEffects(rng, text, state) {
   if (/\bgain (?:an |a )?Ally\b/i.test(text) || /becomes an Ally/i.test(text) || /\bgain .+ as an Ally\b/i.test(text) || /\b(?:as well as|and) an? Ally\b/i.test(text)) state.contacts.push('Ally');
   if (/\bgain (?:a )?Contact\b/i.test(text) || /gain .* as a Contact/i.test(text) || /\b(?:as well as|and) an? Contact\b/i.test(text)) state.contacts.push('Contact');
   if (/Patron/i.test(text)) state.contacts.push('Patron');
+  if (/\bGain an? Addiction\b|\bdevelop an? .*addiction\b|\bhave an addiction\b/i.test(text)) state.awards?.push('Addiction');
+  if (/\bGain (?:a )?Secret\b|\bdiscover (?:a )?.*secret\b|\bgain .*dark secret\b/i.test(text)) state.awards?.push('Secret');
+  if (/lose any Addictions/i.test(text) && state.awards) {
+    let index = state.awards.indexOf('Addiction');
+    while (index !== -1) {
+      state.awards.splice(index, 1);
+      index = state.awards.indexOf('Addiction');
+    }
+  }
 }
 
 function applyStatReductionEffects(rng, text, stats) {
@@ -1391,7 +1564,7 @@ function applyStatReductionEffects(rng, text, stats) {
 }
 
 function applyStatGainLossEffects(rng, text, stats) {
-  const gainSoc = text.match(/gain one Social Standing|gain 1 Social Standing/i);
+  const gainSoc = text.match(/gain one Social Standing|gain 1 Social Standing|increase (?:your )?Social Standing by 1|add \+1 to Social Standing/i);
   if (gainSoc) stats.Soc += 1;
   const loseSoc = text.match(/lose one Social Standing|reduce your Social Standing by ([12])|reduce Social Standing by ([12])/i);
   if (loseSoc) stats.Soc = Math.max(1, stats.Soc - (Number.parseInt(loseSoc[1] ?? loseSoc[2], 10) || 1));
@@ -1400,12 +1573,25 @@ function applyStatGainLossEffects(rng, text, stats) {
     const stat = choice(rng, PHYSICAL_STATS);
     stats[stat] = Math.max(1, stats[stat] - Number.parseInt(losePhysical[1], 10));
   }
+  const loseNamed = text.match(/Lose one point of (Strength|Dexterity|Endurance|Intelligence|Education|Social Standing)|Lose 1 (Str|Dex|End|Int|Edu|Soc)/i);
+  if (loseNamed) {
+    const stat = chooseStatFromText(rng, loseNamed[1] ?? loseNamed[2]);
+    stats[stat] = Math.max(1, stats[stat] - 1);
+  }
+  const gainNamed = text.match(/Gain one (Strength|Dexterity|Endurance|Intelligence|Education|Social Standing)|Gain \+?1 (Str|Dex|End|Int|Edu|Soc)|Gain \+1 to (Str|Dex|End|Int|Edu|Soc|Strength|Dexterity|Endurance|Intelligence|Education|Social Standing)/i);
+  if (gainNamed) {
+    const stat = chooseStatFromText(rng, gainNamed[1] ?? gainNamed[2] ?? gainNamed[3]);
+    stats[stat] += 1;
+  }
+  const raiseSoc = text.match(/raise Social Standing to (\d+)/i);
+  if (raiseSoc) stats.Soc = Math.max(stats.Soc, Number.parseInt(raiseSoc[1], 10));
 }
 
 function applySkillEffects(rng, text, skills, career, spec, history, choices = {}) {
   const isEitherAdv = /Either .+? or (?:take )?(?:a\s+)?\+?4 DM to/i.test(text);
 
-  const oneOf = text.match(/Gain one of ([^.]+?)(?:\.|,\s*as well|, but|, and| or a Contact|$)/i);
+  const oneOf = text.match(/Gain one of ([^.]+?)(?:\.|,\s*as well|, but|, and| or a Contact|$)/i)
+    ?? text.match(/Gain either ([^.]+?)(?:\.|,\s*as well|, but|, and|$)/i);
   if (oneOf) {
     const options = extractSkillOptions(oneOf[1]);
     const picked = choices.gainOneOf && options.includes(choices.gainOneOf) ? choices.gainOneOf : choice(rng, options);
@@ -1443,15 +1629,30 @@ function applySkillEffects(rng, text, skills, career, spec, history, choices = {
   if (anyChoice) {
     skillRoll(rng, {}, skills, career, spec, history);
   }
+  if (/Gain any extra skill|gain an extra skill/i.test(text)) {
+    skillRoll(rng, {}, skills, career, spec, history);
+  }
+  const gainedSkillList = text.match(/\bGain\s+((?:(?:[A-Z][A-Za-z +'-]+(?:\s*\([^)]*\))?)(?:\s*,\s*|\s+or\s+|$)){2,})/);
+  if (gainedSkillList && !/Contact|Ally|Enemy|Rival|Benefit|Addiction|Secret|Social Standing|^\+/.test(gainedSkillList[1])) {
+    const options = extractSkillOptions(gainedSkillList[1]);
+    const picked = choices.gainOneOf && options.includes(choices.gainOneOf) ? choices.gainOneOf : choice(rng, options);
+    if (picked) gainSkillFromText(rng, skills, picked);
+  }
+  const bareSkill = text.match(/\bGain\s+([A-Z][A-Za-z +'-]+(?:\s*\([^)]*\))?)\s*[.!]?$/);
+  if (bareSkill && isSkillLike(bareSkill[1])) {
+    gainSkillFromText(rng, skills, bareSkill[1]);
+  }
 }
 
 function applyBenefitEffects(text, state) {
   if (!state.currentSegment) return;
-  if (/\+([12])\s*DM to any one Benefit roll/i.test(text)) {
-    state.currentSegment.benefitDm += Number.parseInt(text.match(/\+([12])\s*DM to any one Benefit roll/i)[1], 10);
+  const benefitDm = text.match(/\+([124])\s*DM to (?:any one |one of your |your |next )?(?:Cash )?Benefits? roll/i)
+    ?? text.match(/gain \+([124])\s*DM to (?:any one |one of your |your |next )?(?:Cash )?Benefits? roll/i);
+  if (benefitDm) {
+    state.currentSegment.benefitDm += Number.parseInt(benefitDm[1], 10);
   }
-  if (/extra Benefit roll/i.test(text)) state.currentSegment.extraBenefitRolls += 1;
-  if (/lose one Benefit roll|Lose one Bene/i.test(text)) state.currentSegment.lostBenefitRolls += 1;
+  if (/extra Benefit roll|additional Benefit roll|additional roll on the Cash section/i.test(text)) state.currentSegment.extraBenefitRolls += 1;
+  if (/lose one Benefit roll|Lose one Bene|lose a Benefit/i.test(text)) state.currentSegment.lostBenefitRolls += 1;
   if (/lose all Benefit rolls from this career/i.test(text)) state.currentSegment.lostBenefitRolls += 99;
   if (/keep (?:your |the )?Benefit roll|retain this term.?s Benefit roll|may keep your benefit roll/i.test(text)) {
     state.currentSegment.keepFailedTermBenefit = true;
@@ -1463,7 +1664,7 @@ function resolveChecksFromText(rng, text, stats, skills) {
   const regex = /\b([A-Z][A-Za-z /()'-]+?)\s+(\d{1,2})\+/g;
   let match = regex.exec(text);
   while (match) {
-    const skill = normalizeSkillName(match[1]);
+    const skill = normalizeSkillName(match[1]).replace(/\s*\(any\)/gi, '');
     if (!['If', 'Roll', 'Throw', 'Benefit', 'Soc'].includes(skill)) {
       const target = Number.parseInt(match[2], 10);
       const roll = d6(rng, 2);
@@ -1694,8 +1895,6 @@ function applyRuleEffect(rng, effect, stats, skills, career, spec, state, histor
     state.contacts?.push('Professional contact');
   } else if (effect === 'patron') {
     state.contacts?.push('Patron');
-  } else if (effect === 'award') {
-    state.awards?.push('Commendation');
   } else if (effect === 'enemy' || effect === 'rival') {
     state.enemies?.push(effect === 'enemy' ? 'Enemy' : 'Rival');
   } else if (effect === 'ally' || effect === 'ally_or_rival') {
@@ -1731,10 +1930,17 @@ function addRepeated(items, label, count) {
 function chooseStatFromText(rng, text) {
   const statMap = {
     Strength: 'Str',
+    Str: 'Str',
     Dexterity: 'Dex',
+    Dex: 'Dex',
     Endurance: 'End',
+    End: 'End',
     Intelligence: 'Int',
+    Int: 'Int',
+    Education: 'Edu',
+    Edu: 'Edu',
     'Social Standing': 'Soc',
+    Soc: 'Soc',
   };
   const stats = Object.entries(statMap)
     .filter(([label]) => text.includes(label))
@@ -1748,14 +1954,25 @@ function extractSkillOptions(text) {
     .split(/\s*,\s*|\s+or\s+|\s+and\s+/i)
     .map((item) => item.trim())
     .filter(Boolean)
+    .filter((item) => !/^(?:take\s+)?(?:a\s+)?\+?\d+\s*DM\b|Advancement|Benefit roll|Injury table|Mishap table|Life Events table/i.test(item))
     .filter((item) => !/^\+?\d+$/.test(item))
-    .map((item) => item.replace(/\s+1$/i, '').replace(/^one level in\s+/i, '').trim());
+    .map((item) => item.replace(/\s+1$/i, '').replace(/^one level in\s+/i, '').replace(/^either\s+/i, '').trim());
 }
 
 function gainSkillFromText(rng, skills, text) {
+  if (/(?:^|\s)(?:take\s+)?(?:a\s+)?\+?\d+\s*DM\b|Advancement|Benefit roll|Injury table|Mishap table|Life Events table/i.test(text)) return;
   const match = text.match(/^(.+?)\s+([01])$/);
   if (match) gainSkill(skills, resolveAwardedSkill(rng, skills, match[1]), Number.parseInt(match[2], 10));
   else gainSkill(skills, resolveAwardedSkill(rng, skills, text), 1);
+}
+
+function isSkillLike(text) {
+  const cleaned = normalizeSkillName(text);
+  if (!cleaned || /^(Contact|Ally|Enemy|Rival|Patron|Addiction|Secret|Benefit|Weapon|Armou?r|Combat Implant|Scientific Equipment)$/i.test(cleaned)) return false;
+  const base = specialtyBase(cleaned);
+  if (base && SKILL_SPECIALTIES[base]) return true;
+  return CORE_SKILLS.some((skill) => skill.toLowerCase() === cleaned.toLowerCase())
+    || /^(Network|Cover Identity|Lore|Gambling)$/i.test(cleaned);
 }
 
 function normalizeSkillName(text) {
@@ -2357,6 +2574,7 @@ export {
   shouldAttemptCommission,
   resolveMishap,
   resolveCareerEvent,
+  rollCareerTable,
   termRecord,
   blankTerm,
   rankRoll,

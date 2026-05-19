@@ -48,12 +48,9 @@ const DRAFT_TABLE = [
   ['Scout', null],
   ['Agent', 'Law Enforcement'],
 ];
-let localCareerTables = null;
-if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
-  const localCareerTableModules = import.meta.glob('../data/coreCareerTables.local.json', { eager: true });
-  const localMod = localCareerTableModules['../data/coreCareerTables.local.json'];
-  localCareerTables = localMod?.default ?? localMod ?? null;
-}
+const localCareerTableModules = import.meta.glob('../data/coreCareerTables.local.json', { eager: true });
+const localCareerTableMod = localCareerTableModules['../data/coreCareerTables.local.json'];
+const localCareerTables = localCareerTableMod?.default ?? localCareerTableMod ?? null;
 const EXPANSIONS = {
   psion: 'PSION',
   chthonianStars: 'CHTHONIAN_STARS',

@@ -77,7 +77,7 @@ function App() {
     personality: true, showHistory: false,
     expansions: { psion: false, chthonianStars: false, dilettante: false, agent: false, scoundrel: false, mercenary: false, highGuard: false, scoutBook: false, merchantPrince: false },
   });
-  const [character, setCharacter] = useState(() => generateCharacter(characterForm));
+  const [character, setCharacter] = useState(() => { try { return generateCharacter(characterForm); } catch { return null; } });
   const [spaceshipForm, setSpaceshipForm] = useState({ type: '', seed: '' });
   const [spaceship, setSpaceship] = useState(() => generateStandaloneSpaceship({}));
   const [worldForm, setWorldForm] = useState({ name: '', seed: '' });
@@ -91,7 +91,7 @@ function App() {
     if (active === 'Spaceship') return formatSpaceshipMarkdown(spaceship);
     if (active === 'World') return formatWorldMarkdown(world);
     if (active === 'Adventure') return formatAdventureMarkdown(adventure);
-    return formatCharacterMarkdown(character, characterForm.showHistory);
+    return character ? formatCharacterMarkdown(character, characterForm.showHistory) : '';
   }, [active, character, characterForm.showHistory, spaceship, world, adventure]);
 
   async function copyShareLink() {
@@ -99,7 +99,7 @@ function App() {
     if (active === 'Spaceship') seed = spaceship.seed;
     else if (active === 'World') seed = world.seed;
     else if (active === 'Adventure') seed = adventure.seed;
-    else seed = character.seed;
+    else seed = character?.seed ?? '';
     const url = new URL(window.location.href);
     url.search = new URLSearchParams({ tool: active.toLowerCase(), seed }).toString();
     try {
@@ -115,7 +115,7 @@ function App() {
     if (active === 'Spaceship') seed = spaceship.seed;
     else if (active === 'World') seed = world.seed;
     else if (active === 'Adventure') seed = adventure.seed;
-    else seed = character.seed;
+    else seed = character?.seed ?? '';
     const blob = new Blob([markdownText], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -145,11 +145,13 @@ function App() {
 
   function reroll() {
     if (active === 'Character') {
-      setCharacter(generateCharacter({
-        ...characterForm,
-        seed: '',
-        careerPlan: normalizeCareerPlan(characterForm.careerPlan, characterForm.terms),
-      }));
+      try {
+        setCharacter(generateCharacter({
+          ...characterForm,
+          seed: '',
+          careerPlan: normalizeCareerPlan(characterForm.careerPlan, characterForm.terms),
+        }));
+      } catch { /* local career data unavailable */ }
     } else if (active === 'Spaceship') {
       setSpaceship(generateStandaloneSpaceship({ ...spaceshipForm, seed: '' }));
     } else if (active === 'World') {
@@ -253,19 +255,23 @@ function App() {
               form={characterForm}
               setForm={setCharacterForm}
               onGenerate={(form) => {
-                setCharacter(generateCharacter({
-                  ...form,
-                  careerPlan: normalizeCareerPlan(form.careerPlan, form.terms),
-                }));
+                try {
+                  setCharacter(generateCharacter({
+                    ...form,
+                    careerPlan: normalizeCareerPlan(form.careerPlan, form.terms),
+                  }));
+                } catch { /* local career data unavailable */ }
                 setMessage('');
               }}
               onUpload={(seed) => {
                 const newForm = { ...characterForm, seed };
                 setCharacterForm(newForm);
-                setCharacter(generateCharacter({
-                  ...newForm,
-                  careerPlan: normalizeCareerPlan(newForm.careerPlan, newForm.terms),
-                }));
+                try {
+                  setCharacter(generateCharacter({
+                    ...newForm,
+                    careerPlan: normalizeCareerPlan(newForm.careerPlan, newForm.terms),
+                  }));
+                } catch { /* local career data unavailable */ }
               }}
               onMessage={setMessage}
             />
@@ -691,6 +697,8 @@ function CharacterOutput({ character, showHistory }) {
   const [health, setHealth] = useState(null);
 
   useEffect(() => { setHealth(null); }, [character]);
+
+  if (!character) return <p style={{ padding: '2rem', color: 'var(--text-3)' }}>Character generation requires local career data. Use the Build tab instead.</p>;
 
   const effectiveStats = health
     ? { ...character.stats, Str: health.Str, Dex: health.Dex, End: health.End }

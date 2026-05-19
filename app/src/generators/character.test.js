@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import coreRules from '../data/coreRules.json';
-import { buildCombatTable, choiceBenefit, formatCharacterText, generateCharacter } from './character.js';
+import {
+  CAREER_EXPANSIONS,
+  buildCombatTable,
+  careerCatalog,
+  choiceBenefit,
+  formatCharacterText,
+  generateCharacter,
+  extractSkillOptions,
+  getRawEventText,
+  resolveCareerEvent,
+} from './character.js';
 
 function backgroundAwards(character) {
   const end = character.history.indexOf('TERM 0');
@@ -11,6 +21,38 @@ function backgroundAwards(character) {
       const match = line.match(/ Learned (.+) 0 from (Homeworld|Education)\./);
       return { skill: match?.[1], source: match?.[2], line };
     });
+}
+
+function fixedD6(value) {
+  return () => (value - 0.5) / 6;
+}
+
+function eventState(overrides = {}) {
+  return {
+    contacts: [],
+    enemies: [],
+    awards: [],
+    injuries: [],
+    lifeEvents: [],
+    currentSegment: {
+      terms: 1,
+      benefitDm: 0,
+      extraBenefitRolls: 0,
+      lostBenefitRolls: 0,
+      keepFailedTermBenefit: false,
+    },
+    pending: {
+      nextQualificationDm: 0,
+      nextSurvivalDm: 0,
+      forceDraft: false,
+      forceCareer: null,
+      blockedCareers: new Set(),
+      autoQualifyCareers: new Set(),
+    },
+    creditsRef: () => 0,
+    setCredits: () => {},
+    ...overrides,
+  };
 }
 
 function weaponSkillBase(name) {
@@ -55,6 +97,7 @@ describe('character generator', () => {
     expect(character.resume.roles).toHaveLength(4);
     expect(character.events.length + character.mishaps.length).toBe(4);
     expect(character.events.every((event) => event.term && event.label)).toBe(true);
+    expect(character.events.every((event) => event.tableSource === 'local-pdf' && event.text)).toBe(true);
     expect(character.mishaps.every((mishap) => mishap.term && mishap.label)).toBe(true);
     expect(character.bio).toContain('trained in');
     expect(character.bio).toContain('Professionally,');
@@ -62,6 +105,59 @@ describe('character generator', () => {
     expect(character.equipment.every((item) => item.source)).toBe(true);
     expect(character.combat.every((item) => item.weapon && item.damage && Number.isFinite(item.attackDm))).toBe(true);
     expect(character.unresolved).toEqual([]);
+  });
+
+  it('only exposes careers with complete career-specific local event text', () => {
+    const expansions = Object.fromEntries(CAREER_EXPANSIONS.map((expansion) => [expansion.key, true]));
+    const catalog = careerCatalog(expansions);
+    const twoD6Rolls = Array.from({ length: 11 }, (_, index) => index + 2);
+    const d66Rolls = Array.from({ length: 6 }, (_, tens) =>
+      Array.from({ length: 6 }, (_, ones) => (tens + 1) * 10 + ones + 1)
+    ).flat();
+
+    for (const career of Object.keys(catalog)) {
+      const hasTwoD6Coverage = twoD6Rolls.every((roll) => getRawEventText(career, 'events', roll));
+      const hasD66Coverage = d66Rolls.every((roll) => getRawEventText(career, 'events', roll));
+      expect(hasTwoD6Coverage || hasD66Coverage, `${career} event table coverage`).toBe(true);
+    }
+  });
+
+  it('does not treat advancement DM options as skill options', () => {
+    const options = extractSkillOptions('Tactics (military) 1 or take a +4 DM to your next Advancement roll thanks to his aid 1');
+
+    expect(options).toEqual(['Tactics (military)']);
+  });
+
+  it('applies inline d6 event outcomes from local career text', () => {
+    const stats = { Str: 7, Dex: 7, End: 7, Int: 7, Edu: 7, Soc: 7, Psi: 7 };
+    const state = eventState({ career: 'Aristocrat', spec: 'Courtier', skills: {} });
+
+    const event = resolveCareerEvent(fixedD6(1), 61, stats, state.skills, 'Aristocrat', 'Courtier', state, []);
+
+    expect(stats.End).toBe(6);
+    expect(event.nested.some((nested) => nested.source === 'event_subtable' && nested.roll === 1)).toBe(true);
+    expect(event.applied).toContain('End 7 -> 6');
+  });
+
+  it('applies addiction, secret, extra skill, and psion outcomes from inline event subtables', () => {
+    const baseStats = { Str: 7, Dex: 7, End: 7, Int: 7, Edu: 7, Soc: 7, Psi: 7 };
+
+    const skillState = eventState({ career: 'Aristocrat', spec: 'Courtier', skills: {} });
+    resolveCareerEvent(fixedD6(3), 61, { ...baseStats }, skillState.skills, 'Aristocrat', 'Courtier', skillState, []);
+    expect(Object.keys(skillState.skills).length).toBeGreaterThan(0);
+
+    const addictionState = eventState({ career: 'Aristocrat', spec: 'Courtier', skills: {} });
+    resolveCareerEvent(fixedD6(4), 61, { ...baseStats }, addictionState.skills, 'Aristocrat', 'Courtier', addictionState, []);
+    expect(addictionState.awards).toContain('Addiction');
+
+    const secretState = eventState({ career: 'Aristocrat', spec: 'Courtier', skills: {} });
+    resolveCareerEvent(fixedD6(5), 61, { ...baseStats }, secretState.skills, 'Aristocrat', 'Courtier', secretState, []);
+    expect(secretState.awards).toContain('Secret');
+
+    const psionState = eventState({ career: 'Aristocrat', spec: 'Courtier', skills: {} });
+    resolveCareerEvent(fixedD6(6), 61, { ...baseStats }, psionState.skills, 'Aristocrat', 'Courtier', psionState, []);
+    expect(psionState.pending.forceCareer).toBe('Psion');
+    expect(psionState.pending.autoQualifyCareers.has('Psion')).toBe(true);
   });
 
   it('adds psionic powers when psionics are enabled', () => {

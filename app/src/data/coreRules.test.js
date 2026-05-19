@@ -15,7 +15,6 @@ describe('core rules data', () => {
 
   it('has complete non-overlapping roll coverage', () => {
     const expectations = {
-      careerEvents: [2, 12],
       careerMishaps: [1, 6],
       lifeEvents: [2, 12],
       injuries: [1, 6],
